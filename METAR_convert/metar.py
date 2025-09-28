@@ -1,0 +1,293 @@
+"""
+METAR Data Model for Aviation Weather Transformer
+
+This module defines the METAR data class for structured aviation weather observations.
+Based on aviationweather.gov API response format and ICAO standards.
+"""
+
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional, List, Dict, Any, Union
+import json
+
+
+@dataclass
+class CloudLayer:
+    """Represents a single cloud layer observation"""
+    coverage: str  # SKC, CLR, FEW, SCT, BKN, OVC
+    altitude_feet: Optional[int] = None  # Cloud base altitude in feet AGL
+    # CB (cumulonimbus), TCU (towering cumulus)
+    cloud_type: Optional[str] = None
+
+
+@dataclass
+class METAR:
+    """
+    METAR (Meteorological Aerodrome Report) data structure
+    
+    Represents structured aviation weather observations with human-readable property names.
+    All temperatures in Celsius, pressures in hPa, distances in kilometers unless specified.
+    """
+
+    # Station Information
+    station_id: str  # ICAO identifier (e.g., 'KMCI')
+    station_name: str  # Human readable name (e.g., 'Kansas City Intl, MO, US')
+    latitude: float  # Decimal degrees
+    longitude: float  # Decimal degrees
+    elevation_meters: int  # Station elevation in meters
+
+    # Timing Information
+    observation_time: datetime  # When observation was made (reportTime)
+    receipt_time: datetime  # When report was received by system
+    observation_timestamp: int  # Unix timestamp (obsTime)
+
+    # Temperature and Humidity
+    temperature_celsius: float  # Air temperature
+    dewpoint_celsius: float  # Dewpoint temperature
+
+    # Wind Information
+    wind_direction_degrees: Optional[int] = None  # True direction (0-360)
+    wind_speed_knots: Optional[int] = None  # Wind speed
+    wind_gust_knots: Optional[int] = None  # Gust speed if present
+    wind_variable: bool = False  # True if wind direction is variable
+
+    # Visibility
+    visibility: str = "10+"  # Visibility in statute miles or "10+" for 10+ miles
+    # Visibility in meters if available
+    visibility_meters: Optional[int] = None
+
+    # Pressure
+    altimeter_hpa: float = 0.0  # Altimeter setting in hPa
+    sea_level_pressure_hpa: Optional[float] = None  # Sea level pressure
+    pressure_tendency_hpa: Optional[float] = None  # 3-hour pressure change
+
+    # Sky Conditions
+    sky_coverage: str = "CLR"  # Overall sky coverage (CLR, FEW, SCT, BKN, OVC)
+    cloud_layers: List[CloudLayer] = None  # Detailed cloud layer information
+
+    # Flight Categories
+    flight_category: str = "VFR"  # VFR, MVFR, IFR, LIFR
+
+    # Temperature Extremes (if available)
+    max_temperature_celsius: Optional[float] = None  # 24-hour maximum
+    min_temperature_celsius: Optional[float] = None  # 24-hour minimum
+
+    # Weather Phenomena
+    present_weather: List[str] = None  # Current weather phenomena codes
+
+    # Quality Control
+    quality_control_field: Optional[int] = None  # QC flags
+
+    # Report Information
+    report_type: str = "METAR"  # METAR or SPECI
+    raw_observation: str = ""  # Original raw METAR text
+
+    def __post_init__(self):
+        """Initialize default values for mutable fields"""
+        if self.cloud_layers is None:
+            self.cloud_layers = []
+        if self.present_weather is None:
+            self.present_weather = []
+
+    @classmethod
+    def from_api_response(cls, data: Dict[str, Any]) -> 'METAR':
+        """
+        Create METAR object from Aviation Weather API JSON response
+        
+        Args:
+            data: Dictionary from API response containing METAR data
+            
+        Returns:
+            METAR object with populated fields
+        """
+        # Parse cloud layers
+        cloud_layers = []
+        if 'clouds' in data and data['clouds']:
+            for cloud in data['clouds']:
+                layer = CloudLayer(
+                    coverage=cloud.get('cover', ''),
+                    altitude_feet=cloud.get('base'),
+                    cloud_type=cloud.get('type')
+                )
+                cloud_layers.append(layer)
+
+        # Parse timestamps
+        observation_time = datetime.fromisoformat(
+            data['reportTime'].replace('Z', '+00:00')
+        ) if data.get('reportTime') else datetime.now()
+
+        receipt_time = datetime.fromisoformat(
+            data['receiptTime'].replace('Z', '+00:00')
+        ) if data.get('receiptTime') else datetime.now()
+
+        return cls(
+            # Station Information
+            station_id=data.get('icaoId', ''),
+            station_name=data.get('name', ''),
+            latitude=data.get('lat', 0.0),
+            longitude=data.get('lon', 0.0),
+            elevation_meters=data.get('elev', 0),
+
+            # Timing
+            observation_time=observation_time,
+            receipt_time=receipt_time,
+            observation_timestamp=data.get('obsTime', 0),
+
+            # Temperature and Humidity
+            temperature_celsius=data.get('temp', 0.0),
+            dewpoint_celsius=data.get('dewp', 0.0),
+
+            # Wind
+            wind_direction_degrees=data.get('wdir'),
+            wind_speed_knots=data.get('wspd'),
+            wind_gust_knots=data.get('wgst'),
+            wind_variable=data.get('wdir') is None,
+
+            # Visibility
+            visibility=str(data.get('visib', '10+')),
+
+            # Pressure
+            altimeter_hpa=data.get('altim', 0.0),
+            sea_level_pressure_hpa=data.get('slp'),
+            pressure_tendency_hpa=data.get('presTend'),
+
+            # Sky Conditions
+            sky_coverage=data.get('cover', 'CLR'),
+            cloud_layers=cloud_layers,
+
+            # Flight Category
+            flight_category=data.get('fltCat', 'VFR'),
+
+            # Temperature Extremes
+            max_temperature_celsius=data.get('maxT'),
+            min_temperature_celsius=data.get('minT'),
+
+            # Quality Control
+            quality_control_field=data.get('qcField'),
+
+            # Report Information
+            report_type=data.get('metarType', 'METAR'),
+            raw_observation=data.get('rawOb', '')
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert METAR object to dictionary for JSON serialization"""
+        result = {}
+
+        for field_name, field_value in self.__dict__.items():
+            if field_value is None:
+                continue
+
+            if isinstance(field_value, datetime):
+                result[field_name] = field_value.isoformat()
+            elif field_name == 'cloud_layers':
+                result[field_name] = [
+                    {
+                        'coverage': layer.coverage,
+                        'altitude_feet': layer.altitude_feet,
+                        'cloud_type': layer.cloud_type
+                    }
+                    for layer in field_value
+                ]
+            else:
+                result[field_name] = field_value
+
+        return result
+
+    def to_json(self, indent: int = 2) -> str:
+        """Convert METAR object to JSON string"""
+        return json.dumps(self.to_dict(), indent=indent, default=str)
+
+    def is_vfr(self) -> bool:
+        """Check if conditions are VFR (Visual Flight Rules)"""
+        return self.flight_category == 'VFR'
+
+    def is_ifr(self) -> bool:
+        """Check if conditions are IFR (Instrument Flight Rules)"""
+        return self.flight_category in ['IFR', 'LIFR']
+
+    def has_precipitation(self) -> bool:
+        """Check if precipitation is present"""
+        precip_codes = ['RA', 'SN', 'DZ', 'FZ', 'SH', 'TS']
+        return any(code in ' '.join(self.present_weather)
+                   for code in precip_codes)
+
+    def temperature_fahrenheit(self) -> float:
+        """Convert temperature to Fahrenheit"""
+        return (self.temperature_celsius * 9/5) + 32
+
+    def dewpoint_fahrenheit(self) -> float:
+        """Convert dewpoint to Fahrenheit"""
+        return (self.dewpoint_celsius * 9/5) + 32
+
+    def altimeter_inches_hg(self) -> float:
+        """Convert altimeter setting to inches of mercury"""
+        return self.altimeter_hpa * 0.02953
+
+    def wind_speed_mph(self) -> Optional[float]:
+        """Convert wind speed to miles per hour"""
+        if self.wind_speed_knots is None:
+            return None
+        return self.wind_speed_knots * 1.15078
+
+    def __str__(self) -> str:
+        """Human readable string representation"""
+        return (
+            f"METAR {self.station_id} ({self.station_name})\n"
+            f"Time: {self.observation_time.strftime('%Y-%m-%d %H:%M UTC')}\n"
+            f"Temp: {self.temperature_celsius}°C ({self.temperature_fahrenheit():.1f}°F)\n"
+            f"Wind: {self.wind_direction_degrees or 'VRB'}° at {self.wind_speed_knots or 0} kts\n"
+            f"Visibility: {self.visibility} SM\n"
+            f"Sky: {self.sky_coverage}\n"
+            f"Altimeter: {self.altimeter_hpa:.1f} hPa ({self.altimeter_inches_hg():.2f}\")\n"
+            f"Flight Category: {self.flight_category}\n"
+            f"Raw: {self.raw_observation}"
+        )
+
+
+# Example usage and testing
+if __name__ == "__main__":
+    # Example data from your JSON file
+    example_data = {
+        "icaoId": "KMCI",
+        "receiptTime": "2025-09-26T23:56:21.753Z",
+        "obsTime": 1758930780,
+        "reportTime": "2025-09-27T00:00:00.000Z",
+        "temp": 24.4,
+        "dewp": 13.3,
+        "wdir": 170,
+        "wspd": 4,
+        "visib": "10+",
+        "altim": 1012.6,
+        "slp": 1011.6,
+        "qcField": 12,
+        "presTend": -0.2,
+        "maxT": 28.3,
+        "minT": 24.4,
+        "metarType": "METAR",
+        "rawOb": "METAR KMCI 262353Z 17004KT 10SM CLR 24/13 A2990 RMK AO2 SLP116 T02440133 10283 20244 56002 $",
+        "lat": 39.2975,
+        "lon": -94.7309,
+        "elev": 308,
+        "name": "Kansas City Intl, MO, US",
+        "cover": "CLR",
+        "clouds": [],
+        "fltCat": "VFR"
+    }
+
+    # Create METAR object from API data
+    metar = METAR.from_api_response(example_data)
+
+    # Display the parsed data
+    print(metar)
+    print("\n" + "="*50 + "\n")
+
+    # Show JSON representation
+    print("JSON representation:")
+    print(metar.to_json())
+
+    # Show some utility methods
+    print(f"\nVFR conditions: {metar.is_vfr()}")
+    print(f"Temperature in Fahrenheit: {metar.temperature_fahrenheit():.1f}°F")
+    print(f"Wind speed in MPH: {metar.wind_speed_mph():.1f}" if metar.wind_speed_mph(
+    ) else "No wind data")

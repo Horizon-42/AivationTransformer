@@ -229,10 +229,16 @@ if __name__ == "__main__":
             metar_data = client.get_metar(
                 station_ids="KMCI",
                 hours_back=1.5,
-                date="202509270000"
+                date="202509270000",
+                format="json"
             )
             print("METAR Data:")
             print(metar_data['data'])
+
+            # write output to example_output.json in dir data
+            with open("../data/example_output.json", "w") as f:
+                f.write(metar_data['data'])
+
             print(f"Request URL: {metar_data['url']}")
 
             # Multiple stations
