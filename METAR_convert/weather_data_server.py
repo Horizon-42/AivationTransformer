@@ -18,7 +18,7 @@ class WeatherRequest:
     station_ids: Optional[List[str]] = None
     bbox: Optional[tuple] = None  # (lat_min, lon_min, lat_max, lon_max)
     format: str = 'raw'
-    include_taf: bool = False
+    include_taf: bool = True
     hours_back: float = 1.5
     date: Optional[str] = None  # Format: YYYYMMDDHHMM
 
@@ -227,19 +227,34 @@ if __name__ == "__main__":
         try:
             # Single station request (like your example)
             metar_data = client.get_metar(
-                station_ids="KMCI",
+                station_ids="KORD",
                 hours_back=1.5,
                 date="202509270000",
-                format="json"
-            )
+                format="json")
             print("METAR Data:")
             print(metar_data['data'])
 
             # write output to example_output.json in dir data
-            with open("../data/example_output.json", "w") as f:
-                f.write(metar_data['data'])
+            # with open("../data/metar_example_output.json", "w") as f:
+            #     f.write(metar_data['data'])
 
             print(f"Request URL: {metar_data['url']}")
+
+            # TAF same station
+            taf_data = client.get_taf(
+                station_ids="KORD",
+                hours_back=1.5,
+                date="202509270000",
+                format="json")
+            print("\nTAF Data:")
+            print(taf_data['data'])
+
+            with open("../data/taf_example_output.json", "w") as f:
+                f.write(taf_data['data'])
+
+            print(f"Request URL: {taf_data['url']}")
+            exit(0)
+
 
             # Multiple stations
             multi_station_data = client.get_metar(

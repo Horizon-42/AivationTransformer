@@ -1,0 +1,61 @@
+[
+    {
+        "icaoId": "KORD",
+        "receiptTime": "2025-09-26T23:56:26.019Z",
+        "obsTime": 1758930660,
+        "reportTime": "2025-09-27T00:00:00.000Z",
+        "temp": 25.6,
+        "dewp": 12.8,
+        "wdir": 180,
+        "wspd": 7,
+        "visib": "10+",
+        "altim": 1011.3,
+        "slp": 1010.8,
+        "qcField": 4,
+        "presTend": 0.1,
+        "maxT": 28.3,
+        "minT": 25.6,
+        "metarType": "METAR",
+        "rawOb": "METAR KORD 262351Z 18007KT 10SM FEW065 26/13 A2986 RMK AO2 SLP108 T02560128 10283 20256 53001",
+        "lat": 41.9602,
+        "lon": -87.9316,
+        "elev": 202,
+        "name": "Chicago/O'Hare Intl, IL, US",
+        "cover": "FEW",
+        "clouds": [
+            {
+                "cover": "FEW",
+                "base": 6500
+            }
+        ],
+        "fltCat": "VFR"
+    },
+    {
+        "icaoId": "KORD",
+        "receiptTime": "2025-09-26T22:56:16.431Z",
+        "obsTime": 1758927060,
+        "reportTime": "2025-09-26T23:00:00.000Z",
+        "temp": 27.2,
+        "dewp": 11.7,
+        "wdir": 190,
+        "wspd": 8,
+        "visib": "10+",
+        "altim": 1011.3,
+        "slp": 1010.6,
+        "qcField": 4,
+        "metarType": "METAR",
+        "rawOb": "METAR KORD 262251Z 19008KT 10SM FEW065 27/12 A2986 RMK AO2 SLP106 T02720117",
+        "lat": 41.9602,
+        "lon": -87.9316,
+        "elev": 202,
+        "name": "Chicago/O'Hare Intl, IL, US",
+        "cover": "FEW",
+        "clouds": [
+            {
+                "cover": "FEW",
+                "base": 6500
+            }
+        ],
+        "fltCat": "VFR"
+    }
+]

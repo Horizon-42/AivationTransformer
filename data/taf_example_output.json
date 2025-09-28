@@ -1,0 +1,128 @@
+[
+    {
+        "icaoId": "KORD",
+        "dbPopTime": "2025-09-26T23:20:42.176Z",
+        "bulletinTime": "2025-09-26T23:20:00.000Z",
+        "issueTime": "2025-09-26T23:20:00.000Z",
+        "validTimeFrom": 1758931200,
+        "validTimeTo": 1759039200,
+        "rawTAF": "TAF KORD 262320Z 2700/2806 20008KT P6SM FEW060 FM270200 VRB04KT P6SM SKC FM271500 26011KT P6SM FEW060 FM280100 25006KT P6SM FEW060",
+        "mostRecent": 0,
+        "remarks": "",
+        "lat": 41.96017,
+        "lon": -87.93161,
+        "elev": 202,
+        "prior": 0,
+        "name": "Chicago/O'Hare Intl",
+        "fcsts": [
+            {
+                "timeFrom": 1758931200,
+                "timeTo": 1758938400,
+                "timeBec": null,
+                "fcstChange": null,
+                "probability": null,
+                "wdir": 200,
+                "wspd": 8,
+                "wgst": null,
+                "wshearHgt": null,
+                "wshearDir": null,
+                "wshearSpd": null,
+                "visib": "6+",
+                "altim": null,
+                "vertVis": null,
+                "wxString": null,
+                "notDecoded": null,
+                "clouds": [
+                    {
+                        "cover": "FEW",
+                        "base": 6000,
+                        "type": null
+                    }
+                ],
+                "icgTurb": [],
+                "temp": []
+            },
+            {
+                "timeFrom": 1758938400,
+                "timeTo": 1758985200,
+                "timeBec": null,
+                "fcstChange": "FM",
+                "probability": null,
+                "wdir": "VRB",
+                "wspd": 4,
+                "wgst": null,
+                "wshearHgt": null,
+                "wshearDir": null,
+                "wshearSpd": null,
+                "visib": "6+",
+                "altim": null,
+                "vertVis": null,
+                "wxString": null,
+                "notDecoded": null,
+                "clouds": [
+                    {
+                        "cover": "SKC",
+                        "base": null,
+                        "type": null
+                    }
+                ],
+                "icgTurb": [],
+                "temp": []
+            },
+            {
+                "timeFrom": 1758985200,
+                "timeTo": 1759021200,
+                "timeBec": null,
+                "fcstChange": "FM",
+                "probability": null,
+                "wdir": 260,
+                "wspd": 11,
+                "wgst": null,
+                "wshearHgt": null,
+                "wshearDir": null,
+                "wshearSpd": null,
+                "visib": "6+",
+                "altim": null,
+                "vertVis": null,
+                "wxString": null,
+                "notDecoded": null,
+                "clouds": [
+                    {
+                        "cover": "FEW",
+                        "base": 6000,
+                        "type": null
+                    }
+                ],
+                "icgTurb": [],
+                "temp": []
+            },
+            {
+                "timeFrom": 1759021200,
+                "timeTo": 1759039200,
+                "timeBec": null,
+                "fcstChange": "FM",
+                "probability": null,
+                "wdir": 250,
+                "wspd": 6,
+                "wgst": null,
+                "wshearHgt": null,
+                "wshearDir": null,
+                "wshearSpd": null,
+                "visib": "6+",
+                "altim": null,
+                "vertVis": null,
+                "wxString": null,
+                "notDecoded": null,
+                "clouds": [
+                    {
+                        "cover": "FEW",
+                        "base": 6000,
+                        "type": null
+                    }
+                ],
+                "icgTurb": [],
+                "temp": []
+            }
+        ]
+    }
+]
