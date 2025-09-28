@@ -2,3 +2,21 @@ docs
 .DS_Store
 
 .github
+.vscode
+.idea
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.sqlite3
+*.log
+*.pot
+*.mo
+*.swp
+*~
+*.swo
