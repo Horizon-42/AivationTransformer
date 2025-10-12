@@ -3,12 +3,17 @@ TAF Data Model for Aviation Weather Transformer
 
 This module defines the TAF data class for structured aviation weather forecasts.
 Based on aviationweather.gov API response format and ICAO standards.
+
+Supports two parsing methods:
+1. from_api_response() - Parse from aviationweather.gov API JSON
+2. from_optimized_json() - Parse from Nav Canada optimized JSON structure
 """
 
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
 import json
+import re
 
 
 @dataclass
@@ -286,6 +291,281 @@ class TAF:
 
             # Forecasts
             forecast_periods=forecast_periods
+        )
+
+    @classmethod
+    def from_optimized_json(cls, bulletin: str, station_id: str = "", extraction_time: str = "") -> 'TAF':
+        """
+        Create TAF object from Nav Canada optimized JSON structure
+        
+        Args:
+            bulletin: Raw TAF bulletin text from Nav Canada
+            station_id: Station identifier (e.g., 'CYVR')
+            extraction_time: ISO timestamp when data was extracted
+            
+        Returns:
+            TAF object with populated fields parsed from raw bulletin
+            
+        Example:
+            data = json.load(open('optimized_example.json'))
+            for station, entries in data['weather_data']['TAF'].items():
+                for entry in entries:
+                    taf = TAF.from_optimized_json(
+                        entry['bulletin'], 
+                        station,
+                        entry['extraction_time']
+                    )
+        """
+        # Parse the raw TAF bulletin
+        raw_taf = bulletin.strip()
+
+        # Extract station ID from bulletin if not provided
+        if not station_id:
+            station_match = re.match(r'^TAF\s+([A-Z]{4})', raw_taf)
+            if station_match:
+                station_id = station_match.group(1)
+
+        # Parse issue time (DDHHMM format after station ID)
+        issue_time = None
+        time_match = re.search(
+            r'TAF\s+[A-Z]{4}\s+(\d{2})(\d{2})(\d{2})Z', raw_taf)
+        if time_match:
+            day = int(time_match.group(1))
+            hour = int(time_match.group(2))
+            minute = int(time_match.group(3))
+            now = datetime.now()
+            try:
+                issue_time = datetime(
+                    now.year, now.month, day, hour, minute, 0)
+            except ValueError:
+                issue_time = now
+
+        # Parse validity period (DDHH/DDHH format)
+        valid_from = None
+        valid_to = None
+        valid_from_timestamp = 0
+        valid_to_timestamp = 0
+
+        validity_match = re.search(r'(\d{2})(\d{2})/(\d{2})(\d{2})', raw_taf)
+        if validity_match:
+            from_day = int(validity_match.group(1))
+            from_hour = int(validity_match.group(2))
+            to_day = int(validity_match.group(3))
+            to_hour = int(validity_match.group(4))
+
+            now = datetime.now()
+            try:
+                valid_from = datetime(
+                    now.year, now.month, from_day, from_hour, 0, 0)
+                valid_to = datetime(now.year, now.month, to_day, to_hour, 0, 0)
+
+                # Handle month rollover
+                if to_day < from_day:
+                    if now.month == 12:
+                        valid_to = datetime(
+                            now.year + 1, 1, to_day, to_hour, 0, 0)
+                    else:
+                        valid_to = datetime(
+                            now.year, now.month + 1, to_day, to_hour, 0, 0)
+
+                valid_from_timestamp = int(valid_from.timestamp())
+                valid_to_timestamp = int(valid_to.timestamp())
+            except ValueError:
+                valid_from = now
+                valid_to = now
+
+        # Parse forecast periods
+        forecast_periods = []
+
+        # Split by FM (FROM), TEMPO, BECMG, PROB
+        # This is a simplified parser - full TAF parsing is complex
+        lines = raw_taf.split('\n')
+        current_period_text = ""
+
+        for line in lines:
+            # Check for period markers
+            if re.search(r'(FM\d{6}|TEMPO|BECMG|PROB\d{2})', line):
+                if current_period_text:
+                    # Parse previous period
+                    period = cls._parse_taf_period(
+                        current_period_text, valid_from, valid_to)
+                    if period:
+                        forecast_periods.append(period)
+                current_period_text = line
+            else:
+                current_period_text += " " + line
+
+        # Parse last period
+        if current_period_text:
+            period = cls._parse_taf_period(
+                current_period_text, valid_from, valid_to)
+            if period:
+                forecast_periods.append(period)
+
+        # Parse extraction time
+        database_time = datetime.now()
+        if extraction_time:
+            try:
+                database_time = datetime.fromisoformat(
+                    extraction_time.replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                pass
+
+        return cls(
+            # Station Information
+            station_id=station_id,
+            station_name=f"Station {station_id}",
+            latitude=0.0,
+            longitude=0.0,
+            elevation_meters=0,
+
+            # Timing
+            bulletin_time=issue_time or datetime.now(),
+            issue_time=issue_time or datetime.now(),
+            database_time=database_time,
+
+            # Validity
+            valid_from=valid_from or datetime.now(),
+            valid_to=valid_to or datetime.now(),
+            valid_from_timestamp=valid_from_timestamp,
+            valid_to_timestamp=valid_to_timestamp,
+
+            # Metadata
+            is_most_recent=True,
+            is_prior_version=False,
+            raw_taf=raw_taf,
+            remarks="",
+
+            # Forecasts
+            forecast_periods=forecast_periods
+        )
+
+    @staticmethod
+    def _parse_taf_period(period_text: str, taf_start: datetime, taf_end: datetime) -> Optional[TAFForecastPeriod]:
+        """
+        Parse a single TAF forecast period
+        
+        Args:
+            period_text: Text of the forecast period
+            taf_start: TAF validity start time
+            taf_end: TAF validity end time
+            
+        Returns:
+            TAFForecastPeriod object or None if parsing fails
+        """
+        if not period_text.strip():
+            return None
+
+        # Parse change type
+        change_type = None
+        probability = None
+
+        if 'FM' in period_text:
+            change_type = 'FM'
+        elif 'TEMPO' in period_text:
+            change_type = 'TEMPO'
+        elif 'BECMG' in period_text:
+            change_type = 'BECMG'
+        elif 'PROB' in period_text:
+            change_type = 'PROB'
+            prob_match = re.search(r'PROB(\d{2})', period_text)
+            if prob_match:
+                probability = int(prob_match.group(1))
+
+        # Parse period time
+        period_start = taf_start
+        period_end = taf_end
+
+        # FM format: FM270200 (DDHHMM)
+        fm_match = re.search(r'FM(\d{2})(\d{2})(\d{2})', period_text)
+        if fm_match:
+            day = int(fm_match.group(1))
+            hour = int(fm_match.group(2))
+            minute = int(fm_match.group(3))
+            try:
+                period_start = datetime(
+                    taf_start.year, taf_start.month, day, hour, minute, 0)
+            except ValueError:
+                pass
+
+        # TEMPO/BECMG format: TEMPO 1215/1224 (DDHH/DDHH)
+        temp_match = re.search(r'(\d{2})(\d{2})/(\d{2})(\d{2})', period_text)
+        if temp_match and change_type in ['TEMPO', 'BECMG']:
+            from_day = int(temp_match.group(1))
+            from_hour = int(temp_match.group(2))
+            to_day = int(temp_match.group(3))
+            to_hour = int(temp_match.group(4))
+            try:
+                period_start = datetime(
+                    taf_start.year, taf_start.month, from_day, from_hour, 0, 0)
+                period_end = datetime(
+                    taf_start.year, taf_start.month, to_day, to_hour, 0, 0)
+            except ValueError:
+                pass
+
+        # Parse wind (e.g., 27010KT, VRB04KT, 36010G20KT)
+        wind_dir = None
+        wind_speed = None
+        wind_gust = None
+
+        wind_match = re.search(
+            r'(VRB|[0-9]{3})([0-9]{2,3})(G([0-9]{2,3}))?KT', period_text)
+        if wind_match:
+            if wind_match.group(1) == 'VRB':
+                wind_dir = 'VRB'
+            else:
+                wind_dir = int(wind_match.group(1))
+            wind_speed = int(wind_match.group(2))
+            if wind_match.group(4):
+                wind_gust = int(wind_match.group(4))
+
+        # Parse visibility (e.g., P6SM, 5SM, 3/4SM)
+        visibility = "6+"
+        vis_match = re.search(r'P?(\d+(/\d+)?SM|\d+SM)', period_text)
+        if vis_match:
+            vis_str = vis_match.group(0)
+            if vis_str.startswith('P'):
+                visibility = vis_str[1:].replace('SM', '') + "+"
+            else:
+                visibility = vis_str.replace('SM', '')
+
+        # Parse sky conditions
+        cloud_layers = []
+        cloud_matches = re.findall(
+            r'(SKC|CLR|FEW|SCT|BKN|OVC)(\d{3})?(CB|TCU)?', period_text)
+        for match in cloud_matches:
+            coverage = match[0]
+            altitude = int(match[1]) * 100 if match[1] else None
+            cloud_type = match[2] if match[2] else None
+
+            cloud_layers.append(TAFCloudLayer(
+                coverage=coverage,
+                base_altitude_feet=altitude,
+                cloud_type=cloud_type
+            ))
+
+        # Parse weather phenomena (e.g., -SHRA, TSRA, BR)
+        weather_phenomena = None
+        wx_codes = ['RA', 'SN', 'DZ', 'FZ', 'SH', 'TS', 'BR',
+                    'FG', 'HZ', 'VA', 'DU', 'SA', 'PL', 'GR', 'GS']
+        for wx in wx_codes:
+            if wx in period_text:
+                weather_phenomena = wx
+                break
+
+        return TAFForecastPeriod(
+            valid_from=period_start,
+            valid_to=period_end,
+            valid_from_timestamp=int(period_start.timestamp()),
+            valid_to_timestamp=int(period_end.timestamp()),
+            forecast_change_type=change_type,
+            probability_percent=probability,
+            wind_direction_degrees=wind_dir,
+            wind_speed_knots=wind_speed,
+            wind_gust_knots=wind_gust,
+            visibility=visibility,
+            weather_phenomena=weather_phenomena,
+            cloud_layers=cloud_layers
         )
 
     def to_dict(self) -> Dict[str, Any]:

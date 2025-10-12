@@ -1,0 +1,38 @@
+{
+  "CYVR": [
+    {
+      "station_id": "CYVR",
+      "station_name": "Station CYVR",
+      "latitude": 0.0,
+      "longitude": 0.0,
+      "elevation_meters": 0,
+      "observation_time": "2025-10-12T16:00:00",
+      "receipt_time": "2025-10-12T16:46:42.592924+00:00",
+      "observation_timestamp": 1760277600,
+      "temperature_celsius": 10.0,
+      "dewpoint_celsius": 6.0,
+      "wind_direction_degrees": 130,
+      "wind_speed_knots": 5,
+      "wind_variable": false,
+      "visibility": "20",
+      "altimeter_hpa": 1009.821498,
+      "sky_coverage": "OVC",
+      "cloud_layers": [
+        {
+          "coverage": "BKN",
+          "altitude_feet": 2800,
+          "cloud_type": null
+        },
+        {
+          "coverage": "OVC",
+          "altitude_feet": 5400,
+          "cloud_type": null
+        }
+      ],
+      "flight_category": "MVFR",
+      "present_weather": [],
+      "report_type": "METAR",
+      "raw_observation": "METAR CYVR 121600Z 13005KT 20SM BKN028 OVC054 10/06 A2982 RMK SC7SC1 SLP101="
+    }
+  ]
+}

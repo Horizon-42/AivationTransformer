@@ -1,0 +1,139 @@
+{
+  "CYVR": [
+    {
+      "station_id": "CYVR",
+      "station_name": "Station CYVR",
+      "latitude": 0.0,
+      "longitude": 0.0,
+      "elevation_meters": 0,
+      "bulletin_time": "2025-10-12T14:40:00",
+      "issue_time": "2025-10-12T14:40:00",
+      "database_time": "2025-10-12T16:46:42.603961+00:00",
+      "valid_from": "2025-10-12T15:00:00",
+      "valid_to": "2025-10-13T18:00:00",
+      "valid_from_timestamp": 1760274000,
+      "valid_to_timestamp": 1760371200,
+      "is_most_recent": true,
+      "is_prior_version": false,
+      "raw_taf": "TAF CYVR 121440Z\n1215/1318 27010KT P6SM SCT030 BKN050\n  TEMPO 1215/1224 5SM \u2212SHRA BR BKN020\nFM130000 31012KT P6SM BKN080\n  TEMPO 1300/1303 SCT090\nFM130300 36010KT P6SM SCT090\nFM131500 34008KT P6SM SKC\nRMK NXT FCST BY 121800Z=",
+      "remarks": "",
+      "forecast_periods": [
+        {
+          "valid_from": "2025-10-12T15:00:00",
+          "valid_to": "2025-10-13T18:00:00",
+          "valid_from_timestamp": 1760274000,
+          "valid_to_timestamp": 1760371200,
+          "wind_direction_degrees": 270,
+          "wind_speed_knots": 10,
+          "visibility": "6+",
+          "cloud_layers": [
+            {
+              "coverage": "SCT",
+              "base_altitude_feet": 3000,
+              "cloud_type": null
+            },
+            {
+              "coverage": "BKN",
+              "base_altitude_feet": 5000,
+              "cloud_type": null
+            }
+          ],
+          "icing_turbulence": [],
+          "temperature_forecasts": []
+        },
+        {
+          "valid_from": "2025-10-12T15:00:00",
+          "valid_to": "2025-10-13T18:00:00",
+          "valid_from_timestamp": 1760274000,
+          "valid_to_timestamp": 1760371200,
+          "forecast_change_type": "TEMPO",
+          "visibility": "5",
+          "weather_phenomena": "RA",
+          "cloud_layers": [
+            {
+              "coverage": "BKN",
+              "base_altitude_feet": 2000,
+              "cloud_type": null
+            }
+          ],
+          "icing_turbulence": [],
+          "temperature_forecasts": []
+        },
+        {
+          "valid_from": "2025-10-13T00:00:00",
+          "valid_to": "2025-10-13T18:00:00",
+          "valid_from_timestamp": 1760306400,
+          "valid_to_timestamp": 1760371200,
+          "forecast_change_type": "FM",
+          "wind_direction_degrees": 310,
+          "wind_speed_knots": 12,
+          "visibility": "6+",
+          "cloud_layers": [
+            {
+              "coverage": "BKN",
+              "base_altitude_feet": 8000,
+              "cloud_type": null
+            }
+          ],
+          "icing_turbulence": [],
+          "temperature_forecasts": []
+        },
+        {
+          "valid_from": "2025-10-13T00:00:00",
+          "valid_to": "2025-10-13T03:00:00",
+          "valid_from_timestamp": 1760306400,
+          "valid_to_timestamp": 1760317200,
+          "forecast_change_type": "TEMPO",
+          "visibility": "6+",
+          "cloud_layers": [
+            {
+              "coverage": "SCT",
+              "base_altitude_feet": 9000,
+              "cloud_type": null
+            }
+          ],
+          "icing_turbulence": [],
+          "temperature_forecasts": []
+        },
+        {
+          "valid_from": "2025-10-13T03:00:00",
+          "valid_to": "2025-10-13T18:00:00",
+          "valid_from_timestamp": 1760317200,
+          "valid_to_timestamp": 1760371200,
+          "forecast_change_type": "FM",
+          "wind_direction_degrees": 360,
+          "wind_speed_knots": 10,
+          "visibility": "6+",
+          "cloud_layers": [
+            {
+              "coverage": "SCT",
+              "base_altitude_feet": 9000,
+              "cloud_type": null
+            }
+          ],
+          "icing_turbulence": [],
+          "temperature_forecasts": []
+        },
+        {
+          "valid_from": "2025-10-13T15:00:00",
+          "valid_to": "2025-10-13T18:00:00",
+          "valid_from_timestamp": 1760360400,
+          "valid_to_timestamp": 1760371200,
+          "forecast_change_type": "FM",
+          "wind_direction_degrees": 340,
+          "wind_speed_knots": 8,
+          "visibility": "6+",
+          "cloud_layers": [
+            {
+              "coverage": "SKC",
+              "base_altitude_feet": null,
+              "cloud_type": null
+            }
+          ],
+          "icing_turbulence": [],
+          "temperature_forecasts": []
+        }
+      ]
+    }
+  ]
+}

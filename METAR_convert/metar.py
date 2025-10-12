@@ -3,12 +3,17 @@ METAR Data Model for Aviation Weather Transformer
 
 This module defines the METAR data class for structured aviation weather observations.
 Based on aviationweather.gov API response format and ICAO standards.
+
+Supports two parsing methods:
+1. from_api_response() - Parse from aviationweather.gov API JSON
+2. from_optimized_json() - Parse from Nav Canada optimized JSON structure
 """
 
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
 import json
+import re
 
 
 @dataclass
@@ -168,6 +173,210 @@ class METAR:
             # Report Information
             report_type=data.get('metarType', 'METAR'),
             raw_observation=data.get('rawOb', '')
+        )
+
+    @classmethod
+    def from_optimized_json(cls, bulletin: str, station_id: str = "", extraction_time: str = "") -> 'METAR':
+        """
+        Create METAR object from Nav Canada optimized JSON structure
+        
+        Args:
+            bulletin: Raw METAR bulletin text from Nav Canada
+            station_id: Station identifier (e.g., 'CYVR')
+            extraction_time: ISO timestamp when data was extracted
+            
+        Returns:
+            METAR object with populated fields parsed from raw bulletin
+            
+        Example:
+            data = json.load(open('optimized_example.json'))
+            for station, entries in data['weather_data']['METAR'].items():
+                for entry in entries:
+                    metar = METAR.from_optimized_json(
+                        entry['bulletin'], 
+                        station,
+                        entry['extraction_time']
+                    )
+        """
+        # Parse the raw METAR bulletin
+        raw_metar = bulletin.strip()
+
+        # Extract station ID from bulletin if not provided
+        if not station_id:
+            station_match = re.match(r'^METAR\s+([A-Z]{4})', raw_metar)
+            if station_match:
+                station_id = station_match.group(1)
+
+        # Parse observation time (DDHHMM format)
+        obs_time = None
+        obs_timestamp = 0
+        time_match = re.search(r'(\d{2})(\d{2})(\d{2})Z', raw_metar)
+        if time_match:
+            day = int(time_match.group(1))
+            hour = int(time_match.group(2))
+            minute = int(time_match.group(3))
+            # Use current month/year as approximation
+            now = datetime.now()
+            try:
+                obs_time = datetime(now.year, now.month, day, hour, minute, 0)
+                obs_timestamp = int(obs_time.timestamp())
+            except ValueError:
+                obs_time = now
+                obs_timestamp = int(now.timestamp())
+
+        # Parse wind (e.g., 13005KT, VRB03KT, 36010G20KT)
+        wind_dir = None
+        wind_speed = None
+        wind_gust = None
+        wind_variable = False
+
+        wind_match = re.search(
+            r'(VRB|[0-9]{3})([0-9]{2,3})(G([0-9]{2,3}))?KT', raw_metar)
+        if wind_match:
+            if wind_match.group(1) == 'VRB':
+                wind_variable = True
+                wind_dir = None
+            else:
+                wind_dir = int(wind_match.group(1))
+            wind_speed = int(wind_match.group(2))
+            if wind_match.group(4):
+                wind_gust = int(wind_match.group(4))
+
+        # Parse visibility (e.g., 20SM, 10SM, 3/4SM)
+        visibility = "10+"
+        vis_match = re.search(r'\s(\d+(/\d+)?SM|P6SM)\s', raw_metar)
+        if vis_match:
+            visibility = vis_match.group(1).replace('SM', '')
+        elif 'P6SM' in raw_metar:
+            visibility = "6+"
+        elif re.search(r'\s(\d+)SM\s', raw_metar):
+            vis_match = re.search(r'\s(\d+)SM\s', raw_metar)
+            visibility = vis_match.group(1)
+
+        # Parse temperature and dewpoint (e.g., 10/06, M02/M05)
+        temp_celsius = 0.0
+        dewpoint_celsius = 0.0
+        temp_match = re.search(r'\s(M?\d{2})/(M?\d{2})\s', raw_metar)
+        if temp_match:
+            temp_str = temp_match.group(1)
+            dewp_str = temp_match.group(2)
+            temp_celsius = - \
+                float(temp_str[1:]) if temp_str.startswith(
+                    'M') else float(temp_str)
+            dewpoint_celsius = - \
+                float(dewp_str[1:]) if dewp_str.startswith(
+                    'M') else float(dewp_str)
+
+        # Parse altimeter (e.g., A2982, Q1013)
+        altimeter_hpa = 0.0
+        alt_match = re.search(r'A(\d{4})', raw_metar)
+        if alt_match:
+            # Convert inches Hg to hPa
+            inches_hg = int(alt_match.group(1)) / 100.0
+            altimeter_hpa = inches_hg * 33.8639
+        else:
+            # Try Q format (hPa directly)
+            q_match = re.search(r'Q(\d{4})', raw_metar)
+            if q_match:
+                altimeter_hpa = float(q_match.group(1))
+
+        # Parse sky conditions
+        sky_coverage = "CLR"
+        cloud_layers = []
+
+        # Look for cloud codes (SKC, CLR, FEW, SCT, BKN, OVC)
+        cloud_matches = re.findall(
+            r'(SKC|CLR|NSC|FEW|SCT|BKN|OVC)(\d{3})?(CB|TCU)?', raw_metar)
+        if cloud_matches:
+            for match in cloud_matches:
+                coverage = match[0]
+                altitude = int(match[1]) * 100 if match[1] else None
+                cloud_type = match[2] if match[2] else None
+
+                cloud_layers.append(CloudLayer(
+                    coverage=coverage,
+                    altitude_feet=altitude,
+                    cloud_type=cloud_type
+                ))
+
+                # Set overall sky coverage to worst condition
+                if coverage in ['OVC', 'BKN']:
+                    sky_coverage = coverage
+                elif coverage in ['SCT', 'FEW'] and sky_coverage == 'CLR':
+                    sky_coverage = coverage
+
+        # Determine flight category (simplified)
+        flight_category = "VFR"
+        try:
+            vis_num = float(visibility.replace('SM', '').replace('+', ''))
+            if vis_num < 1:
+                flight_category = "LIFR"
+            elif vis_num < 3:
+                flight_category = "IFR"
+            elif vis_num < 5:
+                flight_category = "MVFR"
+        except ValueError:
+            pass
+
+        # Check ceiling for flight category
+        for layer in cloud_layers:
+            if layer.coverage in ['BKN', 'OVC'] and layer.altitude_feet:
+                if layer.altitude_feet < 500:
+                    flight_category = "LIFR"
+                elif layer.altitude_feet < 1000:
+                    flight_category = "IFR"
+                elif layer.altitude_feet < 3000:
+                    flight_category = "MVFR"
+
+        # Parse extraction time
+        receipt_time = datetime.now()
+        if extraction_time:
+            try:
+                receipt_time = datetime.fromisoformat(
+                    extraction_time.replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                pass
+
+        return cls(
+            # Station Information
+            station_id=station_id,
+            # Name not available from raw METAR
+            station_name=f"Station {station_id}",
+            latitude=0.0,  # Not available from raw METAR
+            longitude=0.0,  # Not available from raw METAR
+            elevation_meters=0,  # Not available from raw METAR
+
+            # Timing
+            observation_time=obs_time or datetime.now(),
+            receipt_time=receipt_time,
+            observation_timestamp=obs_timestamp,
+
+            # Temperature and Humidity
+            temperature_celsius=temp_celsius,
+            dewpoint_celsius=dewpoint_celsius,
+
+            # Wind
+            wind_direction_degrees=wind_dir,
+            wind_speed_knots=wind_speed,
+            wind_gust_knots=wind_gust,
+            wind_variable=wind_variable,
+
+            # Visibility
+            visibility=visibility,
+
+            # Pressure
+            altimeter_hpa=altimeter_hpa,
+
+            # Sky Conditions
+            sky_coverage=sky_coverage,
+            cloud_layers=cloud_layers,
+
+            # Flight Category
+            flight_category=flight_category,
+
+            # Report Information
+            report_type="METAR",
+            raw_observation=raw_metar
         )
 
     def to_dict(self) -> Dict[str, Any]:
