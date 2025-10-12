@@ -1,14 +1,15 @@
 """
 Simple Nav Canada Weather Client
 
-This is a simplified version that just extracts the search results as they appear:
-- Metadata column content as keys
-- Bulletin column content as values
-- No complex parsing or data structure transformations
+Optimized version that organizes data by type and station:
+- METAR/TAF/NOTAM grouped by station
+- Upper Wind as a list (covers multiple stations)
+- Easy to parse and work with
 """
 
 import time
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any
@@ -27,9 +28,9 @@ class NavCanadaSimpleClient:
     """
     Simple Nav Canada Weather Data Client
     
-    Extracts search results as plain text:
-    - Metadata column -> key
-    - Bulletin column -> value
+    Outputs optimized structure:
+    - METAR/TAF/NOTAM grouped by station
+    - Upper Wind as a list
     """
     
     def __init__(self, headless: bool = True, timeout: int = 30, data_dir: str = "weather_data"):
@@ -134,26 +135,19 @@ class NavCanadaSimpleClient:
             return False
     
     def extract_simple_results(self, station_codes: List[str]) -> Dict[str, Any]:
-        """Extract results as simple metadata-key/bulletin-value pairs"""
-        print("📊 Extracting simple results...")
+        """Extract results in optimized structure grouped by type and station"""
+        print("📊 Extracting weather data...")
         
-        results = {
-            'session_info': {
-                'timestamp': datetime.now(timezone.utc).isoformat(),
-                'stations_requested': station_codes,
-                'source': 'Nav Canada Weather Recall',
-                'extraction_method': 'simple_metadata_bulletin'
-            },
-            'weather_data': {},
-            'extraction_summary': {
-                'total_entries': 0,
-                'stations_found': [],
-                'extraction_time': datetime.now(timezone.utc).isoformat()
-            }
+        # Optimized structure
+        organized_data = {
+            "METAR": {},
+            "TAF": {},
+            "Upper_Wind": [],
+            "NOTAM": {}
         }
         
         try:
-            # Wait for data to load
+            # Wait for results to load
             time.sleep(3)
             
             # Find all result rows in the table
@@ -179,7 +173,7 @@ class NavCanadaSimpleClient:
             
             if not rows:
                 print("❌ No table rows found - trying alternative extraction")
-                return self._extract_alternative(station_codes, results)
+                return self._extract_alternative(station_codes, organized_data)
             
             entry_count = 0
             
@@ -198,44 +192,65 @@ class NavCanadaSimpleClient:
                     metadata_text = metadata_cell.text.strip()
                     bulletin_text = bulletin_cell.text.strip()
                     
-                    if metadata_text and bulletin_text:
-                        # Use metadata as key (clean it up for JSON)
-                        key = f"entry_{entry_count:03d}_{metadata_text[:50].replace(' ', '_').replace('/', '_')}"
-                        
-                        results['weather_data'][key] = {
-                            'metadata': metadata_text,
-                            'bulletin': bulletin_text,
-                            'row_index': i,
-                            'extraction_time': datetime.now(timezone.utc).isoformat()
-                        }
-                        
+                    if not metadata_text or not bulletin_text:
+                        continue
+
+                    # Create entry
+                    entry = {
+                        'bulletin': bulletin_text,
+                        'row_index': i,
+                        'extraction_time': datetime.now(timezone.utc).isoformat()
+                    }
+
+                    # Categorize by type and station
+                    if "METAR" in metadata_text:
+                        station_match = re.search(
+                            r"METAR\s*\n?([A-Z]{4})", metadata_text)
+                        station = station_match.group(
+                            1) if station_match else "Unknown"
+                        organized_data["METAR"].setdefault(
+                            station, []).append(entry)
+                        entry_count += 1
+
+                    elif "TAF" in metadata_text:
+                        station_match = re.search(
+                            r"TAF\s*\n?([A-Z]{4})", metadata_text)
+                        station = station_match.group(
+                            1) if station_match else "Unknown"
+                        organized_data["TAF"].setdefault(
+                            station, []).append(entry)
                         entry_count += 1
                         
-                        # Check which station this belongs to
-                        for station in station_codes:
-                            if station.upper() in metadata_text.upper() or station.upper() in bulletin_text.upper():
-                                if station not in results['extraction_summary']['stations_found']:
-                                    results['extraction_summary']['stations_found'].append(station)
-                                break
+                    elif "Upper Wind" in metadata_text or "UPPER WIND" in metadata_text.upper():
+                        organized_data["Upper_Wind"].append(entry)
+                        entry_count += 1
+                        
+                    elif "NOTAM" in metadata_text:
+                        station_match = re.search(
+                            r"NOTAM\s*\n?([A-Z]{4})", metadata_text)
+                        station = station_match.group(
+                            1) if station_match else "Other"
+                        organized_data["NOTAM"].setdefault(
+                            station, []).append(entry)
+                        entry_count += 1
                 
                 except Exception as e:
                     print(f"⚠️ Error processing row {i}: {e}")
                     continue
-            
-            results['extraction_summary']['total_entries'] = entry_count
+
             print(f"✅ Extracted {entry_count} entries")
             
             if entry_count == 0:
                 print("⚠️ No data extracted - trying pre-formatted text extraction")
-                return self._extract_pre_text(station_codes, results)
+                return self._extract_pre_text(station_codes, organized_data)
             
-            return results
+            return organized_data
             
         except Exception as e:
             print(f"❌ Extraction failed: {e}")
-            return results
+            return organized_data
     
-    def _extract_alternative(self, station_codes: List[str], results: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_alternative(self, station_codes: List[str], organized_data: Dict[str, Any]) -> Dict[str, Any]:
         """Alternative extraction method - look for pre-formatted text blocks"""
         print("🔄 Trying alternative extraction...")
         
@@ -246,40 +261,59 @@ class NavCanadaSimpleClient:
             entry_count = 0
             for i, pre in enumerate(pre_elements):
                 text = pre.text.strip()
-                if text:
-                    key = f"pre_text_{i:03d}"
-                    
-                    results['weather_data'][key] = {
-                        'metadata': f"Pre-formatted text block {i+1}",
-                        'bulletin': text,
-                        'element_type': 'pre',
-                        'extraction_time': datetime.now(timezone.utc).isoformat()
-                    }
-                    
+                if not text:
+                    continue
+
+                entry = {
+                    'bulletin': text,
+                    'row_index': i,
+                    'extraction_time': datetime.now(timezone.utc).isoformat()
+                }
+
+                # Categorize based on content
+                if "METAR" in text:
+                    station_match = re.search(r"METAR\s+([A-Z]{4})", text)
+                    station = station_match.group(
+                        1) if station_match else "Unknown"
+                    organized_data["METAR"].setdefault(
+                        station, []).append(entry)
                     entry_count += 1
                     
-                    # Check station association
-                    for station in station_codes:
-                        if station.upper() in text.upper():
-                            if station not in results['extraction_summary']['stations_found']:
-                                results['extraction_summary']['stations_found'].append(station)
-            
-            results['extraction_summary']['total_entries'] = entry_count
+                elif "TAF" in text:
+                    station_match = re.search(r"TAF\s+([A-Z]{4})", text)
+                    station = station_match.group(
+                        1) if station_match else "Unknown"
+                    organized_data["TAF"].setdefault(station, []).append(entry)
+                    entry_count += 1
+
+                elif "VALID" in text and any(alt in text for alt in ['3000', '6000', '9000']):
+                    organized_data["Upper_Wind"].append(entry)
+                    entry_count += 1
+
+                elif "NOTAM" in text:
+                    station_match = re.search(
+                        r"\(([A-Z]\d+/\d+).*A\)\s+([A-Z]{4})", text)
+                    station = station_match.group(
+                        2) if station_match else "Other"
+                    organized_data["NOTAM"].setdefault(
+                        station, []).append(entry)
+                    entry_count += 1
+
             print(f"✅ Alternative extraction found {entry_count} entries")
             
         except Exception as e:
             print(f"❌ Alternative extraction failed: {e}")
         
-        return results
+        return organized_data
     
-    def _extract_pre_text(self, station_codes: List[str], results: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_pre_text(self, station_codes: List[str], organized_data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract from pre-formatted text elements"""
-        return self._extract_alternative(station_codes, results)
+        return self._extract_alternative(station_codes, organized_data)
     
     def get_simple_weather_data(self, station_codes: List[str]) -> Dict[str, Any]:
-        """Main method - get simple weather data"""
+        """Main method - get weather data in optimized structure"""
         print(f"\n{'='*60}")
-        print(f"🌤️  SIMPLE NAV CANADA EXTRACTION")
+        print(f"🌤️  OPTIMIZED NAV CANADA EXTRACTION")
         print(f"📍 Stations: {', '.join(station_codes)}")
         print('='*60)
         
@@ -296,8 +330,42 @@ class NavCanadaSimpleClient:
             if not self.search_stations(station_codes):
                 return {'error': 'Search failed'}
             
-            # Extract
-            results = self.extract_simple_results(station_codes)
+            # Extract in optimized structure
+            weather_data = self.extract_simple_results(station_codes)
+
+            # Calculate summary
+            metar_count = sum(len(v) for v in weather_data["METAR"].values())
+            taf_count = sum(len(v) for v in weather_data["TAF"].values())
+            notam_count = sum(len(v) for v in weather_data["NOTAM"].values())
+            upper_wind_count = len(weather_data["Upper_Wind"])
+            total_entries = metar_count + taf_count + notam_count + upper_wind_count
+
+            # Get all stations found
+            stations_found = set()
+            stations_found.update(weather_data["METAR"].keys())
+            stations_found.update(weather_data["TAF"].keys())
+            for station in weather_data["NOTAM"].keys():
+                if station != "Other":
+                    stations_found.add(station)
+
+            results = {
+                'session_info': {
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                    'stations_requested': station_codes,
+                    'source': 'Nav Canada Weather Recall',
+                    'extraction_method': 'optimized_structure'
+                },
+                'weather_data': weather_data,
+                'extraction_summary': {
+                    'total_entries': total_entries,
+                    'metar_records': metar_count,
+                    'taf_records': taf_count,
+                    'notam_records': notam_count,
+                    'upper_wind_records': upper_wind_count,
+                    'stations_found': sorted(list(stations_found)),
+                    'extraction_time': datetime.now(timezone.utc).isoformat()
+                }
+            }
             
             # Cleanup
             self.cleanup()
@@ -305,16 +373,16 @@ class NavCanadaSimpleClient:
             return results
             
         except Exception as e:
-            error_msg = f"Simple extraction failed: {str(e)}"
+            error_msg = f"Optimized extraction failed: {str(e)}"
             print(f"❌ {error_msg}")
             self.cleanup()
             return {'error': error_msg}
     
     def save_simple_data(self, data: Dict[str, Any], filename: str = None) -> str:
-        """Save simple data to JSON file"""
+        """Save optimized data structure to JSON file"""
         if not filename:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            filename = f"navcanada_simple_{timestamp}.json"
+            filename = f"navcanada_optimized_{timestamp}.json"
         
         filepath = self.data_dir / filename
         
@@ -322,7 +390,7 @@ class NavCanadaSimpleClient:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             
-            print(f"💾 Simple data saved to: {filepath}")
+            print(f"💾 Optimized data saved to: {filepath}")
             return str(filepath)
             
         except Exception as e:
@@ -343,31 +411,40 @@ class NavCanadaSimpleClient:
 
 
 def main():
-    """Simple extraction example"""
+    """Simple extraction example with optimized structure"""
     print("🌤️  Nav Canada Simple Weather Client")
     print("=" * 50)
-    print("Simple approach: Metadata -> Key, Bulletin -> Value")
+    print("Optimized structure: METAR/TAF/NOTAM by station, Upper Wind as list")
     print("=" * 50)
     
-    # Test with Vancouver
-    test_stations = ['CYVR']
+    # Test with Vancouver and Calgary
+    test_stations = ['CYVR', 'CYYC']
     
     with NavCanadaSimpleClient(headless=False) as client:
-        # Get simple data
+        # Get optimized data
         results = client.get_simple_weather_data(test_stations)
         
         if 'error' not in results:
             summary = results['extraction_summary']
-            print(f"\n✅ Simple extraction complete!")
+            weather_data = results['weather_data']
+
+            print(f"\n✅ Optimized extraction complete!")
             print(f"  • Total entries: {summary['total_entries']}")
+            print(
+                f"  • METAR records: {summary['metar_records']} (stations: {list(weather_data['METAR'].keys())})")
+            print(
+                f"  • TAF records: {summary['taf_records']} (stations: {list(weather_data['TAF'].keys())})")
+            print(
+                f"  • NOTAM records: {summary['notam_records']} (categories: {list(weather_data['NOTAM'].keys())})")
+            print(f"  • Upper Wind records: {summary['upper_wind_records']}")
             print(f"  • Stations found: {', '.join(summary['stations_found'])}")
             
             # Save data
             filename = client.save_simple_data(results)
             
             if filename:
-                print(f"\n📄 Simple dataset saved to: {filename}")
-                print("🔍 Structure: metadata -> key, bulletin -> value")
+                print(f"\n📄 Optimized dataset saved to: {filename}")
+                print("🔍 Structure: Type -> Station -> [Bulletins]")
         else:
             print(f"❌ Error: {results['error']}")
 

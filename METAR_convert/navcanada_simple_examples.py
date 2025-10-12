@@ -1,10 +1,10 @@
 """
 Nav Canada Simple Client Examples
 
-This script demonstrates the simple approach:
-- Metadata column as keys
-- Bulletin column as values
-- No complex parsing or transformation
+This script demonstrates the optimized structure:
+- METAR/TAF/NOTAM grouped by station
+- Upper Wind as a list
+- Easy to parse and work with
 """
 
 from navcanada_simple_client import NavCanadaSimpleClient
@@ -12,17 +12,17 @@ import json
 
 
 def example_simple_extraction():
-    """Example: Simple metadata-bulletin extraction"""
-    print("🌤️  Simple Nav Canada Weather Extraction")
+    """Example: Optimized structure extraction"""
+    print("🌤️  Optimized Nav Canada Weather Extraction")
     print("=" * 50)
-    print("Approach: Metadata → Key, Bulletin → Value")
+    print("Structure: METAR/TAF/NOTAM by station, Upper Wind as list")
     print("=" * 50)
     
     # Test with Vancouver
     stations = ['CYVR']
     
     with NavCanadaSimpleClient(headless=True) as client:
-        # Get simple data
+        # Get optimized data
         results = client.get_simple_weather_data(stations)
         
         if 'error' not in results:
@@ -31,30 +31,38 @@ def example_simple_extraction():
             
             print(f"\n✅ Extraction complete!")
             print(f"  • Total entries: {summary['total_entries']}")
+            print(f"  • METAR records: {summary.get('metar_records', 0)}")
+            print(f"  • TAF records: {summary.get('taf_records', 0)}")
+            print(f"  • NOTAM records: {summary.get('notam_records', 0)}")
+            print(f"  • Upper Wind records: {summary.get('upper_wind_records', 0)}")
             print(f"  • Stations found: {', '.join(summary['stations_found'])}")
             
             # Show sample entries
-            print(f"\n📋 Sample entries:")
-            for i, (key, data) in enumerate(list(weather_data.items())[:5]):
-                metadata = data['metadata']
-                bulletin_preview = data['bulletin'][:100] + "..." if len(data['bulletin']) > 100 else data['bulletin']
-                print(f"  {i+1}. {key}")
-                print(f"     Metadata: {metadata}")
-                print(f"     Bulletin: {bulletin_preview}")
-                print()
+            print(f"\n📋 Sample data structure:")
+            if weather_data['METAR']:
+                for station, entries in list(weather_data['METAR'].items())[:1]:
+                    print(f"  METAR['{station}']: {len(entries)} entries")
+                    if entries:
+                        bulletin_preview = entries[0]['bulletin'][:100] + "..."
+                        print(f"    Sample: {bulletin_preview}")
+            
+            if weather_data['Upper_Wind']:
+                print(f"  Upper_Wind: {len(weather_data['Upper_Wind'])} entries")
+                bulletin_preview = weather_data['Upper_Wind'][0]['bulletin'][:100] + "..."
+                print(f"    Sample: {bulletin_preview}")
             
             # Save data
-            filename = client.save_simple_data(results, "simple_example.json")
+            filename = client.save_simple_data(results, "optimized_example.json")
             
             if filename:
-                print(f"📄 Data saved to: {filename}")
+                print(f"\n📄 Data saved to: {filename}")
         else:
             print(f"❌ Error: {results['error']}")
 
 
 def example_multiple_stations():
-    """Example: Multiple stations simple extraction"""
-    print("\n🌤️  Multiple Stations Simple Extraction")
+    """Example: Multiple stations optimized extraction"""
+    print("\n🌤️  Multiple Stations Optimized Extraction")
     print("=" * 50)
     
     # Test with multiple airports
@@ -71,73 +79,76 @@ def example_multiple_stations():
             print(f"  • Total entries: {summary['total_entries']}")
             print(f"  • Stations found: {', '.join(summary['stations_found'])}")
             
-            # Count entries by type
-            metar_count = len([k for k in weather_data.keys() if 'METAR' in k])
-            taf_count = len([k for k in weather_data.keys() if 'TAF' in k])
-            notam_count = len([k for k in weather_data.keys() if 'NOTAM' in k])
-            upper_wind_count = len([k for k in weather_data.keys() if 'Upper_Wind' in k])
-            
+            # Show breakdown by type
             print(f"\n📊 Data breakdown:")
-            print(f"  • METAR observations: {metar_count}")
-            print(f"  • TAF forecasts: {taf_count}")
-            print(f"  • NOTAMs: {notam_count}")
-            print(f"  • Upper winds: {upper_wind_count}")
+            print(f"  • METAR: {summary.get('metar_records', 0)} records across {len(weather_data['METAR'])} stations")
+            print(f"    Stations: {list(weather_data['METAR'].keys())}")
+            print(f"  • TAF: {summary.get('taf_records', 0)} records across {len(weather_data['TAF'])} stations")
+            print(f"    Stations: {list(weather_data['TAF'].keys())}")
+            print(f"  • Upper Wind: {summary.get('upper_wind_records', 0)} records")
+            print(f"  • NOTAM: {summary.get('notam_records', 0)} records across {len(weather_data['NOTAM'])} categories")
+            print(f"    Categories: {list(weather_data['NOTAM'].keys())}")
             
             # Save data
-            filename = client.save_simple_data(results, "multi_station_simple.json")
+            filename = client.save_simple_data(results, "multi_station_optimized.json")
             print(f"\n📄 Multi-station data saved to: {filename}")
         else:
             print(f"❌ Error: {results['error']}")
 
 
 def example_data_analysis():
-    """Example: Analyze the simple extracted data"""
-    print("\n🔍 Simple Data Analysis Example")
+    """Example: Analyze the optimized extracted data"""
+    print("\n🔍 Optimized Data Analysis Example")
     print("=" * 50)
     
-    # Load the simple data
+    # Load the optimized data
     try:
-        with open('weather_data/simple_example.json', 'r') as f:
+        with open('weather_data/optimized_example.json', 'r') as f:
             data = json.load(f)
         
         weather_data = data.get('weather_data', {})
+        summary = data.get('extraction_summary', {})
         
-        print(f"📋 Analyzing {len(weather_data)} entries...")
+        print(f"📋 Analyzing optimized data structure...")
+        print(f"\n📊 Summary:")
+        print(f"  • Total entries: {summary.get('total_entries', 0)}")
+        print(f"  • METAR records: {summary.get('metar_records', 0)}")
+        print(f"  • TAF records: {summary.get('taf_records', 0)}")
+        print(f"  • NOTAM records: {summary.get('notam_records', 0)}")
+        print(f"  • Upper Wind records: {summary.get('upper_wind_records', 0)}")
         
-        # Find different data types
-        data_types = {}
-        for key, entry in weather_data.items():
-            metadata = entry['metadata']
-            # Extract data type from metadata
-            if 'METAR' in metadata:
-                data_type = 'METAR'
-            elif 'TAF' in metadata:
-                data_type = 'TAF'
-            elif 'NOTAM' in metadata:
-                data_type = 'NOTAM'
-            elif 'Upper Wind' in metadata:
-                data_type = 'Upper Wind'
-            else:
-                data_type = 'Other'
-            
-            if data_type not in data_types:
-                data_types[data_type] = []
-            data_types[data_type].append(key)
+        # Show METAR stations
+        metar_data = weather_data.get('METAR', {})
+        if metar_data:
+            print(f"\n🌤️  METAR Stations:")
+            for station, entries in metar_data.items():
+                print(f"  • {station}: {len(entries)} observation(s)")
+                if entries:
+                    print(f"    Sample: {entries[0]['bulletin'][:100]}...")
         
-        print(f"\n📊 Data types found:")
-        for data_type, entries in data_types.items():
-            print(f"  • {data_type}: {len(entries)} entries")
+        # Show TAF stations
+        taf_data = weather_data.get('TAF', {})
+        if taf_data:
+            print(f"\n� TAF Stations:")
+            for station, entries in taf_data.items():
+                print(f"  • {station}: {len(entries)} forecast(s)")
         
-        # Show upper winds if available
-        if 'Upper Wind' in data_types:
-            upper_wind_key = data_types['Upper Wind'][0]
-            upper_wind_data = weather_data[upper_wind_key]
-            print(f"\n🌬️  Upper winds preview:")
-            print(f"  Metadata: {upper_wind_data['metadata']}")
-            print(f"  Bulletin (first 200 chars): {upper_wind_data['bulletin'][:200]}...")
+        # Show Upper Wind info
+        upper_wind_data = weather_data.get('Upper_Wind', [])
+        if upper_wind_data:
+            print(f"\n🌬️  Upper Winds:")
+            print(f"  • {len(upper_wind_data)} upper wind report(s)")
+            print(f"  • Sample (first 200 chars): {upper_wind_data[0]['bulletin'][:200]}...")
+        
+        # Show NOTAM categories
+        notam_data = weather_data.get('NOTAM', {})
+        if notam_data:
+            print(f"\n📢 NOTAM Categories:")
+            for category, entries in notam_data.items():
+                print(f"  • {category}: {len(entries)} NOTAM(s)")
         
     except FileNotFoundError:
-        print("❌ No simple_example.json found. Run example_simple_extraction() first.")
+        print("❌ No optimized_example.json found. Run example_simple_extraction() first.")
     except Exception as e:
         print(f"❌ Analysis failed: {e}")
 
