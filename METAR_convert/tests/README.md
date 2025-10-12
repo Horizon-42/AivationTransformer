@@ -11,7 +11,8 @@ tests/
 ├── test_metar_examples.py         # METAR parsing examples
 ├── test_taf_examples.py           # TAF parsing examples
 ├── test_upper_wind_examples.py    # Upper wind parsing examples
-└── test_navcanada_examples.py     # Nav Canada client examples
+├── test_navcanada_examples.py     # Nav Canada client examples
+└── test_navcanada_server.py       # Nav Canada server examples (NEW)
 ```
 
 ## Running Examples
@@ -26,6 +27,7 @@ python test_metar_examples.py
 python test_taf_examples.py
 python test_upper_wind_examples.py
 python test_navcanada_examples.py
+python test_navcanada_server.py
 ```
 
 ### From the METAR_convert directory:
@@ -36,6 +38,7 @@ python tests/test_metar_examples.py
 python tests/test_taf_examples.py
 python tests/test_upper_wind_examples.py
 python tests/test_navcanada_examples.py
+python tests/test_navcanada_server.py
 ```
 
 ## Example Files Overview
@@ -74,6 +77,19 @@ Demonstrates Nav Canada data extraction:
 - Handle multiple stations
 - Analyze extracted data structure
 - Save data to JSON files
+
+**Note:** This example requires Selenium WebDriver and internet connection.
+
+### test_navcanada_server.py
+Demonstrates the Nav Canada Weather Server (similar interface to weather_data_server):
+- Query Nav Canada and get parsed METAR, TAF, Upper Wind objects
+- Save intermediate JSON data during extraction
+- Get specific weather types (METAR-only, TAF-only, Upper Winds-only)
+- Compare weather across multiple stations
+- Export parsed objects to JSON
+
+**Input:** List of station IDs (e.g., ['CYVR', 'CYYC'])
+**Output:** Parsed METAR, TAF, and Upper Wind objects
 
 **Note:** This example requires Selenium WebDriver and internet connection.
 

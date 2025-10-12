@@ -139,6 +139,68 @@ class UpperWind:
 
         return cls(periods)
 
+    @property
+    def valid_time(self) -> str:
+        """Get the valid time from the first period (for compatibility)"""
+        return self.periods[0].valid_time if self.periods else ""
+
+    @property
+    def for_use_time(self) -> str:
+        """Get the for use time from the first period (for compatibility)"""
+        return self.periods[0].use_period if self.periods else ""
+
+    @property
+    def data_based_on(self) -> str:
+        """Get data based on time (for compatibility) - same as valid time"""
+        return self.valid_time
+
+    @property
+    def station_data(self) -> Dict[str, Dict[str, Dict[str, str]]]:
+        """
+        Get station data in a flat structure (for compatibility)
+        Returns: Dict[station, Dict[altitude, Dict[wind/temp]]]
+        Example: {'CYVR': {'9000': {'wind': '270/35', 'temp': '-04'}}}
+        """
+        result = {}
+        for period in self.periods:
+            for station, levels in period.stations.items():
+                if station not in result:
+                    result[station] = {}
+                for level in levels:
+                    alt_str = str(level.altitude_ft)
+                    data = {}
+                    if level.direction_deg is not None and level.speed_kt is not None:
+                        data['wind'] = f"{level.direction_deg:03d}/{level.speed_kt:02d}"
+                    if level.temperature_c is not None:
+                        data['temp'] = f"{level.temperature_c:+03d}"
+                    if data:
+                        result[station][alt_str] = data
+        return result
+
+    def to_dict(self) -> dict:
+        """Convert UpperWind object to dictionary for JSON serialization"""
+        return {
+            'periods': [
+                {
+                    'valid_time': period.valid_time,
+                    'use_period': period.use_period,
+                    'stations': {
+                        station: [
+                            {
+                                'altitude_ft': level.altitude_ft,
+                                'direction_deg': level.direction_deg,
+                                'speed_kt': level.speed_kt,
+                                'temperature_c': level.temperature_c
+                            }
+                            for level in levels
+                        ]
+                        for station, levels in period.stations.items()
+                    }
+                }
+                for period in self.periods
+            ]
+        }
+
     def __repr__(self):
         return f"UpperWind(periods={len(self.periods)})"
 
