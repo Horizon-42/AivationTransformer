@@ -1,3 +1,35 @@
+"""
+Upper Wind Data Parser for Nav Canada Weather
+
+This module parses upper wind data from the optimized Nav Canada JSON structure.
+
+New Optimized Structure:
+    {
+        "weather_data": {
+            "Upper_Wind": [
+                {
+                    "bulletin": "VALID 131200Z FOR USE 06-18...",
+                    "row_index": 3,
+                    "extraction_time": "2025-10-12T16:46:42Z"
+                }
+            ]
+        }
+    }
+
+Usage:
+    from upper_wind import UpperWind
+    import json
+    
+    # Load optimized data
+    with open("weather_data/optimized_example.json", "r") as f:
+        data = json.load(f)
+    
+    # Parse upper wind bulletins
+    for entry in data["weather_data"]["Upper_Wind"]:
+        upper_wind = UpperWind.from_bulletin(entry["bulletin"])
+        # Process the parsed data...
+"""
+
 import re
 from typing import Dict, List, Optional
 
@@ -26,45 +58,85 @@ class UpperWind:
 
     @classmethod
     def from_bulletin(cls, bulletin: str) -> "UpperWind":
+        """Parse upper wind bulletin into structured data"""
         periods = []
+
         # Split by VALID blocks
-        valid_blocks = re.split(r"\nVALID ", bulletin)
+        valid_blocks = re.split(r"VALID ", bulletin)
+
         for block in valid_blocks:
             block = block.strip()
             if not block:
                 continue
-            # Extract valid time and use period
-            valid_match = re.match(r"VALID (\d{6}Z) FOR USE ([\d\-]+)", block)
-            if valid_match:
-                valid_time = valid_match.group(1)
-                use_period = valid_match.group(2)
+
+            # Extract valid time and use period from the first line
+            first_line_match = re.match(
+                r"(\d{6}Z)\s+FOR\s+USE\s+([\d\-]+)", block)
+            if first_line_match:
+                valid_time = first_line_match.group(1)
+                use_period = first_line_match.group(2)
             else:
-                valid_time = "UNKNOWN"
-                use_period = "UNKNOWN"
-            # Find altitude header row
-            altitude_row = re.search(r"\n\s*(\d{4,5}(?:\s*\|\s*\d{4,5})+)", block)
-            if not altitude_row:
+                # Skip if we can't parse the header
                 continue
-            altitudes = [int(a) for a in re.findall(r"\d{4,5}", altitude_row.group(1))]
-            # Find station rows (e.g., YVR, YYC)
+
+            # Find altitude header row - handle multi-line altitudes
+            # Normalize whitespace and reconstruct lines
+            lines = block.split('\n')
+            altitude_line = ""
+            station_line = ""
+
+            for i, line in enumerate(lines):
+                # Look for altitude header (starts with numbers)
+                if re.search(r'^\s*\d{4,5}', line):
+                    # This might be altitude header
+                    altitude_line = line
+                    # Check if next line continues (might be wrapped)
+                    if i + 1 < len(lines) and re.search(r'^\s*\|', lines[i + 1]):
+                        altitude_line += lines[i + 1]
+                # Look for station data (starts with 3-4 letter station code)
+                elif re.match(r'^([A-Z]{3,4})\s+', line):
+                    station_line = line
+                    # Check if next line continues (might be wrapped)
+                    if i + 1 < len(lines) and not re.match(r'^([A-Z]{3,4})\s+|^VALID', lines[i + 1]):
+                        station_line += lines[i + 1]
+
+            # Extract altitudes
+            if not altitude_line:
+                continue
+            altitudes = [int(a) for a in re.findall(r'\d{4,5}', altitude_line)]
+
+            # Parse station data
             stations = {}
-            for line in block.splitlines():
-                station_match = re.match(r"^([A-Z]{3,4})\s+(.+)", line)
+            if station_line:
+                station_match = re.match(r'^([A-Z]{3,4})\s+(.+)', station_line)
                 if station_match:
                     station = station_match.group(1)
+                    # Split by | delimiter
                     values = [v.strip() for v in station_match.group(2).split('|')]
+
                     levels = []
                     for i, val in enumerate(values):
-                        m = re.match(r"(\d{3})\s+(\d{1,2})(?:\s+([\-+]?\d+))?", val)
+                        if i >= len(altitudes):
+                            break
+                        # Match wind direction, speed, and optional temperature
+                        # Format: "360 33 -40" or "50 18" or "0 -15"
+                        m = re.match(
+                            r'(\d+)\s+(\d+)(?:\s+([\-+]?\d+))?', val.strip())
                         if m:
                             direction = int(m.group(1))
                             speed = int(m.group(2))
                             temperature = int(m.group(3)) if m.group(3) else None
                             levels.append(UpperWindLevel(altitudes[i], direction, speed, temperature))
                         else:
+                            # No data for this level
                             levels.append(UpperWindLevel(altitudes[i], None, None, None))
+
                     stations[station] = levels
-            periods.append(UpperWindPeriod(valid_time, use_period, stations))
+
+            if stations:
+                periods.append(UpperWindPeriod(
+                    valid_time, use_period, stations))
+
         return cls(periods)
 
     def __repr__(self):
@@ -73,16 +145,29 @@ class UpperWind:
 # Example usage:
 if __name__ == "__main__":
     import json
-    with open("METAR_convert/weather_data/multi_station_simple.json", "r") as f:
+
+    # Load data from optimized structure
+    with open("weather_data/optimized_example.json", "r") as f:
         data = json.load(f)
-    upper_wind_entry = next(
-        (v for k, v in data["weather_data"].items() if "Upper Wind" in k), None
-    )
-    if upper_wind_entry:
-        upper_wind = UpperWind.from_bulletin(upper_wind_entry["bulletin"])
-        for period in upper_wind.periods:
-            print(f"VALID {period.valid_time} FOR USE {period.use_period}")
-            for station, levels in period.stations.items():
-                print(f"  {station}:")
-                for level in levels:
-                    print(f"    {level}")
+
+    # Access Upper_Wind from the new optimized structure
+    upper_wind_list = data["weather_data"].get("Upper_Wind", [])
+
+    if upper_wind_list:
+        print(f"Found {len(upper_wind_list)} upper wind report(s)\n")
+
+        # Parse each upper wind bulletin
+        for i, upper_wind_entry in enumerate(upper_wind_list, 1):
+            print(f"=== Upper Wind Report #{i} ===")
+            upper_wind = UpperWind.from_bulletin(upper_wind_entry["bulletin"])
+
+            for period in upper_wind.periods:
+                print(
+                    f"\nVALID {period.valid_time} FOR USE {period.use_period}")
+                for station, levels in period.stations.items():
+                    print(f"  {station}:")
+                    for level in levels:
+                        print(f"    {level}")
+            print()
+    else:
+        print("No upper wind data found in the optimized structure.")
