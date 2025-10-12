@@ -3,6 +3,12 @@ Examples for using the METAR parser with optimized Nav Canada structure
 """
 
 import json
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import modules
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from metar import METAR
 
 
@@ -12,11 +18,13 @@ def example_parse_from_optimized_json():
     print("=" * 60)
     
     # Load optimized data
+    data_path = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
     try:
-        with open("weather_data/optimized_example.json", "r") as f:
+        with open(data_path, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ No optimized_example.json found. Run navcanada_simple_examples.py first.")
+        print(f"❌ No optimized_example.json found at {data_path}")
+        print("Run navcanada_simple_examples.py first from the parent directory.")
         return
     
     metar_data = data["weather_data"].get("METAR", {})
@@ -87,11 +95,13 @@ def example_parse_multiple_stations():
     print("=" * 60)
     
     # Load data with multiple stations
+    data_path = Path(__file__).parent.parent / "weather_data" / "multi_station_optimized.json"
     try:
-        with open("weather_data/multi_station_optimized.json", "r") as f:
+        with open(data_path, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ No multi_station_optimized.json found. Run navcanada_simple_examples.py first.")
+        print(f"❌ No multi_station_optimized.json found at {data_path}")
+        print("Run navcanada_simple_examples.py first from the parent directory.")
         return
     
     metar_data = data["weather_data"].get("METAR", {})
@@ -121,11 +131,12 @@ def example_export_to_json():
     print("=" * 60)
     
     # Load optimized data
+    data_path = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
     try:
-        with open("weather_data/optimized_example.json", "r") as f:
+        with open(data_path, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ No optimized_example.json found.")
+        print(f"❌ No optimized_example.json found at {data_path}")
         return
     
     metar_data = data["weather_data"].get("METAR", {})
@@ -145,11 +156,11 @@ def example_export_to_json():
             parsed_metars[station].append(metar.to_dict())
     
     # Save to file
-    output_file = "weather_data/metars_parsed.json"
-    with open(output_file, "w") as f:
+    output_path = Path(__file__).parent.parent / "weather_data" / "metars_parsed.json"
+    with open(output_path, "w") as f:
         json.dump(parsed_metars, f, indent=2, default=str)
     
-    print(f"✅ Exported parsed METAR data to {output_file}")
+    print(f"✅ Exported parsed METAR data to {output_path}")
     print(f"\nSample structure:")
     
     # Show sample

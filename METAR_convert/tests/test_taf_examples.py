@@ -3,6 +3,12 @@ Examples for using the TAF parser with optimized Nav Canada structure
 """
 
 import json
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import modules
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from taf import TAF
 
 
@@ -12,11 +18,13 @@ def example_parse_from_optimized_json():
     print("=" * 60)
     
     # Load optimized data
+    data_path = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
     try:
-        with open("weather_data/optimized_example.json", "r") as f:
+        with open(data_path, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ No optimized_example.json found. Run navcanada_simple_examples.py first.")
+        print(f"❌ No optimized_example.json found at {data_path}")
+        print("Run navcanada_simple_examples.py first from the parent directory.")
         return
     
     taf_data = data["weather_data"].get("TAF", {})
@@ -104,11 +112,13 @@ def example_compare_stations():
     print("=" * 60)
     
     # Load data with multiple stations
+    data_path = Path(__file__).parent.parent / "weather_data" / "multi_station_optimized.json"
     try:
-        with open("weather_data/multi_station_optimized.json", "r") as f:
+        with open(data_path, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ No multi_station_optimized.json found.")
+        print(f"❌ No multi_station_optimized.json found at {data_path}")
+        print("Run navcanada_simple_examples.py first from the parent directory.")
         return
     
     taf_data = data["weather_data"].get("TAF", {})
@@ -138,11 +148,12 @@ def example_export_to_json():
     print("=" * 60)
     
     # Load optimized data
+    data_path = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
     try:
-        with open("weather_data/optimized_example.json", "r") as f:
+        with open(data_path, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ No optimized_example.json found.")
+        print(f"❌ No optimized_example.json found at {data_path}")
         return
     
     taf_data = data["weather_data"].get("TAF", {})
@@ -162,11 +173,11 @@ def example_export_to_json():
             parsed_tafs[station].append(taf.to_dict())
     
     # Save to file
-    output_file = "weather_data/tafs_parsed.json"
-    with open(output_file, "w") as f:
+    output_path = Path(__file__).parent.parent / "weather_data" / "tafs_parsed.json"
+    with open(output_path, "w") as f:
         json.dump(parsed_tafs, f, indent=2, default=str)
     
-    print(f"✅ Exported parsed TAF data to {output_file}")
+    print(f"✅ Exported parsed TAF data to {output_path}")
     print(f"\nSample structure (first 800 chars):")
     
     # Show sample
@@ -181,11 +192,12 @@ def example_find_bad_weather():
     print("=" * 60)
     
     # Load data
+    data_path = Path(__file__).parent.parent / "weather_data" / "multi_station_optimized.json"
     try:
-        with open("weather_data/multi_station_optimized.json", "r") as f:
+        with open(data_path, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ No multi_station_optimized.json found.")
+        print(f"❌ No multi_station_optimized.json found at {data_path}")
         return
     
     taf_data = data["weather_data"].get("TAF", {})

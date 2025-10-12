@@ -7,6 +7,12 @@ This script demonstrates the optimized structure:
 - Easy to parse and work with
 """
 
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import modules
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from navcanada_simple_client import NavCanadaSimpleClient
 import json
 
@@ -101,9 +107,11 @@ def example_data_analysis():
     print("\n🔍 Optimized Data Analysis Example")
     print("=" * 50)
     
-    # Load the optimized data
+    # Load the optimized data - use path relative to parent directory
+    data_file = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
+    
     try:
-        with open('weather_data/optimized_example.json', 'r') as f:
+        with open(data_file, 'r') as f:
             data = json.load(f)
         
         weather_data = data.get('weather_data', {})
@@ -129,7 +137,7 @@ def example_data_analysis():
         # Show TAF stations
         taf_data = weather_data.get('TAF', {})
         if taf_data:
-            print(f"\n� TAF Stations:")
+            print(f"\n📅 TAF Stations:")
             for station, entries in taf_data.items():
                 print(f"  • {station}: {len(entries)} forecast(s)")
         
@@ -148,7 +156,7 @@ def example_data_analysis():
                 print(f"  • {category}: {len(entries)} NOTAM(s)")
         
     except FileNotFoundError:
-        print("❌ No optimized_example.json found. Run example_simple_extraction() first.")
+        print(f"❌ No optimized_example.json found at {data_file}. Run example_simple_extraction() first.")
     except Exception as e:
         print(f"❌ Analysis failed: {e}")
 

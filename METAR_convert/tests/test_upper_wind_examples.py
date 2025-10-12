@@ -3,6 +3,12 @@ Examples for using the Upper Wind parser with optimized Nav Canada structure
 """
 
 import json
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import modules
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from upper_wind import UpperWind
 
 
@@ -12,7 +18,8 @@ def example_parse_upper_winds():
     print("=" * 60)
     
     # Load optimized data
-    with open("weather_data/optimized_example.json", "r") as f:
+    data_path = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
+    with open(data_path, "r") as f:
         data = json.load(f)
     
     # Access Upper_Wind list from optimized structure
@@ -62,7 +69,8 @@ def example_find_strong_winds():
     print("=" * 60)
     
     # Load optimized data
-    with open("weather_data/optimized_example.json", "r") as f:
+    data_path = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
+    with open(data_path, "r") as f:
         data = json.load(f)
     
     upper_wind_list = data["weather_data"].get("Upper_Wind", [])
@@ -99,7 +107,8 @@ def example_get_wind_at_altitude():
     target_altitude = 30000  # FL300
     
     # Load optimized data
-    with open("weather_data/optimized_example.json", "r") as f:
+    data_path = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
+    with open(data_path, "r") as f:
         data = json.load(f)
     
     upper_wind_list = data["weather_data"].get("Upper_Wind", [])
@@ -133,7 +142,8 @@ def example_export_to_dict():
     print("=" * 60)
     
     # Load optimized data
-    with open("weather_data/optimized_example.json", "r") as f:
+    data_path = Path(__file__).parent.parent / "weather_data" / "optimized_example.json"
+    with open(data_path, "r") as f:
         data = json.load(f)
     
     upper_wind_list = data["weather_data"].get("Upper_Wind", [])
@@ -169,11 +179,11 @@ def example_export_to_dict():
             export_data.append(period_data)
     
     # Save to JSON
-    output_file = "weather_data/upper_winds_parsed.json"
-    with open(output_file, "w") as f:
+    output_path = Path(__file__).parent.parent / "weather_data" / "upper_winds_parsed.json"
+    with open(output_path, "w") as f:
         json.dump(export_data, f, indent=2)
     
-    print(f"✅ Exported {len(export_data)} period(s) to {output_file}")
+    print(f"✅ Exported {len(export_data)} period(s) to {output_path}")
     print(f"\nSample structure:")
     print(json.dumps(export_data[0] if export_data else {}, indent=2)[:500] + "...")
 
