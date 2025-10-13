@@ -20,3 +20,6 @@ venv.bak/
 *.swp
 *~
 *.swo
+
+weather_data/
+METAR_convert/weather_data/
