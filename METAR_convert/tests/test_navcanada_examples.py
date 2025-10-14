@@ -66,13 +66,13 @@ def example_simple_extraction():
             print(f"❌ Error: {results['error']}")
 
 
-def example_multiple_stations():
+def example_multiple_stations(file_name: str = "multi_station_optimized.json"):
     """Example: Multiple stations optimized extraction"""
     print("\n🌤️  Multiple Stations Optimized Extraction")
     print("=" * 50)
     
     # Test with multiple airports
-    stations = ['CYVR', 'CYYC']  # Vancouver, Calgary
+    stations = ['CYYC', 'CYVR', 'CYUL']  # Vancouver, Calgary
     
     with NavCanadaSimpleClient(headless=True) as client:
         results = client.get_simple_weather_data(stations)
@@ -96,7 +96,8 @@ def example_multiple_stations():
             print(f"    Categories: {list(weather_data['NOTAM'].keys())}")
             
             # Save data
-            filename = client.save_simple_data(results, "multi_station_optimized.json")
+            filename = client.save_simple_data(
+                results, file_name)
             print(f"\n📄 Multi-station data saved to: {filename}")
         else:
             print(f"❌ Error: {results['error']}")
@@ -163,6 +164,6 @@ def example_data_analysis():
 
 if __name__ == "__main__":
     # Run examples
-    example_simple_extraction()
-    example_multiple_stations()
-    example_data_analysis()
+    # example_simple_extraction()
+    example_multiple_stations("verify_parse1.json")
+    # example_data_analysis()
