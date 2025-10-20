@@ -1,10 +1,9 @@
+
 """
 Nav Canada Weather Data Server
 
-This module provides functionality to fetch METAR, TAF, and Upper Wind data 
-from Nav Canada and return parsed objects.
-
-Similar interface to weather_data_server but uses Nav Canada as the data source.
+Fetches and parses METAR, TAF, and Upper Wind data from Nav Canada.
+Provides a clean, object-oriented interface for aviation weather data.
 """
 
 import json
@@ -38,18 +37,14 @@ class NavCanadaWeatherResponse:
     raw_data_file: Optional[str]
     extraction_summary: Dict[str, Any]
     session_info: Dict[str, Any]
-    # Station-wise upper wind bulletins from raw data for convenience
-    upper_winds_by_station: Dict[str, List[Dict[str, Any]]]
-    # Parsed upper wind objects grouped by station (like TAF/METAR)
-    parsed_upper_winds_by_station: Dict[str, List[UpperWind]]
+
+
 
 
 class NavCanadaWeatherServer:
     """
-    Server for fetching aviation weather data from Nav Canada
-    
-    Queries Nav Canada website, saves intermediate JSON, and returns
-    parsed METAR, TAF, and Upper Wind objects.
+    Fetch and parse aviation weather data (METAR, TAF, Upper Wind) from Nav Canada.
+    Handles raw data extraction, parsing, and export.
     """
 
     def __init__(self, 
@@ -74,19 +69,8 @@ class NavCanadaWeatherServer:
                     save_raw_data: bool = True,
                     raw_data_filename: Optional[str] = None) -> NavCanadaWeatherResponse:
         """
-        Fetch and parse weather data from Nav Canada
-        
-        Args:
-            station_ids: Single station ID or list of ICAO station codes (e.g., 'CYVR' or ['CYVR', 'CYYC'])
-            save_raw_data: Whether to save intermediate JSON file
-            raw_data_filename: Custom filename for raw data (optional)
-            
-        Returns:
-            NavCanadaWeatherResponse containing parsed METAR, TAF, and Upper Wind objects
-            
-        Raises:
-            ValueError: If station_ids is empty
-            Exception: If data extraction fails
+        Fetch and parse all weather data for given stations from Nav Canada.
+        Returns a NavCanadaWeatherResponse with all parsed objects.
         """
         # Normalize station_ids to list
         if isinstance(station_ids, str):
@@ -119,10 +103,6 @@ class NavCanadaWeatherServer:
             metars=parsed_data['metars'],
             tafs=parsed_data['tafs'],
             upper_winds=parsed_data['upper_winds'],
-            upper_winds_by_station=raw_data.get(
-                'weather_data', {}).get('Upper_Wind_By_Station'),
-            parsed_upper_winds_by_station=parsed_data.get(
-                'parsed_upper_winds_by_station'),
             raw_data_file=raw_data_filepath,
             extraction_summary=raw_data.get('extraction_summary', {}),
             session_info=raw_data.get('session_info', {})
@@ -137,15 +117,8 @@ class NavCanadaWeatherServer:
                   save_raw_data: bool = True,
                   raw_data_filename: Optional[str] = None) -> Dict[str, List[METAR]]:
         """
-        Fetch only METAR data from Nav Canada
-        
-        Args:
-            station_ids: Single station ID or list of ICAO station codes
-            save_raw_data: Whether to save intermediate JSON file
-            raw_data_filename: Custom filename for raw data (optional)
-            
-        Returns:
-            Dictionary mapping station IDs to lists of METAR objects
+        Fetch only METAR data for given stations.
+        Returns a dict mapping station IDs to METAR objects.
         """
         response = self.get_weather(station_ids, save_raw_data, raw_data_filename)
         return response.metars
@@ -155,15 +128,8 @@ class NavCanadaWeatherServer:
                 save_raw_data: bool = True,
                 raw_data_filename: Optional[str] = None) -> Dict[str, List[TAF]]:
         """
-        Fetch only TAF data from Nav Canada
-        
-        Args:
-            station_ids: Single station ID or list of ICAO station codes
-            save_raw_data: Whether to save intermediate JSON file
-            raw_data_filename: Custom filename for raw data (optional)
-            
-        Returns:
-            Dictionary mapping station IDs to lists of TAF objects
+        Fetch only TAF data for given stations.
+        Returns a dict mapping station IDs to TAF objects.
         """
         response = self.get_weather(station_ids, save_raw_data, raw_data_filename)
         return response.tafs
@@ -173,195 +139,104 @@ class NavCanadaWeatherServer:
                         save_raw_data: bool = True,
                         raw_data_filename: Optional[str] = None) -> List[UpperWind]:
         """
-        Fetch upper wind data from Nav Canada
-        
-        Note: Upper winds typically cover multiple stations in a region
-        
-        Args:
-            station_ids: Single station ID or list of ICAO station codes
-            save_raw_data: Whether to save intermediate JSON file
-            raw_data_filename: Custom filename for raw data (optional)
-            
-        Returns:
-            List of UpperWind objects
+        Fetch upper wind data for given stations.
+        Returns a list of UpperWind objects.
         """
         response = self.get_weather(station_ids, save_raw_data, raw_data_filename)
         return response.upper_winds
 
     def _extract_raw_data(self, station_ids: List[str]) -> Dict[str, Any]:
-        """Extract raw data from Nav Canada using the simple client"""
+        """Extract raw JSON data from Nav Canada using the simple client."""
         print("📡 Extracting data from Nav Canada...")
-        
         with NavCanadaSimpleClient(headless=self.headless, timeout=self.timeout) as client:
-            results = client.get_simple_weather_data(station_ids)
-        
-        return results
+            return client.get_simple_weather_data(station_ids)
 
     def _save_raw_data(self, raw_data: Dict[str, Any], filename: Optional[str] = None) -> str:
-        """Save raw JSON data to file"""
+        """Save raw JSON data to file."""
         if not filename:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             stations = raw_data.get('session_info', {}).get('stations_requested', [])
-            stations_str = '_'.join(stations[:3])  # Limit to first 3 stations in filename
+            stations_str = '_'.join(stations[:3])
             filename = f"navcanada_{stations_str}_{timestamp}.json"
-        
         filepath = self.data_dir / filename
-        
         try:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(raw_data, f, indent=2, ensure_ascii=False)
-            
             print(f"💾 Raw data saved to: {filepath}")
             return str(filepath)
-            
         except Exception as e:
             print(f"⚠️ Failed to save raw data: {e}")
             return None
 
+
     def _parse_weather_data(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Parse raw JSON into METAR, TAF, and Upper Wind objects"""
+        """Parse raw JSON into METAR, TAF, and Upper Wind objects."""
         print("\n🔄 Parsing weather data into objects...")
-        
         weather_data = raw_data.get('weather_data', {})
-        
         parsed = {
             'metars': {},
             'tafs': {},
-            'upper_winds': [],
-            'parsed_upper_winds_by_station': {}
+            'upper_winds': []
         }
-
         # Parse METARs
-        metar_data = weather_data.get('METAR', {})
-        for station, entries in metar_data.items():
-            parsed_metars = []
-            for entry in entries:
-                try:
-                    metar = METAR.from_optimized_json(
-                        entry['bulletin'],
-                        station,
-                        entry.get('extraction_time', '')
-                    )
-                    parsed_metars.append(metar)
-                except Exception as e:
-                    print(f"⚠️ Failed to parse METAR for {station}: {e}")
-            
-            if parsed_metars:
-                parsed['metars'][station] = parsed_metars
-        
-        print(f"  ✅ Parsed {sum(len(v) for v in parsed['metars'].values())} METARs from {len(parsed['metars'])} stations")
-
+        for station, entries in weather_data.get('METAR', {}).items():
+            metars = [
+                METAR.from_optimized_json(
+                    entry['bulletin'], station, entry.get('extraction_time', ''))
+                for entry in entries
+                if 'bulletin' in entry
+            ]
+            if metars:
+                parsed['metars'][station] = metars
+        print(
+            f"  ✅ Parsed {sum(len(v) for v in parsed['metars'].values())} METARs from {len(parsed['metars'])} stations")
         # Parse TAFs
-        taf_data = weather_data.get('TAF', {})
-        for station, entries in taf_data.items():
-            parsed_tafs = []
-            for entry in entries:
-                try:
-                    taf = TAF.from_optimized_json(
-                        entry['bulletin'],
-                        station,
-                        entry.get('extraction_time', '')
-                    )
-                    parsed_tafs.append(taf)
-                except Exception as e:
-                    print(f"⚠️ Failed to parse TAF for {station}: {e}")
-            
-            if parsed_tafs:
-                parsed['tafs'][station] = parsed_tafs
-        
+        for station, entries in weather_data.get('TAF', {}).items():
+            tafs = [
+                TAF.from_optimized_json(
+                    entry['bulletin'], station, entry.get('extraction_time', ''))
+                for entry in entries
+                if 'bulletin' in entry
+            ]
+            if tafs:
+                parsed['tafs'][station] = tafs
         print(f"  ✅ Parsed {sum(len(v) for v in parsed['tafs'].values())} TAFs from {len(parsed['tafs'])} stations")
-
-        # Parse Upper Winds
+        # Parse Upper Winds and merge all periods for each station
         upper_wind_data = weather_data.get('Upper_Wind', [])
-        # First parse all Upper_Wind entries into single-station objects
-        for entry in upper_wind_data:
-            try:
-                bulletin = entry.get('bulletin', '')
-                winds = UpperWind.parse_bulletin_all_stations(bulletin)
-                parsed['upper_winds'].extend(winds)
-            except Exception as e:
-                print(f"⚠️ Failed to parse Upper Wind: {e}")
-
-        # Build station-wise parsed mapping
-        uw_by_station_raw = weather_data.get('Upper_Wind_By_Station', {}) or {}
-        if uw_by_station_raw:
-            # Prefer trimmed raw station bulletins for precise per-station periods
-            for stn, entries in uw_by_station_raw.items():
-                for e in entries:
-                    try:
-                        uw = UpperWind.from_bulletin_for_station(
-                            e.get('bulletin', ''), stn)
-                        if uw.periods:
-                            parsed['parsed_upper_winds_by_station'].setdefault(
-                                stn, []).append(uw)
-                    except Exception as e2:
-                        print(
-                            f"⚠️ Failed to parse station-wise Upper Wind for {stn}: {e2}")
-        else:
-            # Fallback: derive from full parsed objects via filtering
-            for uw in parsed['upper_winds']:
-                if uw.periods:
-                    parsed['parsed_upper_winds_by_station'].setdefault(
-                        uw.station, []).append(uw)
-
+        bulletins = [entry.get('bulletin', '') for entry in upper_wind_data if entry.get(
+            'bulletin', '').startswith('VALID')]
+        from upper_wind import UpperWindMerger, UpperWind
+        station_map = UpperWindMerger.merge_bulletins(bulletins)
+        parsed['upper_winds'] = [
+            UpperWind(station=s, periods=p) for s, p in station_map.items()]
         print(
             f"  ✅ Parsed {len(parsed['upper_winds'])} Upper Wind report object(s) (one per station)")
-        if parsed['parsed_upper_winds_by_station']:
-            print(
-                f"  ✅ Station-wise Upper Wind mapping for {len(parsed['parsed_upper_winds_by_station'])} station(s)")
-
         return parsed
 
-    @staticmethod
-    def _aggregate_upper_winds_stationwise(upper_winds: List[UpperWind]) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
-        """Aggregate a list of UpperWind objects into station-wise structure matching requested shape.
 
-        Output:
-        {
-          'CYVR': {
-            'periods': [
-              { 'valid_time': ..., 'use_period': ..., 'levels': [ {altitude_ft, direction_deg, speed_kt, temperature_c}, ... ] },
-              ...
-            ]
-          }, ...
-        }
-        """
-        result: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
-        for uw in upper_winds:
-            stationwise = uw.to_stationwise_dict()
-            for stn, data in stationwise.items():
-                result.setdefault(stn, {'periods': []})
-                result[stn]['periods'].extend(data.get('periods', []))
-        return result
+
+
+
 
     def _print_summary(self, response: NavCanadaWeatherResponse):
-        """Print summary of parsed data"""
+        """Print summary of parsed data."""
         print(f"\n{'='*70}")
         print("📊 PARSING SUMMARY")
         print(f"{'='*70}")
-        
-        # METAR summary
         total_metars = sum(len(v) for v in response.metars.values())
         print(f"\n🌤️  METAR:")
         print(f"   • {total_metars} observation(s) from {len(response.metars)} station(s)")
         for station, metars in response.metars.items():
             print(f"   • {station}: {len(metars)} METAR(s)")
-        
-        # TAF summary
         total_tafs = sum(len(v) for v in response.tafs.values())
         print(f"\n📅 TAF:")
         print(f"   • {total_tafs} forecast(s) from {len(response.tafs)} station(s)")
         for station, tafs in response.tafs.items():
             print(f"   • {station}: {len(tafs)} TAF(s)")
-        
-        # Upper Wind summary
         print(f"\n🌬️  Upper Winds:")
         print(f"   • {len(response.upper_winds)} report(s)")
-        
-        # Files
         if response.raw_data_file:
             print(f"\n📄 Raw data file: {response.raw_data_file}")
-        
         print(f"\n{'='*70}\n")
 
     def export_to_json(self, 
@@ -394,12 +269,7 @@ class NavCanadaWeatherServer:
                 for station, tafs in response.tafs.items()
             },
             'upper_winds': [wind.to_dict() for wind in response.upper_winds],
-            'upper_winds_stationwise': self._aggregate_upper_winds_stationwise(response.upper_winds),
-            'upper_winds_by_station_raw': response.upper_winds_by_station,
-            'upper_winds_by_station_parsed': {
-                stn: [uw.to_dict() for uw in winds]
-                for stn, winds in (response.parsed_upper_winds_by_station or {}).items()
-            },
+            # ...existing code...
             'extraction_summary': response.extraction_summary,
             'session_info': response.session_info
         }
@@ -416,76 +286,25 @@ class NavCanadaWeatherServer:
             return None
 
 
+
 # Example usage
 if __name__ == "__main__":
     print("🌤️  Nav Canada Weather Server - Example Usage")
     print("=" * 70)
-    
-    # Initialize server
     server = NavCanadaWeatherServer(headless=True, timeout=30)
-    
     try:
-        # Example 1: Get all weather data for Vancouver
-        print("\n📋 Example 1: Get all weather for CYVR")
-        print("-" * 70)
         response = server.get_weather(
-            station_ids='CYVR',
-            save_raw_data=True,
-            raw_data_filename='example_cyvr.json'
-        )
-        
-        # Access parsed objects
+            station_ids='CYVR', save_raw_data=True, raw_data_filename='example_cyvr.json')
         if 'CYVR' in response.metars:
             for metar in response.metars['CYVR']:
                 print(f"\n🌤️  METAR: {metar.station_id}")
                 print(f"   Temp: {metar.temperature_celsius}°C")
                 print(f"   Wind: {metar.wind_direction_degrees}° at {metar.wind_speed_knots}kt")
                 print(f"   Visibility: {metar.visibility}")
-        
-        # Export to JSON
         server.export_to_json(response, 'example_cyvr_parsed.json')
-        
-        # Example 2: Get only METARs for multiple stations
-        print("\n\n📋 Example 2: Get METARs for CYVR and CYYC")
-        print("-" * 70)
-        metars = server.get_metar(
-            station_ids=['CYVR', 'CYYC'],
-            save_raw_data=True
-        )
-        
-        for station, metar_list in metars.items():
-            print(f"\n{station}: {len(metar_list)} METAR(s)")
-        
-        # Example 3: Get only TAFs
-        print("\n\n📋 Example 3: Get TAFs for CYVR and CYYC")
-        print("-" * 70)
-        tafs = server.get_taf(
-            station_ids=['CYVR', 'CYYC'],
-            save_raw_data=True
-        )
-        
-        for station, taf_list in tafs.items():
-            print(f"\n{station}: {len(taf_list)} TAF(s)")
-            for taf in taf_list:
-                print(f"   Valid: {taf.valid_from} to {taf.valid_to}")
-        
-        # Example 4: Get upper winds
-        print("\n\n📋 Example 4: Get Upper Winds")
-        print("-" * 70)
-        upper_winds = server.get_upper_winds(
-            station_ids=['CYVR'],
-            save_raw_data=True
-        )
-        
-        for wind in upper_winds:
-            print(f"\n🌬️  Upper Wind Report:")
-            print(f"   Valid: {wind.valid_time}")
-            print(f"   Stations: {len(wind.station_data)}")
-        
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
-    
     print("\n" + "=" * 70)
     print("✅ Examples complete!")
