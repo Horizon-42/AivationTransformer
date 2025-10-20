@@ -25,3 +25,5 @@ weather_data/
 METAR_convert/weather_data/
 
 *.mdb
+
+narratives.csv
