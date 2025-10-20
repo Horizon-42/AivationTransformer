@@ -38,10 +38,10 @@ class NavCanadaWeatherResponse:
     raw_data_file: Optional[str]
     extraction_summary: Dict[str, Any]
     session_info: Dict[str, Any]
-    # Optional: station-wise upper wind bulletins from raw data for convenience
-    upper_winds_by_station: Optional[Dict[str, List[Dict[str, Any]]]] = None
-    # New: parsed upper wind objects grouped by station (like TAF/METAR)
-    parsed_upper_winds_by_station: Optional[Dict[str, List[UpperWind]]] = None
+    # Station-wise upper wind bulletins from raw data for convenience
+    upper_winds_by_station: Dict[str, List[Dict[str, Any]]]
+    # Parsed upper wind objects grouped by station (like TAF/METAR)
+    parsed_upper_winds_by_station: Dict[str, List[UpperWind]]
 
 
 class NavCanadaWeatherServer:
@@ -273,12 +273,12 @@ class NavCanadaWeatherServer:
 
         # Parse Upper Winds
         upper_wind_data = weather_data.get('Upper_Wind', [])
-        # First parse all Upper_Wind entries
+        # First parse all Upper_Wind entries into single-station objects
         for entry in upper_wind_data:
             try:
                 bulletin = entry.get('bulletin', '')
-                upper_wind = UpperWind.from_bulletin(bulletin)
-                parsed['upper_winds'].append(upper_wind)
+                winds = UpperWind.parse_bulletin_all_stations(bulletin)
+                parsed['upper_winds'].extend(winds)
             except Exception as e:
                 print(f"⚠️ Failed to parse Upper Wind: {e}")
 
@@ -289,7 +289,8 @@ class NavCanadaWeatherServer:
             for stn, entries in uw_by_station_raw.items():
                 for e in entries:
                     try:
-                        uw = UpperWind.from_bulletin(e.get('bulletin', ''))
+                        uw = UpperWind.from_bulletin_for_station(
+                            e.get('bulletin', ''), stn)
                         if uw.periods:
                             parsed['parsed_upper_winds_by_station'].setdefault(
                                 stn, []).append(uw)
@@ -299,17 +300,39 @@ class NavCanadaWeatherServer:
         else:
             # Fallback: derive from full parsed objects via filtering
             for uw in parsed['upper_winds']:
-                for period in uw.periods:
-                    for stn in period.stations.keys():
-                        parsed['parsed_upper_winds_by_station'].setdefault(
-                            stn, []).append(uw.for_station(stn))
+                if uw.periods:
+                    parsed['parsed_upper_winds_by_station'].setdefault(
+                        uw.station, []).append(uw)
 
-        print(f"  ✅ Parsed {len(parsed['upper_winds'])} Upper Wind reports")
+        print(
+            f"  ✅ Parsed {len(parsed['upper_winds'])} Upper Wind report object(s) (one per station)")
         if parsed['parsed_upper_winds_by_station']:
             print(
                 f"  ✅ Station-wise Upper Wind mapping for {len(parsed['parsed_upper_winds_by_station'])} station(s)")
 
         return parsed
+
+    @staticmethod
+    def _aggregate_upper_winds_stationwise(upper_winds: List[UpperWind]) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+        """Aggregate a list of UpperWind objects into station-wise structure matching requested shape.
+
+        Output:
+        {
+          'CYVR': {
+            'periods': [
+              { 'valid_time': ..., 'use_period': ..., 'levels': [ {altitude_ft, direction_deg, speed_kt, temperature_c}, ... ] },
+              ...
+            ]
+          }, ...
+        }
+        """
+        result: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+        for uw in upper_winds:
+            stationwise = uw.to_stationwise_dict()
+            for stn, data in stationwise.items():
+                result.setdefault(stn, {'periods': []})
+                result[stn]['periods'].extend(data.get('periods', []))
+        return result
 
     def _print_summary(self, response: NavCanadaWeatherResponse):
         """Print summary of parsed data"""
@@ -371,6 +394,7 @@ class NavCanadaWeatherServer:
                 for station, tafs in response.tafs.items()
             },
             'upper_winds': [wind.to_dict() for wind in response.upper_winds],
+            'upper_winds_stationwise': self._aggregate_upper_winds_stationwise(response.upper_winds),
             'upper_winds_by_station_raw': response.upper_winds_by_station,
             'upper_winds_by_station_parsed': {
                 stn: [uw.to_dict() for uw in winds]

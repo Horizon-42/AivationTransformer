@@ -43,23 +43,26 @@ class UpperWindLevel:
     def __repr__(self):
         return f"{self.altitude_ft}ft: {self.direction_deg or '-'}°/{self.speed_kt or '-'}kt/{self.temperature_c if self.temperature_c is not None else '-'}°C"
 
-class UpperWindPeriod:
-    def __init__(self, valid_time: str, use_period: str, stations: Dict[str, List[UpperWindLevel]]):
+
+class UpperWindStationPeriod:
+    def __init__(self, valid_time: str, use_period: str, levels: List[UpperWindLevel]):
         self.valid_time = valid_time
         self.use_period = use_period
-        self.stations = stations  # {station_code: [UpperWindLevel, ...]}
+        self.levels = levels  # [UpperWindLevel, ...]
 
     def __repr__(self):
-        return f"UpperWindPeriod(valid_time={self.valid_time}, use_period={self.use_period}, stations={list(self.stations.keys())})"
+        return f"UpperWindStationPeriod(valid_time={self.valid_time}, use_period={self.use_period}, levels={len(self.levels)})"
 
 class UpperWind:
-    def __init__(self, periods: List[UpperWindPeriod]):
-        self.periods = periods
+    def __init__(self, station: str, periods: List[UpperWindStationPeriod]):
+        # single-station object
+        self.station: str = station
+        self.periods: List[UpperWindStationPeriod] = periods
 
     @classmethod
-    def from_bulletin(cls, bulletin: str) -> "UpperWind":
-        """Parse upper wind bulletin into structured data"""
-        periods: List[UpperWindPeriod] = []
+    def parse_bulletin_all_stations(cls, bulletin: str) -> List["UpperWind"]:
+        """Parse an Upper Wind bulletin and return a list of UpperWind objects (one per station)."""
+        stations_map: Dict[str, List[UpperWindStationPeriod]] = {}
 
         # Split by VALID blocks
         valid_blocks = re.split(r"VALID ", bulletin)
@@ -84,8 +87,6 @@ class UpperWind:
 
             # Collect altitude header lines then compute altitudes
             altitude_lines: List[str] = []
-            stations: Dict[str, List[UpperWindLevel]] = {}
-
             i = 0
             while i < len(lines):
                 line = lines[i]
@@ -138,14 +139,23 @@ class UpperWind:
                             levels.append(UpperWindLevel(
                                 altitudes[k], None, None, None))
 
-                    stations[station] = levels
+                    stations_map.setdefault(station, []).append(
+                        UpperWindStationPeriod(valid_time, use_period, levels)
+                    )
                 i += 1
 
-            if stations:
-                periods.append(UpperWindPeriod(
-                    valid_time, use_period, stations))
+        # Build one UpperWind per station
+        return [UpperWind(station=s, periods=p) for s, p in stations_map.items()]
 
-        return cls(periods)
+    @classmethod
+    def from_bulletin_for_station(cls, bulletin: str, station: str) -> "UpperWind":
+        """Parse a bulletin and return a single-station UpperWind for the specified station (if present)."""
+        all_objs = cls.parse_bulletin_all_stations(bulletin)
+        for obj in all_objs:
+            if obj.station == station:
+                return obj
+        # If not found, return empty object with no periods
+        return UpperWind(station=station, periods=[])
 
     def for_station(self, station: str) -> "UpperWind":
         """Return a new UpperWind containing only data for the given station.
@@ -153,26 +163,23 @@ class UpperWind:
         - Keeps the same periods, but each period's stations map is reduced to the specified station.
         - Periods without the station are dropped.
         """
-        filtered_periods: List[UpperWindPeriod] = []
-        for period in self.periods:
-            levels = period.stations.get(station)
-            if levels:
-                filtered_periods.append(UpperWindPeriod(
-                    period.valid_time,
-                    period.use_period,
-                    {station: levels}
-                ))
-        return UpperWind(filtered_periods)
+        if station == self.station:
+            return UpperWind(station=self.station, periods=self.periods.copy())
+        return UpperWind(station=station, periods=[])
 
     @property
     def valid_time(self) -> str:
         """Get the valid time from the first period (for compatibility)"""
-        return self.periods[0].valid_time if self.periods else ""
+        if self.periods:
+            return self.periods[0].valid_time
+        return ""
 
     @property
     def for_use_time(self) -> str:
         """Get the for use time from the first period (for compatibility)"""
-        return self.periods[0].use_period if self.periods else ""
+        if self.periods:
+            return self.periods[0].use_period
+        return ""
 
     @property
     def data_based_on(self) -> str:
@@ -187,47 +194,80 @@ class UpperWind:
         Example: {'CYVR': {'9000': {'wind': '270/35', 'temp': '-04'}}}
         """
         result = {}
+        station = self.station
         for period in self.periods:
-            for station, levels in period.stations.items():
-                if station not in result:
-                    result[station] = {}
-                for level in levels:
-                    alt_str = str(level.altitude_ft)
-                    data = {}
-                    if level.direction_deg is not None and level.speed_kt is not None:
-                        data['wind'] = f"{level.direction_deg:03d}/{level.speed_kt:02d}"
-                    if level.temperature_c is not None:
-                        data['temp'] = f"{level.temperature_c:+03d}"
-                    if data:
-                        result[station][alt_str] = data
+            if station not in result:
+                result[station] = {}
+            for level in period.levels:
+                alt_str = str(level.altitude_ft)
+                data = {}
+                if level.direction_deg is not None and level.speed_kt is not None:
+                    data['wind'] = f"{level.direction_deg:03d}/{level.speed_kt:02d}"
+                if level.temperature_c is not None:
+                    data['temp'] = f"{level.temperature_c:+03d}"
+                if data:
+                    result[station][alt_str] = data
         return result
 
     def to_dict(self) -> dict:
-        """Convert UpperWind object to dictionary for JSON serialization"""
+        """Convert UpperWind object to dictionary (station-first)."""
         return {
+            'station': self.station,
             'periods': [
                 {
-                    'valid_time': period.valid_time,
-                    'use_period': period.use_period,
-                    'stations': {
-                        station: [
-                            {
-                                'altitude_ft': level.altitude_ft,
-                                'direction_deg': level.direction_deg,
-                                'speed_kt': level.speed_kt,
-                                'temperature_c': level.temperature_c
-                            }
-                            for level in levels
-                        ]
-                        for station, levels in period.stations.items()
-                    }
+                    'valid_time': p.valid_time,
+                    'use_period': p.use_period,
+                    'levels': [
+                        {
+                            'altitude_ft': lvl.altitude_ft,
+                            'direction_deg': lvl.direction_deg,
+                            'speed_kt': lvl.speed_kt,
+                            'temperature_c': lvl.temperature_c
+                        } for lvl in p.levels
+                    ]
                 }
-                for period in self.periods
+                for p in self.periods
             ]
         }
 
+    def to_stationwise_dict(self) -> Dict[str, Dict[str, List[dict]]]:
+        """Return dict organized by station -> valid periods -> levels.
+
+        Shape:
+        {
+          'CYVR': {
+            'periods': [
+               {
+                 'valid_time': '131200Z',
+                 'use_period': '06-18',
+                 'levels': [ { altitude_ft, direction_deg, speed_kt, temperature_c }, ... ]
+               }, ...
+            ]
+          }, ...
+        }
+        """
+        out: Dict[str, Dict[str, List[dict]]] = {}
+        out[self.station] = {
+            'periods': [
+                {
+                    'valid_time': p.valid_time,
+                    'use_period': p.use_period,
+                    'levels': [
+                        {
+                            'altitude_ft': lvl.altitude_ft,
+                            'direction_deg': lvl.direction_deg,
+                            'speed_kt': lvl.speed_kt,
+                            'temperature_c': lvl.temperature_c
+                        } for lvl in p.levels
+                    ]
+                }
+                for p in self.periods
+            ]
+        }
+        return out
+
     def __repr__(self):
-        return f"UpperWind(periods={len(self.periods)})"
+        return f"UpperWind(station={self.station}, periods={len(self.periods)})"
 
 # Example usage:
 if __name__ == "__main__":
@@ -246,14 +286,14 @@ if __name__ == "__main__":
         # Parse each upper wind bulletin
         for i, upper_wind_entry in enumerate(upper_wind_list, 1):
             print(f"=== Upper Wind Report #{i} ===")
-            upper_wind = UpperWind.from_bulletin(upper_wind_entry["bulletin"])
+            winds = UpperWind.parse_bulletin_all_stations(
+                upper_wind_entry["bulletin"])
 
-            for period in upper_wind.periods:
-                print(
-                    f"\nVALID {period.valid_time} FOR USE {period.use_period}")
-                for station, levels in period.stations.items():
-                    print(f"  {station}:")
-                    for level in levels:
+            for uw in winds:
+                print(f"\nStation {uw.station}:")
+                for p in uw.periods:
+                    print(f"  VALID {p.valid_time} FOR USE {p.use_period}")
+                    for level in p.levels:
                         print(f"    {level}")
             print()
     else:
