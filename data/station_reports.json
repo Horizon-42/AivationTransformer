@@ -1,0 +1,92 @@
+[
+  {
+    "station_id": "CYYZ",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:00:00",
+    "valid_period": [
+      "13/2140Z",
+      "13/2140Z"
+    ],
+    "report_data": "CYYZ METAR: Winds ENE at 10 knots. Visibility 15 miles. Scattered clouds at 4,500 feet, overcast at 5,500 feet. Temperature 18°C, dew point 10°C, altimeter 30.14 inHg. (VFR)\n\nCYYZ TAF:\nTemporarily 13/1800Z–13/2300Z, vis greater than 6 SM, overcast at 1,500 ft.\nFrom 13/2140Z, winds E 8 kt, vis greater than 6 SM, scattered at 1,500 ft, broken at 3,000 ft.\nProbability 13/2140Z–13/2140Z, vis 1 SM, mist, broken at 400 ft.\nFrom 13/2300Z, winds E 8 kt, vis greater than 6 SM, few at 1,500 ft, scattered at 3,000 ft.\nBecoming 13/2300Z–13/2140Z, winds variable 3 kt, vis greater than 6 SM.\nFrom 14/0100Z, winds variable 3 kt, vis greater than 6 SM, clear skies.\nFrom 14/0800Z, winds variable 3 kt, vis 6 SM, mist, scattered at 400 ft.\nFrom 14/1400Z, winds NNW 6 kt, vis greater than 6 SM, few at 4,000 ft.\nFrom 14/1800Z, winds NNW 8 kt, vis greater than 6 SM, broken at 4,000 ft.\nBecoming 14/1800Z–14/2000Z, winds N 12 kt, vis greater than 6 SM.\nFrom 14/2200Z, winds N 12 kt, vis greater than 6 SM, few at 4,000 ft, scattered at 24,000 ft.\n\nCYYZ Upperwinds: no winds-aloft data available for this period."
+  },
+  {
+    "station_id": "CYVR",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:07:00",
+    "valid_period": [
+      "13/2140Z",
+      "13/2140Z"
+    ],
+    "report_data": "CYVR METAR: Winds WSW at 6 knots. Visibility 30 miles. Clear skies, clear skies. Temperature 13°C, dew point 1°C, altimeter 30.01 inHg. (VFR)\n\nCYVR TAF:\nBecoming 13/1800Z–13/2000Z, winds WNW 10 kt, vis greater than 6 SM.\nFrom 13/2140Z, winds variable 3 kt, vis greater than 6 SM, clear skies.\nBecoming 14/0300Z–14/0500Z, winds NNW 6 kt, vis greater than 6 SM.\nFrom 14/1900Z, winds W 8 kt, vis greater than 6 SM, clear skies.\n\nCYVR Upperwinds: no winds-aloft data available for this period."
+  },
+  {
+    "station_id": "CYUL",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:00:00",
+    "valid_period": [
+      "13/2140Z",
+      "13/2140Z"
+    ],
+    "report_data": "CYUL METAR: Winds NE at 10 knots. Visibility 30 miles. Few clouds at 7,000 feet, broken clouds at 8,500 feet. Temperature 15°C, dew point 5°C, altimeter 30.22 inHg. (VFR)\n\nCYUL TAF:\nFrom 13/2140Z, winds NE 12 kt, vis greater than 6 SM, broken at 10,000 ft, broken at 18,000 ft.\nFrom 14/0000Z, winds NE 10 kt, vis greater than 6 SM, broken at 8,000 ft, overcast at 12,000 ft.\nFrom 14/0400Z, winds variable 3 kt, vis greater than 6 SM, broken at 5,000 ft, overcast at 8,000 ft.\nFrom 14/1600Z, winds variable 3 kt, vis greater than 6 SM, few at 5,000 ft, broken at 8,000 ft.\nBecoming 14/1600Z–14/1800Z, vis greater than 6 SM, few at 8,000 ft.\nFrom 14/2000Z, winds WSW 8 kt, vis greater than 6 SM, clear skies.\n\nCYUL Upperwinds: no winds-aloft data available for this period."
+  },
+  {
+    "station_id": "CYYC",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:00:00",
+    "valid_period": [
+      "13/1800Z",
+      "14/1800Z"
+    ],
+    "report_data": "CYYC METAR: Winds S at 13 knots gusting 18. Visibility 15 miles. Broken clouds at 3,400 feet, broken clouds at 4,900 feet. Temperature 0°C, dew point -10°C, altimeter 30.16 inHg. (VFR)\n\nCYYC TAF:\nFrom 13/1800Z, winds S 10 kt, vis greater than 6 SM, scattered at 5,000 ft.\nTemporarily 13/1800Z–13/2100Z, vis greater than 6 SM, broken at 5,000 ft.\nProbability 13/1800Z–14/1800Z, vis 3/4 SM, mist.\nFrom 14/0300Z, winds S 6 kt, vis greater than 6 SM, clear skies.\nFrom 14/1000Z, winds S 5 kt, vis greater than 6 SM, clear skies.\n\nCYYC Upperwinds: no winds-aloft data available for this period."
+  },
+  {
+    "station_id": "CYEG",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:00:00",
+    "valid_period": [
+      "13/1800Z",
+      "14/1800Z"
+    ],
+    "report_data": "CYEG METAR: Winds SSW at 7 knots. Visibility 20 miles. Scattered clouds at 3,400 feet. Temperature 1°C, dew point -8°C, altimeter 30.22 inHg. (VFR)\n\nCYEG TAF:\nFrom 13/1800Z, winds S 5 kt, vis greater than 6 SM, few at 3,000 ft.\nFrom 13/2100Z, winds S 8 kt, vis greater than 6 SM, clear skies.\n\nCYEG Upperwinds: no winds-aloft data available for this period."
+  },
+  {
+    "station_id": "CYWG",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:00:00",
+    "valid_period": [
+      "13/1800Z",
+      "14/1800Z"
+    ],
+    "report_data": "CYWG METAR: Winds WNW at 19 knots gusting 25. Visibility 15 miles. Broken clouds at 4,000 feet. Temperature 8°C, dew point 0°C, altimeter 30.15 inHg. (VFR)\n\nCYWG TAF:\nFrom 13/1800Z, winds WNW 20 kt gust 30, vis greater than 6 SM, broken at 4,000 ft.\nTemporarily 13/1800Z–13/2200Z, vis greater than 6 SM, scattered at 4,000 ft.\nProbability 13/1800Z–14/1800Z, vis 1 SM, mist.\nBecoming 13/2200Z–14/1800Z, winds WNW 10 kt, vis greater than 6 SM.\nFrom 14/0900Z, winds variable 3 kt, vis greater than 6 SM, few at 2,000 ft.\n\nCYWG Upperwinds: no winds-aloft data available for this period."
+  },
+  {
+    "station_id": "CYOW",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:00:00",
+    "valid_period": [
+      "13/2140Z",
+      "13/2140Z"
+    ],
+    "report_data": "CYOW METAR: Winds ENE at 11 knots. Visibility 15 miles. Broken clouds at 6,400 feet, broken clouds at 9,000 feet. Temperature 15°C, dew point 5°C, altimeter 30.19 inHg. (VFR)\n\nCYOW TAF:\nFrom 13/2140Z, winds ENE 10 kt, vis greater than 6 SM, scattered at 10,000 ft, broken at 15,000 ft.\nFrom 13/2200Z, winds ENE 8 kt, vis greater than 6 SM, broken at 8,000 ft, broken at 15,000 ft.\nFrom 14/0200Z, winds NE 5 kt, vis greater than 6 SM, broken at 5,000 ft, overcast at 8,000 ft.\nFrom 14/1200Z, winds variable 3 kt, vis greater than 6 SM, few at 5,000 ft, broken at 8,000 ft.\nBecoming 14/1400Z–14/1600Z, vis greater than 6 SM, few at 8,000 ft.\nFrom 14/1800Z, winds W 8 kt, vis greater than 6 SM, clear skies.\n\nCYOW Upperwinds: no winds-aloft data available for this period."
+  },
+  {
+    "station_id": "CYHZ",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:00:00",
+    "valid_period": [
+      "13/1800Z",
+      "14/1800Z"
+    ],
+    "report_data": "CYHZ METAR: Winds E at 6 knots. Visibility 15 miles. Few clouds at 2,500 feet, scattered clouds at 25,000 feet. Temperature 15°C, dew point 4°C, altimeter 30.30 inHg. (VFR)\n\nCYHZ TAF:\nFrom 13/1800Z, winds E 8 kt, vis greater than 6 SM, haze, few at 2,500 ft, broken at 24,000 ft.\nProbability 13/1800Z–14/1800Z, vis 1 SM, mist.\nProbability 13/1800Z–14/1800Z, vis 1/2 SM, fog, broken at 300 ft.\nBecoming 13/2000Z–13/2200Z, winds variable 3 kt, vis greater than 6 SM.\nFrom 14/0200Z, winds ENE 5 kt, vis greater than 6 SM, broken at 24,000 ft.\nFrom 14/0800Z, winds NNE 5 kt, vis 2 SM, mist, few at 300 ft.\nFrom 14/1200Z, winds NNE 5 kt, vis greater than 6 SM, broken at 20,000 ft.\n\nCYHZ Upperwinds: no winds-aloft data available for this period."
+  },
+  {
+    "station_id": "CYQB",
+    "report_type": "Weather data -> Natural Language",
+    "report_time": "2025-10-13T19:00:00",
+    "valid_period": [
+      "13/1800Z",
+      "14/1800Z"
+    ],
+    "report_data": "CYQB METAR: Winds ENE at 10 knots gusting 15. Visibility 30 miles. Few clouds at 22,000 feet, broken clouds at 25,000 feet. Temperature 14°C, dew point 1°C, altimeter 30.29 inHg. (VFR)\n\nCYQB TAF:\nFrom 13/1800Z, winds ENE 12 kt, vis greater than 6 SM, scattered at 18,000 ft, broken at 22,000 ft.\nBecoming 13/2200Z–14/1800Z, winds ENE 6 kt, vis greater than 6 SM.\nFrom 14/0000Z, winds ENE 6 kt, vis greater than 6 SM, broken at 14,000 ft, broken at 18,000 ft.\nBecoming 14/0200Z–14/0400Z, winds variable 3 kt, vis greater than 6 SM.\nFrom 14/1000Z, winds variable 3 kt, vis greater than 6 SM, broken at 10,000 ft, broken at 14,000 ft.\nBecoming 14/1600Z–14/1800Z, winds WSW 8 kt, vis greater than 6 SM.\n\nCYQB winds aloft valid 06-18: 3,000 ft – 270° at 6 kt; 6,000 ft – 300° at 6 kt, 7°C; 9,000 ft – 230° at 6 kt, 3°C; 30,000 ft – 260° at 23 kt, -39°C; 34,000 ft – 260° at 23 kt, -50°C."
+  }
+]

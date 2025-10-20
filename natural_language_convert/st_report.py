@@ -1,10 +1,28 @@
+# class StationReport:
+#     def __init__(self, station_id, report_data, report_type, report_time, valid_period):
+#         self.station_id = station_id
+#         self.report_data = report_data
+#         self.report_type = report_type  # 'METAR' or 'TAF'
+#         self.report_time = report_time
+#         self.valid_period = valid_period  # (start_time, end_time)
+
+# a:StationReport = StationReport(
+#     station_id="KJFK",
+#     report_data="there will be light rain with a temperature of 75°F",
+#     report_type="METAR",
+#     report_time="2024-06-12T16:51:00Z",
+#     valid_period=("2024-06-12T16:00:00Z", "2024-06-12T17:00:00Z"))
+
+# print(a.station_id)  # Output: KJFK
+# reports:list[StationReport] = [a]
+# print(reports)  # Output: [<__main__.StationReport object at ...>]
+
 # natural_language_convert/station_report.py
 from dataclasses import dataclass, asdict
 from pathlib import Path
 import json
 from typing import Optional, Tuple, List
 from datetime import datetime
-import argparse
 
 from .metar_rules import to_text as metar_to_text
 from .taf_rules import to_text as taf_to_text
@@ -18,7 +36,7 @@ from .upperwind_rules import to_text as uw_to_text
 @dataclass
 class StationReport:
     station_id: str
-    report_type: str = "Weather data -> Natural Language"
+    report_type: str = "Briefing"
     report_time: Optional[str] = None
     valid_period: Optional[Tuple[str, str]] = None
     report_data: str = ""
@@ -51,32 +69,20 @@ def _latest_taf(tafs_for_station):
     return recents[0] if recents else tafs_for_station[0]
 
 def _fmt_time_like(t: Optional[str]) -> Optional[str]:
-    """Return 'DD/HHMMZ' for ISO-ish timestamps, else original if not parseable."""
+    """Return 'DD/HHMMZ' for ISO-ish timestamps, else None or original if not parseable."""
     if not t:
         return None
     s = str(t).strip()
     if "." in s:
         s = s.split(".")[0]
+    # strip trailing Z for parsing
     nz = s[:-1] if s.endswith("Z") else s
     try:
         dt = datetime.fromisoformat(nz)
         return dt.strftime("%d/%H%MZ")
     except Exception:
-        return s
-
-def _retitle_taf(taf_text: str, icao: str) -> str:
-    """
-    Convert the first line from '<ICAO> TAF valid ...:' to '<ICAO> TAF:'.
-    Keep all subsequent forecast period lines unchanged.
-    """
-    if not taf_text:
-        return f"{icao} TAF: (empty)"
-    lines = taf_text.splitlines()
-    if not lines:
-        return f"{icao} TAF: (empty)"
-    # Replace only the header line
-    lines[0] = f"{icao} TAF:"
-    return "\n".join(lines)
+        # if it already looks like DD/HHMMZ, keep it; else return original
+        return s if ("/" in s and s.endswith("Z")) else s
 
 # ---------------------------------------------------------------------
 # Main builder
@@ -85,7 +91,7 @@ def _retitle_taf(taf_text: str, icao: str) -> str:
 def build_reports_from_group(group_path: Path) -> List[StationReport]:
     """
     Reads a parsed group JSON and returns a list of StationReport objects.
-    Keeps the station order from JSON. TAF headers are rewritten to '<ICAO> TAF:'.
+    Keeps the station order from JSON.
     """
     data = json.loads(group_path.read_text())
 
@@ -108,8 +114,7 @@ def build_reports_from_group(group_path: Path) -> List[StationReport]:
         # ---------- TAF ----------
         t = _latest_taf(tafs.get(icao) or [])
         if t:
-            raw_taf = taf_to_text(t)  # contains '<ICAO> TAF valid ...:' as first line
-            taf_text = _retitle_taf(raw_taf, icao)
+            taf_text = taf_to_text(t).replace(f"{icao} TAF valid", f"{icao} TAF valid")  # label already in text
         else:
             taf_text = f"{icao} TAF: no TAF available in this test group."
 
@@ -149,36 +154,37 @@ def build_reports_from_group(group_path: Path) -> List[StationReport]:
 # ---------------------------------------------------------------------
 
 def save_reports_as_json(reports: List[StationReport], out_path: Path) -> None:
-    serializable = [asdict(r) for r in reports]
-    text = json.dumps(serializable, indent=2, ensure_ascii=False)
-    out_path.write_text(text, encoding="utf-8")
+    """
+    Saves reports as a JSON array of dicts. Tuples become 2-element arrays in JSON.
+    """
+    serializable = []
+    for r in reports:
+        d = asdict(r)
+        # ensure valid_period stays JSON-friendly (tuple -> list) handled by asdict already,
+        # but make sure None stays None.
+        serializable.append(d)
+    out_path.write_text(json.dumps(serializable, indent=2))
 
 # ---------------------------------------------------------------------
-# CLI
+# CLI tester
 # ---------------------------------------------------------------------
-
-def _build_arg_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Build StationReport JSON.")
-    root = Path(__file__).resolve().parents[1]
-    p.add_argument(
-        "--in",
-        dest="in_path",
-        type=Path,
-        default=root / "data" / "test_group_01_parsed.json",
-        help="Path to parsed group JSON (default: data/test_group_01_parsed.json)",
-    )
-    p.add_argument(
-        "--out",
-        dest="out_path",
-        type=Path,
-        default=root / "data" / "station_reports.json",
-        help="Output JSON path (will be overwritten).",
-    )
-    return p
 
 if __name__ == "__main__":
-    args = _build_arg_parser().parse_args()
-    reports = build_reports_from_group(args.in_path)
-    save_reports_as_json(reports, args.out_path)
+    root = Path(__file__).resolve().parents[1]
+    in_path  = root / "data" / "test_group_01_parsed.json"
+    out_path = root / "data" / "station_reports.json"
 
-    print(f"Wrote {len(reports)} StationReport objects to {args.out_path}")
+    result = build_reports_from_group(in_path)
+    save_reports_as_json(result, out_path)
+
+    # pretty console preview
+    print(f"Wrote {len(result)} StationReport objects to {out_path}")
+    for r in result:
+        print("=" * 82)
+        print(f"{r.station_id} ({r.report_type})")
+        print(f"time: {r.report_time}")
+        if r.valid_period:
+            print(f"valid: {r.valid_period[0]} – {r.valid_period[1]}")
+        print()
+        print(r.report_data)
+        print()
