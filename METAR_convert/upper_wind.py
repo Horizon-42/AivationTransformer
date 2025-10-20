@@ -59,7 +59,7 @@ class UpperWind:
     @classmethod
     def from_bulletin(cls, bulletin: str) -> "UpperWind":
         """Parse upper wind bulletin into structured data"""
-        periods = []
+        periods: List[UpperWindPeriod] = []
 
         # Split by VALID blocks
         valid_blocks = re.split(r"VALID ", bulletin)
@@ -79,65 +79,90 @@ class UpperWind:
                 # Skip if we can't parse the header
                 continue
 
-            # Find altitude header row - handle multi-line altitudes
-            # Normalize whitespace and reconstruct lines
+            # Normalize and split
             lines = block.split('\n')
-            altitude_line = ""
-            station_line = ""
 
-            for i, line in enumerate(lines):
-                # Look for altitude header (starts with numbers)
-                if re.search(r'^\s*\d{4,5}', line):
-                    # This might be altitude header
-                    altitude_line = line
-                    # Check if next line continues (might be wrapped)
-                    if i + 1 < len(lines) and re.search(r'^\s*\|', lines[i + 1]):
-                        altitude_line += lines[i + 1]
-                # Look for station data (starts with 3-4 letter station code)
-                elif re.match(r'^([A-Z]{3,4})\s+', line):
-                    station_line = line
-                    # Check if next line continues (might be wrapped)
-                    if i + 1 < len(lines) and not re.match(r'^([A-Z]{3,4})\s+|^VALID', lines[i + 1]):
-                        station_line += lines[i + 1]
+            # Collect altitude header lines then compute altitudes
+            altitude_lines: List[str] = []
+            stations: Dict[str, List[UpperWindLevel]] = {}
 
-            # Extract altitudes
-            if not altitude_line:
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                if re.match(r"^\s*\d{4,5}", line):
+                    altitude_lines.append(line)
+                    # collect any immediate continuation lines that start with '|'
+                    j = i + 1
+                    while j < len(lines) and re.match(r"^\s*\|", lines[j]):
+                        altitude_lines.append(lines[j])
+                        j += 1
+                    i = j
+                    break
+                i += 1
+
+            if not altitude_lines:
                 continue
-            altitudes = [int(a) for a in re.findall(r'\d{4,5}', altitude_line)]
+            altitude_text = " ".join(altitude_lines)
+            altitudes = [int(a) for a in re.findall(r"\d{4,5}", altitude_text)]
 
-            # Parse station data
-            stations = {}
-            if station_line:
-                station_match = re.match(r'^([A-Z]{3,4})\s+(.+)', station_line)
-                if station_match:
-                    station = station_match.group(1)
-                    # Split by | delimiter
-                    values = [v.strip() for v in station_match.group(2).split('|')]
+            # Parse all station rows (support wrapped continuation line)
+            while i < len(lines):
+                line = lines[i]
+                m_station = re.match(r"^\s*([A-Z]{3,4})\s+(.+)", line)
+                if m_station:
+                    station = m_station.group(1)
+                    # Normalize 3-letter domestic code to 4-letter ICAO
+                    if len(station) == 3:
+                        station = 'C' + station
+                    rest = m_station.group(2)
+                    # If next line is continuation (not a new station/VALID/alt header/'|'), append it
+                    if i + 1 < len(lines) and not re.match(r"^\s*([A-Z]{3,4})\b|^VALID|^\s*\d{4,5}|^\s*\|", lines[i+1]):
+                        rest += ' ' + lines[i+1].strip()
+                        i += 1
 
-                    levels = []
-                    for i, val in enumerate(values):
-                        if i >= len(altitudes):
+                    values = [v.strip() for v in rest.split('|')]
+                    levels: List[UpperWindLevel] = []
+                    for k, val in enumerate(values):
+                        if k >= len(altitudes):
                             break
-                        # Match wind direction, speed, and optional temperature
-                        # Format: "360 33 -40" or "50 18" or "0 -15"
-                        m = re.match(
-                            r'(\d+)\s+(\d+)(?:\s+([\-+]?\d+))?', val.strip())
-                        if m:
-                            direction = int(m.group(1))
-                            speed = int(m.group(2))
-                            temperature = int(m.group(3)) if m.group(3) else None
-                            levels.append(UpperWindLevel(altitudes[i], direction, speed, temperature))
+                        m_val = re.match(
+                            r"(\d+)\s+(\d+)(?:\s+([\-+]?\d+))?", val)
+                        if m_val:
+                            direction = int(m_val.group(1))
+                            speed = int(m_val.group(2))
+                            temperature = int(m_val.group(
+                                3)) if m_val.group(3) else None
+                            levels.append(UpperWindLevel(
+                                altitudes[k], direction, speed, temperature))
                         else:
-                            # No data for this level
-                            levels.append(UpperWindLevel(altitudes[i], None, None, None))
+                            levels.append(UpperWindLevel(
+                                altitudes[k], None, None, None))
 
                     stations[station] = levels
+                i += 1
 
             if stations:
                 periods.append(UpperWindPeriod(
                     valid_time, use_period, stations))
 
         return cls(periods)
+
+    def for_station(self, station: str) -> "UpperWind":
+        """Return a new UpperWind containing only data for the given station.
+
+        - Keeps the same periods, but each period's stations map is reduced to the specified station.
+        - Periods without the station are dropped.
+        """
+        filtered_periods: List[UpperWindPeriod] = []
+        for period in self.periods:
+            levels = period.stations.get(station)
+            if levels:
+                filtered_periods.append(UpperWindPeriod(
+                    period.valid_time,
+                    period.use_period,
+                    {station: levels}
+                ))
+        return UpperWind(filtered_periods)
 
     @property
     def valid_time(self) -> str:

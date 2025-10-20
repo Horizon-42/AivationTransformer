@@ -38,6 +38,10 @@ class NavCanadaWeatherResponse:
     raw_data_file: Optional[str]
     extraction_summary: Dict[str, Any]
     session_info: Dict[str, Any]
+    # Optional: station-wise upper wind bulletins from raw data for convenience
+    upper_winds_by_station: Optional[Dict[str, List[Dict[str, Any]]]] = None
+    # New: parsed upper wind objects grouped by station (like TAF/METAR)
+    parsed_upper_winds_by_station: Optional[Dict[str, List[UpperWind]]] = None
 
 
 class NavCanadaWeatherServer:
@@ -115,6 +119,10 @@ class NavCanadaWeatherServer:
             metars=parsed_data['metars'],
             tafs=parsed_data['tafs'],
             upper_winds=parsed_data['upper_winds'],
+            upper_winds_by_station=raw_data.get(
+                'weather_data', {}).get('Upper_Wind_By_Station'),
+            parsed_upper_winds_by_station=parsed_data.get(
+                'parsed_upper_winds_by_station'),
             raw_data_file=raw_data_filepath,
             extraction_summary=raw_data.get('extraction_summary', {}),
             session_info=raw_data.get('session_info', {})
@@ -219,7 +227,8 @@ class NavCanadaWeatherServer:
         parsed = {
             'metars': {},
             'tafs': {},
-            'upper_winds': []
+            'upper_winds': [],
+            'parsed_upper_winds_by_station': {}
         }
 
         # Parse METARs
@@ -264,6 +273,7 @@ class NavCanadaWeatherServer:
 
         # Parse Upper Winds
         upper_wind_data = weather_data.get('Upper_Wind', [])
+        # First parse all Upper_Wind entries
         for entry in upper_wind_data:
             try:
                 bulletin = entry.get('bulletin', '')
@@ -271,8 +281,33 @@ class NavCanadaWeatherServer:
                 parsed['upper_winds'].append(upper_wind)
             except Exception as e:
                 print(f"⚠️ Failed to parse Upper Wind: {e}")
-        
+
+        # Build station-wise parsed mapping
+        uw_by_station_raw = weather_data.get('Upper_Wind_By_Station', {}) or {}
+        if uw_by_station_raw:
+            # Prefer trimmed raw station bulletins for precise per-station periods
+            for stn, entries in uw_by_station_raw.items():
+                for e in entries:
+                    try:
+                        uw = UpperWind.from_bulletin(e.get('bulletin', ''))
+                        if uw.periods:
+                            parsed['parsed_upper_winds_by_station'].setdefault(
+                                stn, []).append(uw)
+                    except Exception as e2:
+                        print(
+                            f"⚠️ Failed to parse station-wise Upper Wind for {stn}: {e2}")
+        else:
+            # Fallback: derive from full parsed objects via filtering
+            for uw in parsed['upper_winds']:
+                for period in uw.periods:
+                    for stn in period.stations.keys():
+                        parsed['parsed_upper_winds_by_station'].setdefault(
+                            stn, []).append(uw.for_station(stn))
+
         print(f"  ✅ Parsed {len(parsed['upper_winds'])} Upper Wind reports")
+        if parsed['parsed_upper_winds_by_station']:
+            print(
+                f"  ✅ Station-wise Upper Wind mapping for {len(parsed['parsed_upper_winds_by_station'])} station(s)")
 
         return parsed
 
@@ -336,6 +371,11 @@ class NavCanadaWeatherServer:
                 for station, tafs in response.tafs.items()
             },
             'upper_winds': [wind.to_dict() for wind in response.upper_winds],
+            'upper_winds_by_station_raw': response.upper_winds_by_station,
+            'upper_winds_by_station_parsed': {
+                stn: [uw.to_dict() for uw in winds]
+                for stn, winds in (response.parsed_upper_winds_by_station or {}).items()
+            },
             'extraction_summary': response.extraction_summary,
             'session_info': response.session_info
         }

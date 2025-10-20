@@ -84,7 +84,15 @@ def example_get_all_weather():
                     print(f"      Sample ({sample_station}):")
                     for alt, data in list(sample_data.items())[:2]:  # Show first 2 altitudes
                         print(f"        {alt}: {data}")
-        
+
+        # Display station-wise parsed Upper Wind mapping if available
+        if getattr(response, 'parsed_upper_winds_by_station', None):
+            keys = list(response.parsed_upper_winds_by_station.keys())
+            print(
+                f"\n📍 Upper Wind by Station (parsed): {len(keys)} station(s)")
+            print(
+                f"   Keys: {', '.join(keys[:10])}{' ...' if len(keys) > 10 else ''}")
+
         # Export to JSON
         print("\n💾 Exporting parsed data...")
         export_file = server.export_to_json(response, 'test_cyvr_parsed.json')

@@ -143,6 +143,8 @@ class NavCanadaSimpleClient:
             "METAR": {},
             "TAF": {},
             "Upper_Wind": [],
+            # New: station-wise upper wind view for easier consumption
+            "Upper_Wind_By_Station": {},
             "NOTAM": {}
         }
         
@@ -222,8 +224,27 @@ class NavCanadaSimpleClient:
                         entry_count += 1
                         
                     elif "Upper Wind" in metadata_text or "UPPER WIND" in metadata_text.upper():
-                        organized_data["Upper_Wind"].append(entry)
-                        entry_count += 1
+                        # Post-process Upper Wind: split by VALID blocks and fix station codes (add leading 'C')
+                        split_bulletins = self._split_upper_wind_bulletin_and_fix_codes(
+                            bulletin_text)
+                        for _bw in split_bulletins:
+                            # Backward-compatible full bulletin list
+                            organized_data["Upper_Wind"].append({
+                                'bulletin': _bw,
+                                'row_index': i,
+                                'extraction_time': entry['extraction_time']
+                            })
+                            # New: populate station-wise trimmed versions
+                            for stn in self._station_codes_in_upper_wind_block(_bw):
+                                trimmed = self._trim_upper_wind_block_for_station(
+                                    _bw, stn)
+                                if trimmed:
+                                    organized_data["Upper_Wind_By_Station"].setdefault(stn, []).append({
+                                        'bulletin': trimmed,
+                                        'row_index': i,
+                                        'extraction_time': entry['extraction_time']
+                                    })
+                        entry_count += len(split_bulletins)
                         
                     elif "NOTAM" in metadata_text:
                         station_match = re.search(
@@ -287,8 +308,27 @@ class NavCanadaSimpleClient:
                     entry_count += 1
 
                 elif "VALID" in text and any(alt in text for alt in ['3000', '6000', '9000']):
-                    organized_data["Upper_Wind"].append(entry)
-                    entry_count += 1
+                    # Split by VALID blocks and fix station codes (add leading 'C') even in raw data
+                    split_bulletins = self._split_upper_wind_bulletin_and_fix_codes(
+                        text)
+                    for _bw in split_bulletins:
+                        # Backward-compatible full bulletin list
+                        organized_data["Upper_Wind"].append({
+                            'bulletin': _bw,
+                            'row_index': i,
+                            'extraction_time': entry['extraction_time']
+                        })
+                        # New: station-wise trimmed versions
+                        for stn in self._station_codes_in_upper_wind_block(_bw):
+                            trimmed = self._trim_upper_wind_block_for_station(
+                                _bw, stn)
+                            if trimmed:
+                                organized_data["Upper_Wind_By_Station"].setdefault(stn, []).append({
+                                    'bulletin': trimmed,
+                                    'row_index': i,
+                                    'extraction_time': entry['extraction_time']
+                                })
+                    entry_count += len(split_bulletins)
 
                 elif "NOTAM" in text:
                     station_match = re.search(
@@ -309,6 +349,98 @@ class NavCanadaSimpleClient:
     def _extract_pre_text(self, station_codes: List[str], organized_data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract from pre-formatted text elements"""
         return self._extract_alternative(station_codes, organized_data)
+
+    def _split_upper_wind_bulletin_and_fix_codes(self, text: str) -> List[str]:
+        """Split an Upper Wind bulletin into individual VALID blocks and prefix 'C' to 3-letter station codes.
+
+        The Nav Canada Upper Wind table uses 3-letter identifiers (e.g., YVR, YYZ). For ICAO consistency,
+        we convert leading 3-letter station codes on each data row to their 4-letter Canadian ICAO form by
+        prefixing 'C' (e.g., YVR -> CYVR). We also split multi-period bulletins into one block per VALID ... FOR USE ... section.
+        """
+        if not text:
+            return []
+
+        # Normalize newlines
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+
+        # Find each VALID ... FOR USE ... block (non-greedy up to next VALID or end)
+        pattern = re.compile(
+            r"^VALID\s+\d{6}Z\s+FOR\s+USE\s+[\d\-]+[\s\S]*?(?=^VALID\s+\d{6}Z\s+FOR\s+USE\s+[\d\-]+|\Z)", re.MULTILINE)
+        blocks = [m.group(0) for m in pattern.finditer(text)]
+
+        if not blocks:
+            # If no clear split, treat the whole text as one block
+            blocks = [text]
+
+        fixed_blocks: List[str] = []
+        for block in blocks:
+            lines = block.split('\n')
+            fixed_lines: List[str] = []
+            for line in lines:
+                # Only modify lines that start with a station code. If already 4 letters at start, keep.
+                m4 = re.match(r"^(\s*)([A-Z]{4})(\b.*)$", line)
+                if m4:
+                    fixed_lines.append(line)
+                    continue
+
+                m3 = re.match(r"^(\s*)([A-Z]{3})(\b\s+.*)$", line)
+                if m3:
+                    # Avoid matching the altitude header or non-station rows; they won't match this pattern anyway.
+                    prefix, code3, rest = m3.groups()
+                    # Prefix with 'C' to form ICAO station code
+                    fixed_lines.append(f"{prefix}C{code3}{rest}")
+                else:
+                    fixed_lines.append(line)
+
+            fixed_blocks.append("\n".join(fixed_lines).strip())
+
+        return fixed_blocks
+
+    def _station_codes_in_upper_wind_block(self, block: str) -> List[str]:
+        """Identify 4-letter station codes present at the start of lines in a block."""
+        stations: List[str] = []
+        for line in block.split('\n'):
+            m = re.match(r"^\s*([A-Z]{4})\b", line)
+            if m:
+                stn = m.group(1)
+                if stn not in stations:
+                    stations.append(stn)
+        return stations
+
+    def _trim_upper_wind_block_for_station(self, block: str, station: str) -> str:
+        """Return header + altitude lines + only the given station row (and its wrapped continuation if present)."""
+        if not block:
+            return ""
+        lines = block.split('\n')
+        out_lines: List[str] = []
+
+        # Header line
+        if lines and lines[0].strip().startswith('VALID'):
+            out_lines.append(lines[0])
+
+        # Altitude header line(s): numbers and subsequent '|' continuation lines
+        i = 1
+        while i < len(lines):
+            line = lines[i]
+            if re.match(r"^\s*\d{4,5}", line) or re.match(r"^\s*\|", line):
+                out_lines.append(line)
+                i += 1
+                while i < len(lines) and re.match(r"^\s*\|", lines[i]):
+                    out_lines.append(lines[i])
+                    i += 1
+                break
+            i += 1
+
+        # Station row (and one possible wrapped continuation)
+        for j in range(i, len(lines)):
+            line = lines[j]
+            if re.match(rf"^\s*{station}\b", line):
+                out_lines.append(line)
+                if j + 1 < len(lines) and not re.match(r"^\s*([A-Z]{4})\b|^VALID|^\s*\d{4,5}|^\s*\|", lines[j+1]):
+                    out_lines.append(lines[j+1])
+                break
+
+        return "\n".join(out_lines).strip()
     
     def get_simple_weather_data(self, station_codes: List[str]) -> Dict[str, Any]:
         """Main method - get weather data in optimized structure"""

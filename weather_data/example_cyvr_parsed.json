@@ -1,5 +1,5 @@
 {
-  "export_time": "2025-10-12T20:40:31.166092+00:00",
+  "export_time": "2025-10-20T19:28:12.923516+00:00",
   "metars": {
     "CYVR": [
       {
@@ -8,38 +8,38 @@
         "latitude": 0.0,
         "longitude": 0.0,
         "elevation_meters": 0,
-        "observation_time": "2025-10-12T20:00:00",
-        "receipt_time": "2025-10-12T20:40:30.601060+00:00",
-        "observation_timestamp": 1760292000,
-        "temperature_celsius": 9.0,
-        "dewpoint_celsius": 8.0,
-        "wind_direction_degrees": 300,
-        "wind_speed_knots": 7,
+        "observation_time": "2025-10-20T19:00:00",
+        "receipt_time": "2025-10-20T19:28:12.431486+00:00",
+        "observation_timestamp": 1760979600,
+        "temperature_celsius": 12.0,
+        "dewpoint_celsius": 9.0,
+        "wind_direction_degrees": 150,
+        "wind_speed_knots": 6,
         "wind_variable": false,
-        "visibility": "20",
-        "altimeter_hpa": 1009.821498,
+        "visibility": "25",
+        "altimeter_hpa": 1027.430726,
         "sky_coverage": "OVC",
         "cloud_layers": [
           {
             "coverage": "FEW",
-            "altitude_feet": 2900,
+            "altitude_feet": 1800,
             "cloud_type": null
           },
           {
             "coverage": "BKN",
-            "altitude_feet": 4900,
+            "altitude_feet": 8000,
             "cloud_type": null
           },
           {
             "coverage": "OVC",
-            "altitude_feet": 7000,
+            "altitude_feet": 16000,
             "cloud_type": null
           }
         ],
         "flight_category": "VFR",
         "present_weather": [],
         "report_type": "METAR",
-        "raw_observation": "METAR CYVR 122000Z 30007KT 290V020 20SM FEW029 BKN049 OVC070 09/08 A2982 RMK SC1SC4AC3 SLP100="
+        "raw_observation": "METAR CYVR 201900Z 15006KT 25SM FEW018 BKN080 OVC160 12/09 A3034 RMK SC1AC6AC1 SLP275="
       }
     ]
   },
@@ -51,24 +51,71 @@
         "latitude": 0.0,
         "longitude": 0.0,
         "elevation_meters": 0,
-        "bulletin_time": "2025-10-12T17:40:00",
-        "issue_time": "2025-10-12T17:40:00",
-        "database_time": "2025-10-12T20:40:30.618268+00:00",
-        "valid_from": "2025-10-12T22:40:31.165426",
-        "valid_to": "2025-10-12T22:40:31.165426",
+        "bulletin_time": "2025-10-20T17:47:00",
+        "issue_time": "2025-10-20T17:47:00",
+        "database_time": "2025-10-20T19:28:12.443520+00:00",
+        "valid_from": "2025-10-20T21:28:12.922896",
+        "valid_to": "2025-10-20T21:28:12.922896",
         "valid_from_timestamp": 0,
         "valid_to_timestamp": 0,
         "is_most_recent": true,
         "is_prior_version": false,
-        "raw_taf": "TAF CYVR 121740Z\n1218/1324 10008KT P6SM SCT030 BKN050\n  TEMPO 1218/1221 5SM −SHRA BR BKN020\n  BECMG 1219/1221 31012KT\nFM122100 31012KT P6SM BKN060\n  TEMPO 1221/1224 P6SM −SHRA\nFM130000 31012KT P6SM BKN080\n  TEMPO 1300/1303 SCT090\nFM130300 36010KT P6SM SCT090\nFM131500 36010KT P6SM SKC\n  BECMG 1316/1318 30010KT\nRMK NXT FCST BY 122100Z=",
+        "raw_taf": "TAF CYVR 201747Z\n2018/2124 12008KT P6SM SCT020 OVC080\n  TEMPO 2018/2022 P6SM −SHRA BKN020 OVC080\nFM202200 12008KT P6SM SCT030 BKN080\nFM210500 10008KT P6SM BKN060\n  TEMPO 2105/2110 P6SM −SHRA\nFM211100 10008KT P6SM BKN015 OVC040\n  TEMPO 2111/2118 P6SM −SHRA\nFM211800 09007KT P6SM SCT015 BKN030\nFM212100 VRB03KT P6SM FEW030\nRMK NXT FCST BY 202100Z=",
         "remarks": "",
         "forecast_periods": [
           {
-            "valid_from": "2025-10-12T22:40:31.165426",
-            "valid_to": "2025-10-12T22:40:31.165426",
-            "valid_from_timestamp": 1760301631,
-            "valid_to_timestamp": 1760301631,
-            "wind_direction_degrees": 100,
+            "valid_from": "2025-10-20T21:28:12.922896",
+            "valid_to": "2025-10-20T21:28:12.922896",
+            "valid_from_timestamp": 1760988492,
+            "valid_to_timestamp": 1760988492,
+            "wind_direction_degrees": 120,
+            "wind_speed_knots": 8,
+            "visibility": "6+",
+            "cloud_layers": [
+              {
+                "coverage": "SCT",
+                "base_altitude_feet": 2000,
+                "cloud_type": null
+              },
+              {
+                "coverage": "OVC",
+                "base_altitude_feet": 8000,
+                "cloud_type": null
+              }
+            ],
+            "icing_turbulence": [],
+            "temperature_forecasts": []
+          },
+          {
+            "valid_from": "2025-10-20T18:00:00",
+            "valid_to": "2025-10-20T22:00:00",
+            "valid_from_timestamp": 1760976000,
+            "valid_to_timestamp": 1760990400,
+            "forecast_change_type": "TEMPO",
+            "visibility": "6+",
+            "weather_phenomena": "RA",
+            "cloud_layers": [
+              {
+                "coverage": "BKN",
+                "base_altitude_feet": 2000,
+                "cloud_type": null
+              },
+              {
+                "coverage": "OVC",
+                "base_altitude_feet": 8000,
+                "cloud_type": null
+              }
+            ],
+            "icing_turbulence": [],
+            "temperature_forecasts": []
+          },
+          {
+            "valid_from": "2025-10-20T22:00:00",
+            "valid_to": "2025-10-20T21:28:12.922896",
+            "valid_from_timestamp": 1760990400,
+            "valid_to_timestamp": 1760988492,
+            "forecast_change_type": "FM",
+            "wind_direction_degrees": 120,
             "wind_speed_knots": 8,
             "visibility": "6+",
             "cloud_layers": [
@@ -79,7 +126,7 @@
               },
               {
                 "coverage": "BKN",
-                "base_altitude_feet": 5000,
+                "base_altitude_feet": 8000,
                 "cloud_type": null
               }
             ],
@@ -87,44 +134,13 @@
             "temperature_forecasts": []
           },
           {
-            "valid_from": "2025-10-12T18:00:00",
-            "valid_to": "2025-10-12T21:00:00",
-            "valid_from_timestamp": 1760284800,
-            "valid_to_timestamp": 1760295600,
-            "forecast_change_type": "TEMPO",
-            "visibility": "5",
-            "weather_phenomena": "RA",
-            "cloud_layers": [
-              {
-                "coverage": "BKN",
-                "base_altitude_feet": 2000,
-                "cloud_type": null
-              }
-            ],
-            "icing_turbulence": [],
-            "temperature_forecasts": []
-          },
-          {
-            "valid_from": "2025-10-12T19:00:00",
-            "valid_to": "2025-10-12T21:00:00",
-            "valid_from_timestamp": 1760288400,
-            "valid_to_timestamp": 1760295600,
-            "forecast_change_type": "BECMG",
-            "wind_direction_degrees": 310,
-            "wind_speed_knots": 12,
-            "visibility": "6+",
-            "cloud_layers": [],
-            "icing_turbulence": [],
-            "temperature_forecasts": []
-          },
-          {
-            "valid_from": "2025-10-12T21:00:00",
-            "valid_to": "2025-10-12T22:40:31.165426",
-            "valid_from_timestamp": 1760295600,
-            "valid_to_timestamp": 1760301631,
+            "valid_from": "2025-10-21T05:00:00",
+            "valid_to": "2025-10-20T21:28:12.922896",
+            "valid_from_timestamp": 1761015600,
+            "valid_to_timestamp": 1760988492,
             "forecast_change_type": "FM",
-            "wind_direction_degrees": 310,
-            "wind_speed_knots": 12,
+            "wind_direction_degrees": 100,
+            "wind_speed_knots": 8,
             "visibility": "6+",
             "cloud_layers": [
               {
@@ -137,10 +153,10 @@
             "temperature_forecasts": []
           },
           {
-            "valid_from": "2025-10-12T21:00:00",
-            "valid_to": "2025-10-12T22:40:31.165426",
-            "valid_from_timestamp": 1760295600,
-            "valid_to_timestamp": 1760301631,
+            "valid_from": "2025-10-21T05:00:00",
+            "valid_to": "2025-10-21T10:00:00",
+            "valid_from_timestamp": 1761015600,
+            "valid_to_timestamp": 1761033600,
             "forecast_change_type": "TEMPO",
             "visibility": "6+",
             "weather_phenomena": "RA",
@@ -149,18 +165,23 @@
             "temperature_forecasts": []
           },
           {
-            "valid_from": "2025-10-13T00:00:00",
-            "valid_to": "2025-10-12T22:40:31.165426",
-            "valid_from_timestamp": 1760306400,
-            "valid_to_timestamp": 1760301631,
+            "valid_from": "2025-10-21T11:00:00",
+            "valid_to": "2025-10-20T21:28:12.922896",
+            "valid_from_timestamp": 1761037200,
+            "valid_to_timestamp": 1760988492,
             "forecast_change_type": "FM",
-            "wind_direction_degrees": 310,
-            "wind_speed_knots": 12,
+            "wind_direction_degrees": 100,
+            "wind_speed_knots": 8,
             "visibility": "6+",
             "cloud_layers": [
               {
                 "coverage": "BKN",
-                "base_altitude_feet": 8000,
+                "base_altitude_feet": 1500,
+                "cloud_type": null
+              },
+              {
+                "coverage": "OVC",
+                "base_altitude_feet": 4000,
                 "cloud_type": null
               }
             ],
@@ -168,70 +189,57 @@
             "temperature_forecasts": []
           },
           {
-            "valid_from": "2025-10-13T00:00:00",
-            "valid_to": "2025-10-13T03:00:00",
-            "valid_from_timestamp": 1760306400,
-            "valid_to_timestamp": 1760317200,
+            "valid_from": "2025-10-21T11:00:00",
+            "valid_to": "2025-10-21T18:00:00",
+            "valid_from_timestamp": 1761037200,
+            "valid_to_timestamp": 1761062400,
             "forecast_change_type": "TEMPO",
             "visibility": "6+",
-            "cloud_layers": [
-              {
-                "coverage": "SCT",
-                "base_altitude_feet": 9000,
-                "cloud_type": null
-              }
-            ],
-            "icing_turbulence": [],
-            "temperature_forecasts": []
-          },
-          {
-            "valid_from": "2025-10-13T03:00:00",
-            "valid_to": "2025-10-12T22:40:31.165426",
-            "valid_from_timestamp": 1760317200,
-            "valid_to_timestamp": 1760301631,
-            "forecast_change_type": "FM",
-            "wind_direction_degrees": 360,
-            "wind_speed_knots": 10,
-            "visibility": "6+",
-            "cloud_layers": [
-              {
-                "coverage": "SCT",
-                "base_altitude_feet": 9000,
-                "cloud_type": null
-              }
-            ],
-            "icing_turbulence": [],
-            "temperature_forecasts": []
-          },
-          {
-            "valid_from": "2025-10-13T15:00:00",
-            "valid_to": "2025-10-12T22:40:31.165426",
-            "valid_from_timestamp": 1760360400,
-            "valid_to_timestamp": 1760301631,
-            "forecast_change_type": "FM",
-            "wind_direction_degrees": 360,
-            "wind_speed_knots": 10,
-            "visibility": "6+",
-            "cloud_layers": [
-              {
-                "coverage": "SKC",
-                "base_altitude_feet": null,
-                "cloud_type": null
-              }
-            ],
-            "icing_turbulence": [],
-            "temperature_forecasts": []
-          },
-          {
-            "valid_from": "2025-10-13T16:00:00",
-            "valid_to": "2025-10-13T18:00:00",
-            "valid_from_timestamp": 1760364000,
-            "valid_to_timestamp": 1760371200,
-            "forecast_change_type": "BECMG",
-            "wind_direction_degrees": 300,
-            "wind_speed_knots": 10,
-            "visibility": "6+",
+            "weather_phenomena": "RA",
             "cloud_layers": [],
+            "icing_turbulence": [],
+            "temperature_forecasts": []
+          },
+          {
+            "valid_from": "2025-10-21T18:00:00",
+            "valid_to": "2025-10-20T21:28:12.922896",
+            "valid_from_timestamp": 1761062400,
+            "valid_to_timestamp": 1760988492,
+            "forecast_change_type": "FM",
+            "wind_direction_degrees": 90,
+            "wind_speed_knots": 7,
+            "visibility": "6+",
+            "cloud_layers": [
+              {
+                "coverage": "SCT",
+                "base_altitude_feet": 1500,
+                "cloud_type": null
+              },
+              {
+                "coverage": "BKN",
+                "base_altitude_feet": 3000,
+                "cloud_type": null
+              }
+            ],
+            "icing_turbulence": [],
+            "temperature_forecasts": []
+          },
+          {
+            "valid_from": "2025-10-21T21:00:00",
+            "valid_to": "2025-10-20T21:28:12.922896",
+            "valid_from_timestamp": 1761073200,
+            "valid_to_timestamp": 1760988492,
+            "forecast_change_type": "FM",
+            "wind_direction_degrees": "VRB",
+            "wind_speed_knots": 3,
+            "visibility": "6+",
+            "cloud_layers": [
+              {
+                "coverage": "FEW",
+                "base_altitude_feet": 3000,
+                "cloud_type": null
+              }
+            ],
             "icing_turbulence": [],
             "temperature_forecasts": []
           }
@@ -243,297 +251,223 @@
     {
       "periods": [
         {
-          "valid_time": "131800Z",
-          "use_period": "12-00",
-          "stations": {
-            "YVR": [
-              {
-                "altitude_ft": 3000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 6000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 9000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 12000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 18000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 24000,
-                "direction_deg": 30,
-                "speed_kt": 99,
-                "temperature_c": -26
-              },
-              {
-                "altitude_ft": 30000,
-                "direction_deg": 30,
-                "speed_kt": 130,
-                "temperature_c": -38
-              },
-              {
-                "altitude_ft": 34000,
-                "direction_deg": 40,
-                "speed_kt": 134,
-                "temperature_c": -48
-              },
-              {
-                "altitude_ft": 39000,
-                "direction_deg": 20,
-                "speed_kt": 102,
-                "temperature_c": -51
-              },
-              {
-                "altitude_ft": 45000,
-                "direction_deg": 30,
-                "speed_kt": 69,
-                "temperature_c": -57
-              },
-              {
-                "altitude_ft": 53000,
-                "direction_deg": 30,
-                "speed_kt": 26,
-                "temperature_c": -56
-              }
-            ]
-          }
-        },
-        {
-          "valid_time": "131200Z",
+          "valid_time": "211200Z",
           "use_period": "06-18",
           "stations": {
             "YVR": [
               {
                 "altitude_ft": 3000,
-                "direction_deg": 50,
-                "speed_kt": 18,
+                "direction_deg": 230,
+                "speed_kt": 13,
                 "temperature_c": null
               },
               {
                 "altitude_ft": 6000,
-                "direction_deg": 70,
-                "speed_kt": 30,
-                "temperature_c": -2
-              },
-              {
-                "altitude_ft": 9000,
-                "direction_deg": 80,
-                "speed_kt": 14,
-                "temperature_c": -7
-              },
-              {
-                "altitude_ft": 12000,
-                "direction_deg": 50,
-                "speed_kt": 19,
-                "temperature_c": -13
-              },
-              {
-                "altitude_ft": 18000,
-                "direction_deg": 50,
-                "speed_kt": 17,
-                "temperature_c": -26
-              },
-              {
-                "altitude_ft": 24000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 30000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 34000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 39000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 45000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 53000,
-                "direction_deg": null,
-                "speed_kt": null,
-                "temperature_c": null
-              }
-            ]
-          }
-        },
-        {
-          "valid_time": "130600Z",
-          "use_period": "03-12",
-          "stations": {
-            "YVR": [
-              {
-                "altitude_ft": 3000,
-                "direction_deg": 50,
+                "direction_deg": 260,
                 "speed_kt": 16,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 6000,
-                "direction_deg": 60,
-                "speed_kt": 29,
-                "temperature_c": -3
+                "temperature_c": 1
               },
               {
                 "altitude_ft": 9000,
-                "direction_deg": 90,
-                "speed_kt": 21,
-                "temperature_c": -8
+                "direction_deg": 270,
+                "speed_kt": 27,
+                "temperature_c": -1
               },
               {
                 "altitude_ft": 12000,
-                "direction_deg": 70,
-                "speed_kt": 18,
-                "temperature_c": -15
+                "direction_deg": 280,
+                "speed_kt": 39,
+                "temperature_c": -4
               },
               {
                 "altitude_ft": 18000,
-                "direction_deg": 100,
-                "speed_kt": 18,
-                "temperature_c": -29
-              },
-              {
-                "altitude_ft": 24000,
-                "direction_deg": 30,
-                "speed_kt": 29,
-                "temperature_c": -38
-              },
-              {
-                "altitude_ft": 30000,
-                "direction_deg": 20,
-                "speed_kt": 82,
-                "temperature_c": -39
-              },
-              {
-                "altitude_ft": 34000,
-                "direction_deg": 20,
-                "speed_kt": 76,
-                "temperature_c": -42
-              },
-              {
-                "altitude_ft": 39000,
-                "direction_deg": 20,
-                "speed_kt": 64,
-                "temperature_c": -45
-              },
-              {
-                "altitude_ft": 45000,
-                "direction_deg": 10,
-                "speed_kt": 54,
-                "temperature_c": -51
-              },
-              {
-                "altitude_ft": 53000,
-                "direction_deg": 20,
-                "speed_kt": 20,
-                "temperature_c": -54
-              }
-            ]
-          }
-        },
-        {
-          "valid_time": "130000Z",
-          "use_period": "20-03",
-          "stations": {
-            "YVR": [
-              {
-                "altitude_ft": 3000,
-                "direction_deg": 60,
-                "speed_kt": 6,
-                "temperature_c": null
-              },
-              {
-                "altitude_ft": 6000,
-                "direction_deg": 70,
-                "speed_kt": 23,
-                "temperature_c": -3
-              },
-              {
-                "altitude_ft": 9000,
-                "direction_deg": 90,
-                "speed_kt": 19,
-                "temperature_c": -10
-              },
-              {
-                "altitude_ft": 12000,
-                "direction_deg": 50,
-                "speed_kt": 7,
+                "direction_deg": 280,
+                "speed_kt": 53,
                 "temperature_c": -16
               },
               {
-                "altitude_ft": 18000,
-                "direction_deg": 70,
-                "speed_kt": 11,
-                "temperature_c": -30
-              },
-              {
                 "altitude_ft": 24000,
-                "direction_deg": 40,
-                "speed_kt": 6,
-                "temperature_c": -39
+                "direction_deg": 290,
+                "speed_kt": 66,
+                "temperature_c": -31
               },
               {
                 "altitude_ft": 30000,
-                "direction_deg": 10,
-                "speed_kt": 36,
+                "direction_deg": 270,
+                "speed_kt": 82,
+                "temperature_c": -44
+              },
+              {
+                "altitude_ft": 34000,
+                "direction_deg": 270,
+                "speed_kt": 93,
+                "temperature_c": -52
+              },
+              {
+                "altitude_ft": 39000,
+                "direction_deg": 260,
+                "speed_kt": 84,
+                "temperature_c": -57
+              },
+              {
+                "altitude_ft": 45000,
+                "direction_deg": 270,
+                "speed_kt": 71,
+                "temperature_c": -58
+              },
+              {
+                "altitude_ft": 53000,
+                "direction_deg": 270,
+                "speed_kt": 50,
+                "temperature_c": -60
+              }
+            ]
+          }
+        },
+        {
+          "valid_time": "210000Z",
+          "use_period": "21-06",
+          "stations": {
+            "YVR": [
+              {
+                "altitude_ft": 3000,
+                "direction_deg": 190,
+                "speed_kt": 15,
+                "temperature_c": null
+              },
+              {
+                "altitude_ft": 6000,
+                "direction_deg": 230,
+                "speed_kt": 18,
+                "temperature_c": 0
+              },
+              {
+                "altitude_ft": 9000,
+                "direction_deg": 250,
+                "speed_kt": 28,
+                "temperature_c": -3
+              },
+              {
+                "altitude_ft": 12000,
+                "direction_deg": 270,
+                "speed_kt": 47,
+                "temperature_c": -6
+              },
+              {
+                "altitude_ft": 18000,
+                "direction_deg": 270,
+                "speed_kt": 58,
+                "temperature_c": -19
+              },
+              {
+                "altitude_ft": 24000,
+                "direction_deg": 270,
+                "speed_kt": 85,
+                "temperature_c": -30
+              },
+              {
+                "altitude_ft": 30000,
+                "direction_deg": 260,
+                "speed_kt": 116,
                 "temperature_c": -40
               },
               {
                 "altitude_ft": 34000,
-                "direction_deg": 360,
-                "speed_kt": 45,
-                "temperature_c": -41
-              },
-              {
-                "altitude_ft": 39000,
-                "direction_deg": 360,
-                "speed_kt": 45,
-                "temperature_c": -44
-              },
-              {
-                "altitude_ft": 45000,
-                "direction_deg": 360,
-                "speed_kt": 40,
+                "direction_deg": 260,
+                "speed_kt": 122,
                 "temperature_c": -49
               },
               {
+                "altitude_ft": 39000,
+                "direction_deg": 270,
+                "speed_kt": 112,
+                "temperature_c": -57
+              },
+              {
+                "altitude_ft": 45000,
+                "direction_deg": 270,
+                "speed_kt": 70,
+                "temperature_c": -59
+              },
+              {
                 "altitude_ft": 53000,
-                "direction_deg": 350,
-                "speed_kt": 30,
-                "temperature_c": -54
+                "direction_deg": 280,
+                "speed_kt": 43,
+                "temperature_c": -62
+              }
+            ]
+          }
+        },
+        {
+          "valid_time": "201800Z",
+          "use_period": "14-21",
+          "stations": {
+            "YVR": [
+              {
+                "altitude_ft": 3000,
+                "direction_deg": 230,
+                "speed_kt": 8,
+                "temperature_c": null
+              },
+              {
+                "altitude_ft": 6000,
+                "direction_deg": 260,
+                "speed_kt": 16,
+                "temperature_c": -1
+              },
+              {
+                "altitude_ft": 9000,
+                "direction_deg": 270,
+                "speed_kt": 25,
+                "temperature_c": -3
+              },
+              {
+                "altitude_ft": 12000,
+                "direction_deg": 280,
+                "speed_kt": 38,
+                "temperature_c": -5
+              },
+              {
+                "altitude_ft": 18000,
+                "direction_deg": 270,
+                "speed_kt": 51,
+                "temperature_c": -17
+              },
+              {
+                "altitude_ft": 24000,
+                "direction_deg": 280,
+                "speed_kt": 68,
+                "temperature_c": -28
+              },
+              {
+                "altitude_ft": 30000,
+                "direction_deg": 280,
+                "speed_kt": 100,
+                "temperature_c": -42
+              },
+              {
+                "altitude_ft": 34000,
+                "direction_deg": 280,
+                "speed_kt": 111,
+                "temperature_c": -50
+              },
+              {
+                "altitude_ft": 39000,
+                "direction_deg": 290,
+                "speed_kt": 115,
+                "temperature_c": -59
+              },
+              {
+                "altitude_ft": 45000,
+                "direction_deg": 280,
+                "speed_kt": 69,
+                "temperature_c": -61
+              },
+              {
+                "altitude_ft": 53000,
+                "direction_deg": 280,
+                "speed_kt": 51,
+                "temperature_c": -61
               }
             ]
           }
@@ -542,20 +476,20 @@
     }
   ],
   "extraction_summary": {
-    "total_entries": 41,
+    "total_entries": 35,
     "metar_records": 1,
     "taf_records": 1,
-    "notam_records": 38,
+    "notam_records": 32,
     "upper_wind_records": 1,
     "stations_found": [
-      "CYDC",
+      "CYCD",
       "CYVR",
       "CYYJ"
     ],
-    "extraction_time": "2025-10-12T20:40:31.081174+00:00"
+    "extraction_time": "2025-10-20T19:28:12.836626+00:00"
   },
   "session_info": {
-    "timestamp": "2025-10-12T20:40:31.081164+00:00",
+    "timestamp": "2025-10-20T19:28:12.836617+00:00",
     "stations_requested": [
       "CYVR"
     ],

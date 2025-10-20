@@ -216,7 +216,7 @@ def main():
     # Query each group
     all_stats = []
     
-    for group_num, stations in enumerate(station_groups, start=1):
+    for group_num, stations in enumerate(station_groups[:1], start=1):
         # Query the group
         stats = query_station_group(server, stations, group_num, output_dir)
         all_stats.append(stats)
