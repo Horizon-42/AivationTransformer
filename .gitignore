@@ -27,3 +27,5 @@ METAR_convert/weather_data/
 *.mdb
 
 narratives.csv
+Events.csv
+Findings.csv
