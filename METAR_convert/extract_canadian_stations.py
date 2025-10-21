@@ -62,10 +62,19 @@ class CanadianStationExtractor:
         print(f"✅ Found {len(self.stations)} Canadian stations")
     
     def _parse_station_line(self, line: str) -> None:
-        """Parse a station line into structured data"""
-        # Split the line into fields based on column positions
-        # CD(0-2) STATION(3-19) ICAO(20-24) IATA(26-29) SYNOP(31-35) LAT(37-44) LON(46-54) ELEV(56-60) flags...
+        """Parse a station line into structured data
         
+        Format: CD  STATION         ICAO  IATA  SYNOP   LAT     LONG   ELEV   M  N  V  U  A  C
+        Example: AB CALGARY INTNL AR CYYC  YYC   71877  51 07N  114 01W 1084   X     T          0 CA
+        Columns:
+        - M = METAR (X=has METAR, Z=obsolete)
+        - N = NEXRAD (X=has NEXRAD)
+        - V = Aviation flags (T=TAF, V=AIRMET/SIGMET, A=ARTCC, U=T+V)
+        - U = Upper air (X=rawinsonde, W=wind profiler, Z=military)
+        - A = Auto (A=ASOS, W=AWOS, M=Meso, H=Human, G=Augmented)
+        - C = Office type (F=WFO, R=RFC, C=NCEP Center)
+        """
+        # Parse fixed-width columns based on actual format
         province = line[0:2].strip()
         station = line[3:19].strip()
         icao = line[20:24].strip()
@@ -75,15 +84,27 @@ class CanadianStationExtractor:
         lon = line[46:54].strip()
         elev = line[56:60].strip()
         
-        # Parse flags (M N V U A C)
-        flags_section = line[60:].strip() if len(line) > 60 else ""
-        parts = flags_section.split()
+        # Parse flag columns - based on actual format analysis
+        # Example: "1084   X     T          0 CA"
+        #           pos: 60  62 63 64 65 66 67 68 69 70...
+        # Flags appear at: M=62, N=~65, V=68, U=~71, A=~74, C=~77
+        metar_flag = line[62:63].strip() if len(line) > 62 else ''
+        nexrad_flag = line[65:66].strip() if len(line) > 65 else ''
+        aviation_flag = line[68:69].strip() if len(line) > 68 else ''
+        upper_air_flag = line[71:72].strip() if len(line) > 71 else ''
+        auto_flag = line[74:75].strip() if len(line) > 74 else ''
+        office_flag = line[77:78].strip() if len(line) > 77 else ''
         
-        # Extract flags
-        metar = 'X' in flags_section[0:10] if len(flags_section) >= 10 else ''
-        nexrad = 'X' in flags_section[3:6] if len(flags_section) >= 6 else ''
-        aviation = 'T' in flags_section or 'V' in flags_section or 'A' in flags_section or 'U' in flags_section
-        upper_air = 'X' in flags_section[9:15] if len(flags_section) >= 15 else ''
+        # Map flags to descriptive values
+        metar_map = {'X': 'Yes', 'Z': 'Obsolete'}
+        nexrad_map = {'X': 'Yes'}
+        aviation_map = {'T': 'TAF', 'V': 'AIRMET/SIGMET',
+                        'A': 'ARTCC', 'U': 'TAF+AIRMET/SIGMET'}
+        upper_air_map = {'X': 'Rawinsonde',
+                         'W': 'Wind Profiler', 'Z': 'Military', 'T': 'TAF'}
+        auto_map = {'A': 'ASOS', 'W': 'AWOS',
+                    'M': 'Meso', 'H': 'Human', 'G': 'Augmented'}
+        office_map = {'F': 'WFO', 'R': 'RFC', 'C': 'NCEP Center'}
         
         self.stations_parsed.append({
             'province': province,
@@ -94,10 +115,12 @@ class CanadianStationExtractor:
             'latitude': lat,
             'longitude': lon,
             'elevation_m': elev,
-            'metar': 'Yes' if metar else 'No',
-            'nexrad': 'Yes' if nexrad else 'No',
-            'aviation': 'Yes' if aviation else 'No',
-            'upper_air': 'Yes' if upper_air else 'No',
+            'metar': metar_map.get(metar_flag, ''),
+            'nexrad': nexrad_map.get(nexrad_flag, ''),
+            'aviation': aviation_map.get(aviation_flag, ''),
+            'upper_air': upper_air_map.get(upper_air_flag, ''),
+            'auto_type': auto_map.get(auto_flag, ''),
+            'office_type': office_map.get(office_flag, ''),
             'country': 'CA'
         })
         
@@ -150,6 +173,8 @@ class CanadianStationExtractor:
             'nexrad',
             'aviation',
             'upper_air',
+            'auto_type',
+            'office_type',
             'country'
         ]
         

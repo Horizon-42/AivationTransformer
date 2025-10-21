@@ -1,0 +1,842 @@
+! Canadian Weather Stations Database
+! Extracted from UCAR Stations Database
+! Contains all weather stations in Canada (ICAO codes starting with 'C')
+!
+CD  STATION         ICAO  IATA  SYNOP   LAT     LONG   ELEV   M  N  V  U  A  C
+AB ABEE AGDM        CXAF        71285  54 17N  112 58W  664   X                8 CA
+AB ANDREW AGDM      CXAG        71286  53 55N  112 17W  625   X                8 CA
+AB ATMORE AGDM      CXAJ        71287  54 46N  112 49W  574   X                8 CA
+AB BANFF (MARS)     CWZG  WZG          51 12N  115 32W 1397   X                7 CA
+AB BARNWELL AGDM    CXBW        71346  49 48N  112 18W  824   X                8 CA
+AB BEAVERLODGE      CWBM        71230  55 12N  119 24W  745   X                8 CA
+AB BODO AGDM        CXBA        71214  52 07N  110 06W  687   X                8 CA
+AB BOW ISLAND       CWXL  WXL   71231  49 44N  111 27W  817   X                7 CA
+AB BOW VALLEY       CWXA  WXA   71232  51 04N  115 04W 1298   X                7 CA
+AB BROCKET AGDM     CXBR        71341  49 37N  113 49W 1073   X                8 CA
+AB BROOKS (AUTOB)   CWBO  WBO   71457  50 32N  111 50W  747   X                7 CA
+AB CALGARY INTNL AR CYYC  YYC   71877  51 07N  114 01W 1084   X     T          0 CA
+AB CALGARY INTL     CPCI        71393  51 07N  114 01W 1081   X                8 CA
+AB CALGARY/SPRINGBA CYBW  YBW   71860  51 06N  114 22W 1200   X     T          7 CA
+AB CARDSTON (AUT)   CWFJ  WFJ   71153  49 12N  113 16W 1136   X                7 CA
+AB CHAMPION AGDM    CXCP        71217  50 17N  113 21W 1006   X                8 CA
+AB CLARESHOLM (AUTO CWDK  WDK   71234  50 01N  113 37W 1012   X                7 CA
+AB CLEARDALE AGDM   CXCD        71221  56 19N  119 45W  630   X                8 CA
+AB COLD LAKE (CAN   CYOD  YOD   71120  54 24N  110 17W  544   X     T  Z       6 CA
+AB CONSORT AGDM     CXCS        71223  51 56N  110 43W  772   X                8 CA
+AB CORONATION(AUT)  CWCT  WCT          52 04N  111 28W  791   X                7 CA
+AB CROWSNEST        CWRT  WRT   71236  49 37N  114 28W 1303   X                7 CA
+AB DAPP AGDM        CXDP        71340  54 19N  113 57W  614   X                8 CA
+AB DEL BONITA AGDM  CXDB        71224  49 03N  112 49W 1310   X                8 CA
+AB DRUMHELLER EAST  CWDZ  WDZ          51 25N  112 40W  678   X                7 CA
+AB EDMONTON INTL AR CYEG  YEG   71123  53 17N  113 34W  723   X     T          6 CA
+AB EDMONTON INTL AR CXEG  XEG   71155  53 18N  113 36W  715   X                7 CA
+AB EDMONTON MUNI    CXEC  XEC   71157  53 34N  113 31W  671   X                7 CA
+AB EDMONTON MUNICIP CYXD  YXD   71879  53 34N  113 31W  671   X     T          6 CA
+AB EDMONTON/NAMAO(M CYED  YED   71121  53 40N  113 28W  688   X     T  Z       6 CA
+AB EDMONTON/STONY P CWSE  WSE   71119  53 32N  114 05W  766            X       8 CA
+AB EDMONTON/STONY P CZED  ZED   71126  53 33N  114 06W  766   X        T       7 CA
+AB EDMONTON/STONY P CXPS               53 33N  114 06W  766   X                8 CA
+AB EDMONTON/VILLENU CZVL               53 40N  113 51W  686   X     T          9 CA
+AB EDSON AIRPORT    CYET  YET   71881  53 34N  116 28W  925   X                7 CA
+AB EDSON            CZZJ        71156  53 35N  116 28W  927   X                8 CA
+AB ESTHER 1         CWGY  WGY   71240  51 40N  110 12W  707   X                7 CA
+AB FAIRVIEW AGDM    CXFR        71347  56 05N  118 26W  655   X                8 CA
+AB FOREMOST AGDM    CXFM        71225  49 29N  111 29W  881   X                8 CA
+AB FORT CHIPEWYAN A CYPY  YPY   71933  58 46N  111 07W  232   X     T          7 CA
+AB FORT MCMURRAY AR CYMM  YMM   71932  56 39N  111 13W  369   X     T          6 CA
+AB FORT MCMURRAY AR CXMM  XMM   71585  56 39N  111 13W  369   X                7 CA
+AB FORT VERMILLION  CXFV               58 23N  116 02W  289   X                8 CA
+AB GRANDE PRAIRE AR CYQU  YQU   71940  55 11N  118 53W  669   X     T          6 CA
+AB HIGH LEVEL AIRPO CYOJ  YOJ   71066  58 37N  117 10W  338   X     T          6 CA
+AB HIGH PRAIRIE AGD CXHP        71226  55 24N  116 29W  602   X                8 CA
+AB HIGHVALE         CWHA  WHA   71241  53 27N  114 28W  747   X                7 CA
+AB HOLDEN AGDM      CXHD        71227  53 11N  112 15W  688   X                8 CA
+AB HUSSAR AGDM      CXHR        71344  51 11N  112 30W  971   X                8 CA
+AB JASPER WARDEN (A CWJW  WJW   71486  52 56N  118 02W 1020   X                7 CA
+AB KILLAM AGDM      CXKM        71228  52 49N  111 51W  675   X                8 CA
+AB LAC LA BICHE (MA CWLB  WLB   71931  54 46N  112 01W  567   X                7 CA
+AB LETHBRIDGE VOR   CYQL  YQL   71874  49 38N  112 48W  929   X     U          6 CA
+AB LLOYDMINSTER ARP CYLL  YLL   71871  53 19N  110 04W  669   X     T          6 CA
+AB MANNING AGDM     CXMG        71229  56 58N  117 27W  457   X                8 CA
+AB MASINASIN AGDM   CXMN        71345  49 07N  111 39W  947   X                8 CA
+AB MEDICINE HAT     CYXH  YXH   71872  50 01N  110 43W  716   X     U          6 CA
+AB MEDICINE HAT     CXMH        71026  50 02N  110 43W  717   X                8 CA
+AB MILK RIVER       CWRY  WRY   71244  49 07N  112 02W 1050   X                7 CA
+AB MORRIN AGDM      CXMO        71257  51 40N  112 41W  836   X                8 CA
+AB MUNDARE AGDM     CZMU        71354  53 34N  112 18W  683   X                8 CA
+AB NORDEGG CS       CXND               52 28N  116 05W 1362   X                8 CA
+AB OLDS AGDM        CXOL        71258  51 46N  114 05W 1046   X                8 CA
+AB OLIVER AGDM      CZOL        71351  53 39N  113 21W  665   X                8 CA
+AB OYEN AGDM        CXOY        71342  51 23N  110 21W  767   X                8 CA
+AB ONEFOUR (AUTOB)  CWOE  WOE   71116  49 07N  110 28W  935   X                7 CA
+AB PEACE RIVER AIRP CYPE  YPE   71068  56 13N  117 27W  571   X     T          6 CA
+AB PEORIA AGDM      CXPA        71348  55 37N  118 18W  621   X                8 CA
+AB PINCHER CREEK(M  CZPC  ZPC   71875  49 31N  114 00W 1190   X                7 CA
+AB POLLOCKVILLE AGD CXPL        71259  51 08N  111 42W  750   X                8 CA
+AB PRAIRIE RIVER    CXPV  XPV   71593  58 27N  111 40W  213   X                7 CA
+AB PRENTISS         CZPS        71353  52 26N  113 36W  965   X                8 CA
+AB PRIMROSE LAKE    CWIQ  WIQ   71124  54 45N  110 02W  702   X        M       7 CA
+AB PRIMROSE LAKE 2  CWOU  WOU   71127  54 46N  110 04W  606   X                7 CA
+AB RED DEER AIRPORT CYQF  YQF   71878  52 10N  113 54W  905   X     T          6 CA
+AB RICH LAKE AGDM   CXRL        71349  54 30N  111 42W  585   X                8 CA
+AB ROCKY HOUSE (MAR CWRM  WRM          52 25N  114 55W  988   X                7 CA
+AB SCHULER AGDM     CXSC        71269  50 18N  110 05W  800   X                8 CA
+AB SCHULER RADAR    CXBU               50 29N  110 12W  777      X             8 CA
+AB SLAVE LAKE AIRPO CYZH  YZH   71069  55 17N  114 46W  581   X     T          6 CA
+AB SMOKY LAKE AGDM  CXSL        71274  54 17N  112 30W  680   X                8 CA
+AB SPIRIT RIVER     CXSR  XSR   71571  55 42N  119 14W 1015   X                7 CA
+AB STETTLER AGDM    CXAK        71289  52 21N  112 36W  795   X                8 CA
+AB ST PAUL AGDM     CXSP        71275  54 01N  111 16W  649   X                8 CA
+AB SUFFIELD AIRPORT CYSD  YSD   71128  50 16N  111 10W  770   X                7 CA
+AB SUNDRE           CWAV  WAV   71248  51 46N  114 40W 1114   X                7 CA
+AB THREE HILLS      CWHI  WHI   71249  51 42N  113 13W  907   X                7 CA
+AB TURTLE MTN CS    CWQA        71250  49 35N  114 25W 2164   X                8 CA
+AB TWO HILLS AGDM   CXTH        71276  53 38N  111 41W  678   X                8 CA
+AB VALLEYVIEW AGDM  CXVW               55 06N  117 12W  698   X                8 CA
+AB VEGREVILLE (AUTO CWVI        71458  53 31N  112 06W  639   X                7 CA
+AB VERMILION AGDM   CXVM               53 21N  110 53W  623   X                8 CA
+AB VILNA AG         CPVI        71761  54 08N  111 55W  645   X                7 CA
+AB WATERTON PARK GA CWGM  WGM   71154  49 08N  113 47W 1296   X                7 CA
+AB WHITECOURT AIRPO CYZU  YZU   71930  54 09N  115 47W  785   X     T          7 CA
+AB WHITECOURT AIRPO CXZU  XZU   71256  54 09N  115 47W  785   X                7 CA
+AB WRENTHAN AGDM    CXWM        71343  49 30N  112 07W  944   X                8 CA
+AB YOHO PARK (AUTOB CWYL  WYL   71786  51 27N  116 19W 1615   X                7 CA
+AB BLOOD TRIBE AGDM CPBT        71517  49 34N  113 03W  980   X                8 CA
+AB ENCHANT AGDM     CPEH        71518  50 11N  112 26W  801   X                8 CA
+AB FINCASTLE AGDM   CPFI        71535  49 48N  112 02W  833   X                8 CA
+AB IRON SPRINGS     CPIR        71528  49 54N  112 44W  858   X                8 CA
+AB LETHBRIDGE DEMO  CPQL        71509  49 41N  112 45W  903   X                8 CA
+AB ROSEMARY AGDM    CPRO        71537  50 50N  112 03W  714   X                8 CA
+AB RAYMOND AGDM     CPRY        71536  49 29N  112 41W  937   X                8 CA
+AB STRATHMORE AGDM  CPST        71526  51 02N  113 17W  967   X                8 CA
+AB SEVEN PERSONS    CPSV        71525  49 55N  110 55W  766   X                8 CA
+AB BOW ISLAND AGDM  CPXL        71519  49 52N  111 23W  799   X                8 CA
+BC ABBOTSFORD AIRPO CYXX  YXX   71108  49 02N  122 23W   58   X     T          6 CA
+BC ADDENBROKE ISL ( CWCZ  WCZ          51 36N  127 52W   21   X                7 CA
+BC AGASSIZ (AUTO)   CWZA  WZA   71113  49 15N  121 46W   15   X                7 CA
+BC AMPHITRITE POINT CWAN  WAN   71112  48 55N  125 32W   27   X                7 CA
+BC ASHCROFT         CVAS        71681  50 43N  121 17W  327   X                8 CA
+BC BALLENAS IL AUTO CWGB  WGB   71769  49 21N  124 10W    5   X                7 CA
+BC BELLA COOLA ARPT CYBD  YBD   71206  52 22N  126 34W   35   X                7 CA
+BC BELLA BELLA      CBBC               52 11N  128 09W   43   X     T          6 CA
+BC BIG CREEK(AUTO)  CWBG  WBG          51 15N  123 04W 1670   X                7 CA
+BC BLEIBLER RANCH   CYIN               51 16N  121 41W 1128   X                7 CA
+BC BLUE RIVER (MAN) CYCP  YCP   71883  52 08N  119 17W  683   X                7 CA
+BC BLUE RIVER (MARS CWSV  WSV          52 06N  119 17W  683   X                7 CA
+BC BOAT BLUFF (LGT  CWZM  WZM          52 39N  128 31W   15   X                7 CA
+BC BONILLA ISL (MAP CWWL  WWL   71484  53 30N  130 38W   17   X                7 CA
+BC BONILLA ISLAND ( CWVB  WVB          53 30N  130 38W   16   X                7 CA
+BC BURNS LAKE       CWPZ  WPZ   71952  54 23N  125 58W  713   X                7 CA
+BC CAMPBELL RIVER A CYBL  YBL          49 57N  125 16W  106   X     T          6 CA
+BC CAPE MUDGE (LGT  CWAD  WAD          50 00N  125 12W    4   X                7 CA
+BC CAPE SCOTT (LGT  CWES  WES   71111  50 46N  128 25W   72   X                7 CA
+BC CAPE ST JAMES    CWZV  WZV   71107  51 56N  131 01W   92   X                7 CA
+BC CASTLEGAR AIRPOR CYCG  YCG   71884  49 17N  117 37W  495   X     T          6 CA
+BC CATHEDRAL PT(MAP CWME  WME   71482  52 11N  127 28W   32   X                7 CA
+BC CHATHAM POINT (L CWFM  WFM          50 20N  125 27W   23   X                7 CA
+BC CHETWYND AIRPORT CYCQ  YCQ          55 42N  121 37W  609   X                7 CA
+BC CLINTON (MARS)   CWCL  WCL   71474  51 08N  121 30W 1057   X                7 CA
+BC COMOX (CAN MIL)  CYQQ  YQQ   71893  49 43N  124 54W   24   X     T          6 CA
+BC CRANBROOK        CYXC  YXC   71880  49 36N  115 46W  939   X     U          6 CA
+BC CRESTON (AUTOB)  CWJR  WJR   71770  49 04N  116 30W  646   X                7 CA
+BC CUMSHEWA ISL (MA CWZL  WZL          53 02N  131 36W   17   X                7 CA
+BC DAWSON CREEK ARP CYDQ  YDQ          55 45N  120 10W  655   X     T          7 CA
+BC DEASE LAKE       CWDL        71958  58 26N  130 01W  816   X                7 CA
+BC DEASE LAKE       CYDL               58 25N  130 01W  816   X     T          6 CA
+BC DEASE LAKE CS    CWKX  WKX   71222  58 26N  130 01W  793   X                7 CA
+BC DISCOVERY ISLAND CWDR        71031  48 25N  123 14W   17   X                7 CA
+BC DRYAD POINT (LGT CWAU  WAU          52 11N  128 07W    4   X                7 CA
+BC EGG ISLAND       CWEM  WEM          51 15N  127 50W   14   X                7 CA
+BC ENTRANCE IL AUTO CWEL  WEL   71772  49 13N  123 47W    5   X                7 CA
+BC ESQUIMALT METOC  CWPF  WPF          48 26N  123 26W   12   X                7 CA
+BC ESTEVAN PT. (MAR CWEB  WEB   71894  49 23N  126 33W    7   X                7 CA
+BC FANNY ISLAND     CXFA        71568  50 27N  126 00W    5   X                8 CA
+BC FORT NELSON AIRP CYYE  YYE   71945  58 49N  122 34W  382   X     T  X       5 CA
+BC FORT ST. JOHN AR CYXJ  YXJ   71943  56 15N  120 44W  695   X     T          6 CA
+BC GOLDEN ARPT      CYGE  YGE          51 18N  116 59W  785   X                7 CA
+BC GREEN ISLAND (MT CWNJ               54 34N  130 42W   12   X                7 CA
+BC GREY ISLET (MAPS CWEK  WEK   71476  54 35N  130 42W    8   X                7 CA
+BC HELMCKEN ISL(MAP CWXM  WXM   71481  50 23N  125 52W   19   X                7 CA
+BC HERBERT ISL (MAP CWLP  WLP   71485  50 56N  127 38W   17   X                7 CA
+BC HOLBERG CCR      CWXH  WXH   71562  50 38N  128 08W  568   X                7 CA
+BC HOLLAND ROCK(AUT CWHL  WHL   71440  54 10N  130 21W    5   X                7 CA
+BC HOPE AIRPORT (MA CYHE  YHE   71114  49 22N  121 30W   39   X                7 CA
+BC HOPE SLIDE       CWKV  WKV          49 16N  121 13W  674   X                7 CA
+BC HORSEFLY R.71761 CWFR  WFR          52 16N  121 02W  846   Z                7 CA
+BC HOSKINS ISLET    CWZK        71773  52 32N  131 33W    8   X                8 CA
+BC ISKUT RIVER(AUTO CWIO  WIO          56 43N  131 40W   15   X                7 CA
+BC IVORY ISLAND     CWJG  WJG          52 16N  128 25W   10   X                7 CA
+BC KAMLOOPS AIRPORT CYKA  YKA   71887  50 42N  120 27W  346   X     T          6 CA
+BC KAMLOOPS         CZKA               50 42N  120 26W  345   X                8 CA
+BC KELOWNA APT      CYLW  YLW   71203  49 57N  119 22W  430   X     T  Z       1 CA
+BC KELP REEFS 71036 CWZO  WZO          48 33N  123 14W    1   Z                7 CA
+BC KINDAKUN ROCKS(A CWQS  WQS   71472  53 19N  132 46W   14   X                7 CA
+BC LANGARA          CWJU  WJU   71903  54 15N  133 04W   41   X                7 CA
+BC LANGARA          CWLA  WLA   71899  54 15N  133 04W   41   X                7 CA
+BC LUCY ISL (LGT H) CWLC  WLC          54 18N  130 37W   27   X                7 CA
+BC LYTTON (READAC)  CWLY  WLY   71891  50 13N  121 35W  229   X                7 CA
+BC MACKENZIE AIRPOR CYZY  YZY   71944  55 17N  123 07W  690   X     T          6 CA
+BC MALAHAT (AUTOB)  CWKH  WKH   71774  48 34N  123 33W  366   X                7 CA
+BC MASSET           CZMT               54 02N  132 08W    8   X     T          6 CA
+BC MCINNES ISLAND   CWMS  WMS   71897  52 16N  128 43W   26   X                7 CA
+BC MERRY ISLAND     CWMR  WMR          49 28N  123 55W    8   X                7 CA
+BC MT SICKER RADAR  CXSI               48 52N  123 45W    1      X             8 CA
+BC MUNCHO LAKE      CWWQ  WWQ          58 56N  125 46W  837   X                7 CA
+BC NAKUSP (AUTOB)   CWNP  WNP   71216  50 16N  117 49W  524   X                7 CA
+BC NANAIMO AIRPORT  CYCD  YCD   71890  49 03N  123 52W   30   X     T          6 CA
+BC NECHAKO RIVER AU CWNX  WNX          53 40N  124 49W  715   X                7 CA
+BC NELSON (AUTOB)   CWNM  WNM   71776  49 30N  117 17W  535   X                7 CA
+BC NITINAT LAKE (MA CWAC  WAC   71483  48 40N  124 50W   41   X                7 CA
+BC NOOTKA LIGHTSTAT CWCV  WCV          49 36N  126 37W   16   X                7 CA
+BC OSOYOOS (AUTOB)  CWYY  WYY   71215  49 02N  119 26W  283   X                7 CA
+BC P. MEADOWS CS AU CWMM  WMM   71775  49 13N  122 41W    5   X                7 CA
+BC PEMBERTON (AUTOB CWGP  WGP   71777  50 18N  122 44W  204   Z                7 CA
+BC PEMBERTON (AUTOB CYPS  WGE          50 18N  122 44W  204                    7 CA
+BC PENTICTON AIRPOR CYYF  YYF   71889  49 28N  119 35W  344   X     T          6 CA
+BC PINE ISLAND (MAP CWPI  WPI   71105  50 59N  127 44W    9   X                7 CA
+BC PORT ALBERNI (MA CWQC  WQC   71475  49 19N  124 56W   53   X                7 CA
+BC PORT HARDY AIRPO CYZT  YZT   71109  50 40N  127 22W   22   X     T  X       0 CA
+BC POWELL RIVER ARP CYPW  YPW   71208  49 49N  124 30W  130   X                7 CA
+BC PRINCE GEORGE    CYXS  YXS   71908  53 54N  122 41W  691   X     T  X       0 CA
+BC PRINCE GEORGE    CXPG               53 37N  122 57W 1101      X             8 CA
+BC PRINCE RUPERT AR CYPR  YPR   71898  54 17N  130 25W   34   X     T          6 CA
+BC PRINCETON        CWPR  WPR   71032  49 28N  120 31W  700   X                7 CA
+BC PRINCETON        CYDC  YDC   71886  49 28N  120 31W  700   X     V          6 CA
+BC PUNTZI MTN (MARS CWPU  WPU   71050  52 07N  124 07W  910   X                7 CA
+BC QUATSINO (LGT ST CWIF  WIF          50 26N  128 02W   21   X                7 CA
+BC QUESNEL AIRPORT  CYQZ  YQZ   71103  53 01N  122 31W  545   X     T          6 CA
+BC RACE ROCKS AUTOB CWQK  WQK   71778  48 18N  123 32W    5   X                7 CA
+BC REVELSTOKE AIRPO CYRV  YRV   71882  50 58N  118 10W  443   X                7 CA
+BC ROSE SPIT (MAPS) CWRO  WRO   71477  54 10N  131 40W    7   X                7 CA
+BC SALMON ARM AUTOB CWSL  WSL   71218  50 42N  119 16W  351   X                7 CA
+BC SAND HEADS (LS)  CWVF  WVF          49 06N  123 18W    1   X                7 CA
+BC SANDSPIT AIRPORT CYZP  YZP   71101  53 15N  131 49W    6   X     T          6 CA
+BC SARTINE ISL (MAP CWFG  WFG   71478  50 49N  128 54W  111   X                7 CA
+BC SATURNA ISL (MAP CWEZ  WEZ   71473  48 47N  123 03W    7   X                7 CA
+BC SCUDDER POINT    CWZD               52 27N  131 14W    5   X                8 CA
+BC SHERINGHAM AUTOB CWSP  WSP   71780  48 23N  123 55W   21   X                7 CA
+BC SILVER STAR RADR CXSS               50 22N  119 04W 1681      X             8 CA
+BC SIKANNI CHIEF AU CWKS  WKS          57 15N  122 43W  937   X                7 CA
+BC SISTERS IL AUTOB CWGT        71781  49 29N  124 26W    5   X                7 CA
+BC SMITHERS AIRPORT CYYD  YYD   71950  54 49N  127 11W  523   X     T          6 CA
+BC SOLANDER ISL (MA CWRU  WRU   71479  50 07N  127 56W   98   X                7 CA
+BC SPARWOOD (AUTOB) CWGW  WGW   71782  49 45N  114 54W 1137   X                7 CA
+BC SPARWOOD/ELK VAL CWSW  WSW          49 45N  114 52W 1138   X                7 CA
+BC SQUAMISH (AUTOB) CWSK  WSK   71207  49 47N  123 10W   60   X                7 CA
+BC SQUAMISH (AUTOB) CYSE               49 47N  123 10W   52   X                7 CA
+BC STEWART AIRPORT  CZST  ZST   71955  55 56N  129 59W    7   X                7 CA
+BC SUMMERLAND (AUTO CWUS  WUS   71768  49 34N  119 39W  454   X                7 CA
+BC TATLAYOKO LAKE   CXTL        71028  51 40N  124 24W  875   X                8 CA
+BC TERRACE AIRPORT  CYXT  YXT   71951  54 28N  128 34W  217   X     T          6 CA
+BC TETSA RIVER      CWTH  WTH          58 39N  124 14W  804   X                7 CA
+BC TOFINO AIRPORT   CYAZ  YAZ   71106  49 05N  125 46W   24   X     T          6 CA
+BC TRIPLE ISLAND (L CWTI  WTI   71100  54 18N  130 53W   21   X                7 CA
+BC VANCOUVER (AUTOB CWHC  WHC   71201  49 17N  123 07W    2   X                7 CA
+BC VANCOUVER INTL A CYVR  YVR   71892  49 10N  123 10W    2   X     T  Z       6 CA
+BC VERNON (AUTOB)   CWJV  WJV   71115  50 13N  119 11W  556   X                7 CA
+BC VERNON BRIDGE    CWVK  WVK   73033  50 13N  119 16W  555            X       8 CA
+BC VIC. HARTLAND AU CWVV  WVV          48 31N  123 28W   49   X                7 CA
+BC VICTORIA (AUTOB) CWLM  WLM   71200  48 25N  123 19W   70   X                7 CA
+BC VICTORIA HARBOUR CYWH  YWH          48 25N  123 23W   10   X     T          7 CA
+BC VICTORIA INTL AR CYYJ  YYJ   71799  48 39N  123 26W   19   X     T          6 CA
+BC VICTORIA UNIV    CWYJ  WYJ   71783  48 27N  123 18W   39   X                7 CA
+BC W VANCOUVER AUTO CWWA  WWA   71784  49 21N  123 10W  178   X                7 CA
+BC WHISTLER         CWAE  WAE          50 08N  122 57W  658   X                7 CA
+BC WHITE ROCK AUTOB CWWK  WWK   71785  49 01N  122 47W   15   X                7 CA
+BC WILLIAMS LAKE AR CYWL  YWL   71104  52 11N  122 04W  940   X     T          6 CA
+BC INGENIKA PT CWWU                    56 47N  124 54W  680   Z                9 CA
+MB ARNES            CWRE               50 48N  096 57W  221   X                8 CA
+MB BERENS RIVER APT CYBV  YBV          52 21N  097 02W  222   X                7 CA
+MB BERENS RIVER APT CWCF  WCF   71158  52 21N  097 02W  222   X                7 CA
+MB BRANDON AIRPORT  CYBR  YBR   71140  49 55N  099 57W  409   X     T          6 CA
+MB CARMAN U OF M    CWNK  WNK   71147  49 30N  098 02W  268   X                7 CA
+MB CHURCHILL AIRPOR CYYQ  YYQ   71913  58 45N  094 04W   29   X     T  X       5 CA
+MB DAUPHIN          CYDN  YDN   71036  51 06N  100 03W  305   X     T          5 CA
+MB DEERWOOD RCS     CXDW  XDW   71840  49 24N  098 19W  341   X                7 CA
+MB DELTA MARSH CS   CZUG        71563  50 11N  098 23W  248   X                8 CA
+MB EMERSON          CWEX        71560  49 00N  097 14W  242   X                8 CA
+MB FISHER BRANCH(MA CWSZ  WSZ   71442  51 04N  097 32W  253   X                7 CA
+MB FLIN FLON AIRPOR CYFO  YFO          54 40N  101 40W  304   X                7 CA
+MB FOXWARREN RADAR  CXFW               50 33N  101 06W  547      X             8 CA
+MB GEORGE ISL (MAPS CWWS  WWS   71445  52 49N  097 37W  223   X                7 CA
+MB GILLAM AIRPORT   CYGX  YGX   71912  56 21N  094 42W  145   X     T          6 CA
+MB GILLAM AIRPORT   CWGX  WGX          56 21N  094 42W  145   X                7 CA
+MB GIMLI            CYGM  YGM   71856  50 37N  097 01W  230   X                7 CA
+MB GIMLI HARBOUR    CXGH        71577  50 38N  097 00W  217   X                7 CA
+MB GRAND RAPIDS (MA CWJD  WJD   71858  53 10N  099 16W  223   X                7 CA
+MB GRETNA (MARS)    CWGN  WGN   71441  49 01N  097 34W  251   X                7 CA
+MB HUNTERS POINT MA CWHH  WHH   71142  53 02N  100 56W  256   X                7 CA
+MB ISLAND LAKE AIRP CYIV  YIV   71145  53 51N  094 39W  237   X     T  Z       6 CA
+MB KELSEY DAM CS    CZKD        71572  56 02N  096 31W  183   X                8 CA
+MB LYNN LAKE AIRPOR CYYL  YYL   71078  56 52N  101 04W  357   X     T  Z       6 CA
+MB MELITA           CWEI        71447  49 17N  100 59W  446   X                7 CA
+MB MORDEN           CXMD  XMD   71564  49 13N  098 05W  301   X                7 CA
+MB PILOT MOUND (MAR CWPO  WPO   71148  49 12N  098 54W  470   X                7 CA
+MB PORTAGE SOUTHPOR CYPG  YPG   71851  49 53N  098 16W  269   X     T          6 CA
+MB SHILO            CWLO  WLO   71853  49 46N  099 37W  373   X        M       7 CA
+MB SWAN RIVER (MARS CWEQ  WEQ   71443  52 07N  101 13W  335   X                7 CA
+MB TADOULE LAKE CS  CXBQ        71334  58 42N  098 30W  262   X                8 CA
+MB TADOULE LAKE     CYBQ               58 42N  098 30W  262   X                8 CA
+MB THE PAS AIRPORT  CYQD  YQD   71867  53 58N  101 05W  271   X     T  X       5 CA
+MB THOMPSON AIRPORT CYTH  YTH   71079  55 47N  097 52W  218   X     T          6 CA
+MB VICTORIA BEACH   CWII  WII   71552  50 42N  096 34W  220   X                7 CA
+MB VIVIAN RADAR     CWVJ               49 53N  096 28W  290      X             8 CA
+MB WINNIPEG INTL AR CYWG  YWG   71852  49 53N  097 13W  239   X     U          0 CA
+MB WINNIPEG         CXWI        71843  49 53N  097 08W  251            O       0 CA
+MB WINNIPEG FORKS   CXWN  XWN   71579  49 53N  097 08W  230   X                7 CA
+MB NORWAY HOUSE ARP CYNE  YNE          53 58N  097 49W  223   X     T          8 CA
+NB BATHURST ARPT(AW CZBF  ZBF   71574  47 37N  065 45W   59   X     T          6 CA
+NB CHARLO AIRPORT   CZCR        71711  47 58N  066 19W   38   X                7 CA
+NB CHIPMAN RADAR    CXNC               46 13N  065 42W    1      X             8 CA
+NB EDMUNSTON        CERM               47 25N  068 19W  154   X                7 CA
+NB FREDERICTON AIRP CYFC  YFC   71700  45 52N  066 31W   20   X     T          6 CA
+NB GAGETOWN  (CAN M CYCX  YCX   71701  45 49N  066 25W   51   X     T  M       6 CA
+NB GRAND MANAN      CXGM        71030  44 43N  066 48W   78   X                8 CA
+NB MECHANIC SETTLE  CWMK               45 42N  065 10W    1      X             8 CA
+NB MIRAMICHI        CACQ  YCH   71717  47 01N  065 28W   31   X     T          8 CA
+NB MISCOU ISL (MARS CWMI  WMI   71719  48 01N  064 30W    3   X                7 CA
+NB MONCTON AIRPORT  CYQM  YQM   71705  46 07N  064 40W   71   X     T          6 CA
+NB POINT LEPREAU    CWPE  WPE          45 04N  066 28W    1   X                7 CA
+NB PT. ESCUMINAC(MA CWPJ  WPJ   71414  47 04N  064 47W    5   X                7 CA
+NB SAINT JOHN       CYSJ  YSJ   71609  45 19N  065 52W  109   X     U          6 CA
+NB SAINT LEONARD AR CYSL  YSL   71703  47 08N  067 49W  241   X     T          6 CA
+NB ST LEONARD AUTOB CWIY  WIY   71019  47 08N  067 49W  241   X                7 CA
+NB ST. STEPHEN (MAR CWSS  WSS   71607  45 12N  067 15W   26   X                7 CA
+NB CHARLO AIRPORT   CYCL               47 59N  066 20W   38   Z                8 CA
+NB CHATHAM          CYCH               47 00N  065 27W   31   Z                8 CA
+NB MIRAMICHI (AU8)  CWCQ  WCQ          47 00N  065 28W   34   Z                8 CA
+NL ARGENTIA (MARS)  CWAR  WAR   71807  47 17N  054 00W   16   X                7 CA
+NL BADGER (MARS)    CWDI  WDI   71400  48 58N  056 04W  105   X                7 CA
+NL BONAVISTA        CWVA  WVA   71196  48 40N  053 07W   27   X                7 CA
+NL BURGEO           CWBF               47 37N  057 38W   12   X                7 CA
+NL CAPE KAKKIVIAK   CWKW  WKW   71176  59 58N  064 10W  551   X                7 CA
+NL CAPE KIGLAPAIT   CWYK  WYK   71177  57 07N  061 28W  834   X                7 CA
+NL CAPE RACE (MARS) CWRA  WRA   71800  46 38N  053 04W   28   X                7 CA
+NL CARTWRIGHT       CWCA        71818  53 42N  057 01W   14   X                7 CA
+NL CARTWRIGHT       CYCA               53 41N  057 02W   12   X     T          6 CA
+NL CHURCHILL FALLS  CZUM  ZUM   71182  53 32N  064 05W  440   X     T          6 CA
+NL DANIEL'S HARBOUR CWDH  WDH   71185  50 13N  057 34W   19   X                7 CA
+NL DEER LAKE AIRPOR CYDF  YDF   71809  49 13N  057 24W   22   X     T          6 CA
+NL ENGLEE (MAPS)    CWDA  WDA   71417  50 43N  056 07W   29   X                7 CA
+NL FEROLLE PT. (MAP CWXI  WXI          51 01N  057 06W    6   X                7 CA
+NL GANDER INTL AIRP CYQX  YQX   71803  48 57N  054 35W  151   X     T          6 CA
+NL GOOSE BAY AIRPOR CYYR  YYR   71816  53 19N  060 25W   49   X     T  X       5 CA
+NL GRATES COVE      CWVW        71336  48 10N  052 56W   18   X                8 CA
+NL HOLYROOD RADAR   CWTP               47 20N  053 11W    1      X             8 CA
+NL HOPEDALE (MAPS)  CWHO  WHO   71900  55 27N  060 13W    8   X                7 CA
+NL LA SCIE          CWAG        71337  49 55N  055 40W  192   X                8 CA
+NL LONG POND        CWWU               47 31N  052 59W   13   X     T          8 CA
+NL MAKKOVIK AIRPORT CYFT  YFT          55 04N  059 10W   71   X                7 CA
+NL MARBLE MTN RADAR CXME               48 56N  057 50W    1      X             8 CA
+NL MARY'S HARBOUR   CYMH  YMH          52 17N  055 51W   11   X     T          6 CA
+NL NAIN AIRPORT     CYDP  YDP   71902  56 32N  061 40W    7   X     T          6 CA
+NL PORT AUX BASQUES CWZB  WZB   71197  47 34N  059 10W   40   X        Z       7 CA
+NL ROCKY HARBOUR    CXRH  XRH   71588  49 34N  057 53W   68   X                7 CA
+NL SAGLEK (BAY)     CWZZ  WZZ   71804  58 19N  062 34W  483   X                7 CA
+NL SAGONA ISL (MAPS CWZN  WZN   71408  47 22N  055 48W   64   X                7 CA
+NL SAINT ANTHONY    CWAX  WAX   71819  51 23N  056 05W  111   X                7 CA
+NL SAINT ANTHONY    CWDW        71558  51 23N  056 06W   29   X                7 CA
+NL SAINT ANTHONY AR CYAY  YAY   71830  51 23N  056 04W   28   X     T          6 CA
+NL ST JOHNS ARP     CYYT  YYT   71801  47 37N  052 43W  140   X     T  X       5 CA
+NL ST JOHNS WEST    CXSW        71587  47 31N  052 47W  114   X                7 CA
+NL STEPHENVILLE ARP CYJT  YJT   71815  48 33N  058 34W   26   X     T  X       5 CA
+NL TERRA NOVA       CXTP  XTP   71589  48 33N  053 58W  107   X                7 CA
+NL TUKIALIK BAY     CWTU  WTU   71179  54 43N  058 21W  683   X                7 CA
+NL TWILLINGATE (MAP CWDO        71402  49 40N  054 47W   92   X                7 CA
+NL WABUSH LAKE AIRP CYWK  YWK   71825  52 55N  066 52W  551   X     T          6 CA
+NL WRECKHOUSE       CXWR        71584  47 43N  059 19W   33   X                8 CA
+NS AMHERST (MARS)   CWAH  WAH   71410  45 51N  064 16W   23   X                7 CA
+NS BEAVER ISLAND(MA CWBV  WBV   71403  44 49N  062 19W   10   X                7 CA
+NS BRIER ISLAND(AUT CWVU  WVU          44 17N  066 20W   16   X                7 CA
+NS CAPE GEORGE (AUT CWGU  WGU          45 52N  061 54W  120   X                7 CA
+NS CARIBOU POINT(MA CWBK  WBK   71415  45 46N  062 40W    2   X                7 CA
+NS CHETICAMP        CXCH  XCH          46 38N  060 57W   44   X                7 CA
+NS DEBERT           CZDB        71317  45 25N  063 28W   38   X                8 CA
+NS DIGBY ARPT (AWRS CYID  YID          44 32N  065 46W  152   X                7 CA
+NS FOURCHU HEAD(MAP CWRW  WRW   71416  45 43N  060 13W   10   X                7 CA
+NS GRAND ETANG (AUT CWZQ  WZQ   71413  46 32N  061 03W   17   X                7 CA
+NS GREENWOOD (CAN M CYZX  YZX   71397  44 59N  064 55W   28   X     T          6 CA
+NS HALIFAX INTL ARP CYHZ  YHZ   71395  44 52N  063 30W  145   X     T          0 CA
+NS HART ISLAND (MAP CWRN  WRN   71419  45 21N  060 59W    8   X                7 CA
+NS INGONISH BEACH   CXIB  XIB   71027  46 40N  060 23W    8   X                8 CA
+NS KEJIMKUJIK (AU8) CWKG  WKG   71599  44 26N  065 12W  165   X                7 CA
+NS KENTVILLE (AUTOB CXKT  XKT   71605  45 04N  064 29W   49   X                7 CA
+NS LUNENBURG        CXLB               44 22N  064 18W    4   X                8 CA
+NS MALAY FALLS      CXMY  XMY          44 59N  062 29W   40   X                7 CA
+NS MARION BRIDGE    CXMB               45 57N  060 12W    1      X             8 CA
+NS MCNABS ISLAND    CXMI  XMI          44 36N  063 32W   15   X                7 CA
+NS NAPPAN (AUTO)    CXNP        71311  45 45N  064 14W   20   X                8 CA
+NS NORTH MOUNTAIN   CXNM  XNM          46 49N  060 40W  439   X                7 CA
+NS PORT HAWKESBURY  CYPD  YPD          45 40N  061 22W  114   X                7 CA
+NS ROWAN GORILLA II CWXO  WXO          43 52N  060 32W   44   X                7 CA
+NS SABLE ISLAND     CWSA        71600  43 56N  060 00W    4   X     T  X       5 CA
+NS SABLE ISLAND(APT CYSA  YSA          43 55N  060 00W    4   X     T          6 CA
+NS SHEARWATER(CAN M CYAW  YAW   71601  44 38N  063 30W   51   X     T          6 CA
+NS SHELBURNE        CWOS  WOS   71399  43 43N  065 15W   30            Z       8 CA
+NS ST. PAUL ISL(MAP CWEF  WEF   71418  47 13N  060 07W   26   X                7 CA
+NS SYDNEY AIRPORT   CYQY  YQY   71707  46 10N  060 02W   62   X     T          6 CA
+NS TRACADIE         CXTD        71308  45 37N  061 41W   68   X                8 CA
+NS TRENTON MUNICIPA CYTN  YTN          45 37N  062 37W   97   X                7 CA
+NS TRURO (MARS)     CWUR  WUR   71398  45 22N  063 16W   40   X                7 CA
+NS WESTERN HEAD (MA CWWE  WWE   71411  43 58N  064 40W    9   X                7 CA
+NS YARMOUTH AIRPORT CYQI  YQI   71603  43 50N  066 05W   43   X     T  X       5 CA
+NT AKLAVIK AIRPORT  CYKD  YKD          68 13N  135 00W    7   X                7 CA
+NT CAPE PARRY AUTO4 CZCP               70 10N  124 43W   93   X                7 CA
+NT COLVILLE LAKE    CYVL               67 01N  126 08W  259   X                7 CA
+NT DEADMAN VALLEY   CXDK        71021  61 16N  124 28W  283   X                8 CA
+NT DELINE           CXDE  XDE   71503  65 13N  123 26W  213   X                7 CA
+NT EKATI (PWS)      CYOA  YOA          64 42N  110 37W  469   X     T          6 CA
+NT FORT FRANKLIN AR CYWJ  YWJ          65 13N  123 26W  176   X     T          7 CA
+NT FORT GOOD HOPE A CYGH  YGH          66 16N  128 37W   66   X     T          7 CA
+NT FORT LIARD AIRPO CYJF  YJF          60 13N  123 28W  215   X                7 CA
+NT FORT MCPHERSON A CZFM  ZFM          67 24N  134 52W   43   X     T          6 CA
+NT FORT NORMAN AIRP CZFN  ZFN          64 55N  125 34W   98   X                7 CA
+NT FORT PROVIDENCE  CWID  WID   71087  61 19N  117 36W  161   X                7 CA
+NT FORT RESOLUTION  CYFR  YFR          61 10N  113 40W  164   X                7 CA
+NT FORT SIMPSON ARP CYFS  YFS   71946  61 45N  121 13W  169   X     T          6 CA
+NT FT SIMPSON 71681 CXFS               61 45N  121 14W  169   Z                8 CA
+NT FORT SIMPSON     CZFS        71365  61 46N  121 14W  168   X                8 CA
+NT FORT SMITH AIRPO CYSM  YSM   71934  60 02N  111 58W  203   X     T  X       5 CA
+NT FORT SMITH       CZSM        71362  60 02N  111 56W  203   X                8 CA
+NT GATESHEAD ISLAND CNGH        71141  70 38N  100 16W   20   X                8 CA
+NT HAY RIVER AIRPOR CYHY  YHY   71935  60 49N  115 46W  166   X     T          6 CA
+NT HAY RIVER        CZHY        71361  60 50N  115 47W  164   X                8 CA
+NT HANBURY RIVER    CWQY        71963  63 36N  105 08W  318   X                8 CA
+NT HOLMAN ISLAND AR CYHI  YHI          70 46N  117 47W   36   X     T          6 CA
+NT HOLMAN CS        CXHI        71029  70 46N  117 48W   30   X                8 CA
+NT INDIAN RIVER     CWIE  WIE   71161  64 23N  115 01W  478   X                7 CA
+NT INUVIK AIRPORT   CYEV  YEV   71957  68 19N  133 30W   68   X     T  X       5 CA
+NT INUVIK           CZEV        71364  68 19N  133 31W  103   X                8 CA
+NT JEAN MARIER      CXJM        71159  61 21N  120 47W  227   X                8 CA
+NT KEATS POINT      CWKP        71058  69 40N  121 40W  330   X                8 CA
+NT LAC LA MARTRE    CWMT        71163  63 08N  117 15W  271   X                8 CA
+NT LINDBERG LANDING CXLL        71682  61 07N  122 51W  183   X                7 CA
+NT LIVERPOOL BAY    CWLI  WLI   71960  69 35N  130 54W  102   X                7 CA
+NT LOWER CARP LAKE  CXLC  XLC   71680  63 36N  113 51W  373   X                7 CA
+NT LUTSEL KE ARPT ( CYLK  YLK          62 25N  110 40W  179   X     T          7 CA
+NT LUTSEL KE CS     CXLU        71529  62 25N  110 40W  179   X                7 CA
+NT MOULD BAY        CYMD  YMD   71072  76 13N  119 19W   12   X        Z       7 CA
+NT MOULD BAY CAMP   CWMD  WMD          76 13N  119 19W   12   X                7 CA
+NT NORMAN WELLS ARP CYVQ  YVQ   71043  65 16N  126 47W   74   X     T  X       5 CA
+NT PAULATUK AIRPORT CYPC  YPC          69 22N  124 04W    6   X     T          6 CA
+NT PELLY ISLAND     CWND        71502  69 38N  135 26W   12   X                8 CA
+NT QAVVIK LAKE      CXQA        71583  68 15N  122 06W  530   X                7 CA
+NT RAE LAKES        CYRA  YRA          64 07N  117 19W  213   X     T          7 CA
+NT RAE LAKES        CWYH        71165  64 07N  117 22W  220   X                7 CA
+NT ROBERTSON LAKE   CWTD        71490  65 06N  102 26W  244   X                8 CA
+NT SACHS HARBOUR(M  CYSY  YSY   71051  72 00N  125 16W   86   X     T          6 CA
+NT TRAIL VALLEY     CXTV  XTV   71683  68 45N  133 30W   85   X                7 CA
+NT TUKTOYAKTUK      CYUB  YUB   71954  69 27N  133 01W    5   X     T  Z       6 CA
+NT TUKTUT NOGAIT NP CXTN  XTN   71492  69 12N  122 21W  552   X                7 CA
+NT WEKWEETI         CYWE               64 11N  114 05W  371   X     T          7 CA
+NT WRIGLEY AIRPORT  CYWY  YWY          63 13N  123 25W  150   X                7 CA
+NT YELLOWKNIFE AIRP CYZF  YZF   71936  62 28N  114 27W  206   X     T          6 CA
+NT YOHIN            CXYH        71020  61 15N  123 45W  204   X                8 CA
+NT CANADA/ARTCC     CZVE  ZVE          70 10N  124 41W    1         A          8 CA
+NU ALERT            CWLT  WLT   71082  82 30N  062 19W   63   X        X       5 CA
+NU ALERT AIRPORT    CYLT  YLT          82 31N  062 16W   31   X     T          6 CA
+NU ALERT            CZLT        71355  82 30N  062 20W   65   X                8 CA
+NU ARCTIC BAY CS    CXAT  XAT   71592  73 00N  085 02W   19   X                8 CA
+NU ARCTIC BAY       CYAB               73 00N  085 03W   22   X     T          8 CA
+NU ARVIAT AIRPORT   CYEK  YEK          61 06N  094 04W   10   X     T          6 CA
+NU ARVIAT CLIMATE   CXAR        71332  61 06N  094 04W   10   X                8 CA
+NU BAKER LAKE AIRPO CYBK  YBK   71926  64 17N  096 04W   18   X     T  X       5 CA
+NU BAKER LAKE       CXBL        71356  64 19N  096 00W   51   X                8 CA
+NU BREVOORT ISLAND  CWOB  WOB   71097  63 19N  064 09W  367   X                7 CA
+NU QIKIQTARJUAQ     CYVM        71338  67 32N  064 01W    6   X     T          6 CA
+NU BROUGHTON ISLAND CWVD  WVD          67 31N  063 46W  573   X                8 CA
+NU BROWN RIVER      CWBR        71049  66 02N  091 50W   31   X                8 CA
+NU CAMBRIDGE BAY AR CYCB  YCB   71925  69 05N  105 07W   27   X     T  X       5 CA
+NU CAMBRIDGE BAY    CXCM        71288  69 06N  105 08W   19   X                8 CA
+NU CAPE DORSET AIRP CYTE  YTE   71910  64 13N  076 31W   47   X     T          6 CA
+NU CAPE DYER AIRPOR CWFD  WFD   71094  66 34N  061 35W  393   X                7 CA
+NU CAPE HOOPER      CWUP  WUP   71093  68 28N  066 49W  390   X                7 CA
+NU CAPE MERCY       CWYM  WYM   71975  64 57N  063 34W  583   X                7 CA
+NU CAPE PEEL WEST   CWPX  WPX   71064  69 01N  107 49W  165   X                7 CA
+NU CHESTERFIELD INL CYCS  YCS          63 21N  090 43W   11   X                7 CA
+NU COPPERMINE AIRPO CYCO  YCO   71938  67 49N  115 09W   22   X     T          6 CA
+NU CORAL HARBOUR AR CYZS  YZS   71915  64 12N  083 22W   64   X     T  X       5 CA
+NU CROKER RIVER     CWXR  WXR   71059  69 16N  119 13W   69   X                7 CA
+NU CYLDE AIRPORT    CYCY  YCY   71090  70 28N  068 31W   26   X     T          6 CA
+NU DEWAR LAKES      CWUW  WUW   71092  68 39N  071 10W  527   X                7 CA
+NU ENNADAI LAKE (MA CWJC  WJC   71923  61 08N  100 54W  357   X                7 CA
+NU EUREKA           CWEU        71917  80 00N  085 55W   10   X        X       5 CA
+NU EUREKA           CYEU               80 00N  085 49W   78   X     T          6 CA
+NU FROBISHER/IQALUI CYFB  YFB   71909  63 45N  068 33W   34   X     T  X       5 CA
+NU GJOA HAVEN AIRPO CYHK  YHK          68 37N  095 50W   46   X     T          6 CA
+NU GJOA HAVEN       CZHK        71363  68 38N  095 51W   42   X                8 CA
+NU GRISE FIORD AIR  CWGZ  WGZ          76 25N  082 54W   45   X                7 CA
+NU HALL BEACH AIRPO CYUX        71081  68 46N  081 15W    8   X     T  X       5 CA
+NU HALL BEACH       CXUX        71320  68 47N  081 15W    8   X                8 CA
+NU HAT ISLAND       CWIL  WIL   71084  68 19N  100 04W   36   X                7 CA
+NU IGLOOLIK AIRPORT CYGT  YGT          69 22N  081 49W   51   X     T          7 CA
+NU ISACHSEN (MAPS)  CWIC  WIC   71074  78 47N  103 33W   58   X                7 CA
+NU LADY FRANKLIN PO CYUJ  YUJ   71937  68 30N  113 13W   16   X                7 CA
+NU LAKE HARBOUR ARP CYLC  YLC          62 51N  069 52W   53   X                7 CA
+NU LONGSTAFF BLUFF  CWLX  WLX   71091  68 54N  075 09W  162   X                7 CA
+NU LUPIN ARPT (SAWR CYWO  YWO   71496  65 46N  111 15W  494   X     T          6 CA
+NU LUPIN (MAPS)     CWIJ  WIJ          65 46N  111 14W  500   X                8 CA
+NU NANISIVIK AIRPOR CYSR  YSR          72 58N  084 37W  649   X     T          6 CA
+NU PANGNIRTUNG AIRP CYXP  YXP          66 09N  065 43W   23   X     T          7 CA
+NU PELLY BAY 1      CWRF  WRF   71918  69 25N  089 43W  325   X                7 CA
+NU PELLY BAY AIRPOR CYBB  YBB          68 31N  089 49W   15   X     T          6 CA
+NU POND INLET AIRPO CYIO  YIO   71095  72 40N  077 58W   57   X     T          6 CA
+NU RAE POINT        CZRP        71983  75 22N  105 43W   12   X                8 CA
+NU RANKIN INLET ARP CYRT  YRT   71083  62 49N  092 07W   32   X     T          6 CA
+NU REPULSE BAY AIRP CYUT  YUT          66 31N  086 15W   24   X     T          6 CA
+NU RESOLUTE AIRPORT CYRB  YRB   71924  74 43N  094 58W   67   X     T  X       5 CA
+NU RESOLUTE CS      CXRB        71018  74 43N  094 59W   30   X                8 CA
+NU RESOLUTION IS    CWRH  WRH   71972  61 34N  064 39W  369   X                7 CA
+NU ROWLEY ISLAND    CWRX  WRX   71088  69 04N  079 01W   41   X                7 CA
+NU SANIKILUAQ AIRPO CYSK  YSK          56 32N  079 15W   26   X                7 CA
+NU SHEPHERD BAY ARP CYUS  YUS   71911  68 49N  093 25W   42   X                7 CA
+NU SPENCE BAY AIRPO CYYH  YYH          69 32N  093 34W   28   X     T          6 CA
+NU STEFANSSON IS    CXSE        71017  73 46N  105 17W   11   X                8 CA
+NU WAGER BAY        CXWB               65 53N  089 27W   18   X                8 CA
+NU WHALE COVE AIRPO CYXN  YXN          62 13N  092 35W   20   X                7 CA
+NU IQALUIT CLIMATE  CXFB               63 45N  068 33W   34   Z                8 CA
+ON ATIKOKAN (AUT)   CWCH  WCH   71747  48 45N  091 37W  424   X                7 CA
+ON ATTAWAPISKAT     CYAT               52 56N  082 26W    9   X                7 CA
+ON BANCROFT AUTOB   CWRK  WRK          45 04N  077 52W  331   X                7 CA
+ON BARRIE (MARS)    CWCU  WCU   71436  44 22N  079 46W  295   X                7 CA
+ON BARRIE-ORO       CXBI        71314  44 29N  079 33W  289   X                8 CA
+ON BEAUSOLEIL ISL A CWPB  WPB   71272  44 51N  079 52W  183   X                7 CA
+ON BELLE RIVER AUT0 CWDD  WDD   71273  42 17N  082 42W  184   X                7 CA
+ON BIG TROUT LAKE   CWTL  WTL          53 49N  089 53W  222            Z       8 CA
+ON BIG TROUT LAKE   CYTL  YTL   71848  53 49N  089 53W  224   X     T          6 CA
+ON BORDEN           CYBN  YBN   71534  44 16N  079 55W  223   X     T          6 CA
+ON BRITT (MARS)     CWBI  WBI   71632  45 48N  080 32W  190   X                7 CA
+ON BURLINGTON PIERS CWWB  WWB   71437  43 18N  079 47W   76   X                7 CA
+ON CAMERON FALLS    CXCA  XCA   71291  49 09N  088 21W  228   X                7 CA
+ON CARIBOU ISL (MAP CWCI  WCI   71433  47 19N  085 49W  187   X                7 CA
+ON CHAPLEAU ARPT(SA CYLD  YLD          47 49N  083 20W  447   X     T          6 CA
+ON CHATHAM          CYCK               42 18N  082 05W  198   X                7 CA
+ON COBOURG (MARS)   CWNC        71431  43 57N  078 10W   78   X                7 CA
+ON COLLINGWOOD (AUT CWCO  WCO   71270  44 27N  080 10W  221   X                7 CA
+ON COVE ISLAND (MAP CWWX  WWX   71439  45 19N  081 44W  181   X                7 CA
+ON CYPRUS LAKE CS   CXCY  XCY          45 14N  081 32W  190   X                8 CA
+ON DELHI CS (AUT)   CXDI  XDI   71573  42 52N  080 33W  232   X                7 CA
+ON DRYDEN AIRPORT   CYHD  YHD          49 49N  092 45W  413   X     T          6 CA
+ON DRYDEN           CXDR               49 51N  092 48W  413   X                8 CA
+ON EAR FALLS (AUT)  CXEA  XEA   71295  50 38N  093 13W  355   X                7 CA
+ON EARLTON AIRPORT  CYXR  YXR   71735  47 42N  079 50W  243   X     T          6 CA
+ON EARLTON          CZXR        71533  47 42N  079 50W  243   X                8 CA
+ON EGBERT CS        CXET  XET   71296  44 14N  079 47W  251   X                7 CA
+ON EGBERT (MAPS)    CWET        71561  44 14N  079 47W  251   X                7 CA
+ON ELLIOT LAKE (SAW CYEL  YEL          46 21N  082 34W  329   X     T          6 CA
+ON ELORA RCS        CZEL        71352  43 39N  080 25W  376   X                8 CA
+ON ERIEAU (MAPS)    CWAJ  WAJ   71465  42 15N  081 54W  178   X                7 CA
+ON EXETER RADAR     CWSO               43 22N  081 23W    1      X             8 CA
+ON FT SEVERN        CYER        71099  56 01N  087 41W   16   X                8 CA
+ON FRANKTOWN        CXFT               45 02N  076 06W  122   X                8 CA
+ON GERALDTON AIRPOR CYGQ  YGQ   71834  49 46N  086 55W  351   X     T          6 CA
+ON GODERICH (AUTOB) CWGD  WGD   71261  43 46N  081 43W  214   X                7 CA
+ON GORE BAY AIRPORT CYZE  YZE   71733  45 52N  082 34W  193   X     T          6 CA
+ON GREAT DUCK ISLAN CWNL  WNL   71462  45 37N  082 58W  183   X                7 CA
+ON GRENADIER ISLAND CWGH  WGH   71281  44 25N  075 51W   82   X                7 CA
+ON HAMILTON AIRPORT CYHM  YHM   71263  43 10N  079 56W  238   X     T          6 CA
+ON HAMILTON RBG CS  CXHM  XHM   71297  43 17N  079 54W  107   X           A    7 CA
+ON HARROW CDA       CXHA  XHA   71298  42 02N  082 54W  191   X                8 CA
+ON KAPUSKASING AIRP CYYU  YYU   71831  49 25N  082 28W  227   X     T          6 CA
+ON KAPUSKASING CDA  CXKA  XKA   71299  49 24N  082 27W  218   X                8 CA
+ON KATATOTA ISLAND  CWKK               49 43N  088 20W  260   X                8 CA
+ON KEMPTVILLE       CXKE  XKE   71300  45 00N  075 38W   99   X                8 CA
+ON KENORA AIRPORT   CYQK  YQK   71850  49 46N  094 22W  411   X     T          6 CA
+ON KILLARNEY (MAPS) CWBE  WBE   71460  45 59N  081 29W  196   X                7 CA
+ON KINGSTON ARPT (M CYGK  YGK   71620  44 13N  076 35W   93   X     T          6 CA
+ON KIRKLAND LAKE    CXKI        71301  48 13N  080 00W  324   X                8 CA
+ON LADRIENNE RADAR  CXLA               48 33N  077 48W    1      X             8 CA
+ON LAGOON CITY      CWGL  WGL   71282  44 31N  079 13W  221   X                7 CA
+ON LANSDOWNE HOUSE  CWLF  WLF   71846  52 13N  087 52W  242   X                7 CA
+ON LANSDOWNE HOUSE  CYLF               52 14N  087 53W  242   X                7 CA
+ON LANSDOWNE 71697  CYLH               52 12N  087 56W  254   Z                7 CA
+ON LONDON CS        CWSN        71622  43 02N  081 09W  278   X     T          6 CA
+ON LONDON AIRPORT   CYXU  YXU   71623  43 01N  081 09W  278   X     T          6 CA
+ON LONG POINT (MAPS CWPS  WPS   71464  42 34N  080 02W  175   X                7 CA
+ON MARATHON         CYSP               48 45N  086 21W  315   X     T          8 CA
+ON MONTREAL RIV HAR CWGJ               47 14N  084 35W  559      X             8 CA
+ON MONTREAL RIV     CZGJ               47 15N  084 36W  520   X                8 CA
+ON MOOSONEE (SAWR)  CYMO  YMO   71836  51 17N  080 37W   10   X     T  X       5 CA
+ON MOOSONEE         CWZC               51 17N  080 36W   11   X                8 CA
+ON MOOSONEE RCS     CXZC        71309  51 18N  080 37W    9   X                8 CA
+ON MOUNT FOREST(MAR CWLS  WLS   71631  43 58N  080 45W  415   X                7 CA
+ON MUSKOKA AIRPORT  CYQA  YQA   71630  44 58N  079 17W  282   X     T          6 CA
+ON MUSKRAT DAM      CZMD               53 26N  091 46W  278   X                8 CA
+ON NAGAGAMI (MARS)  CWNZ  WNZ   71832  49 45N  084 10W  256   X                7 CA
+ON NORTH BAY AIRPOR CYYB  YYB   71731  46 21N  079 25W  371   X     T          6 CA
+ON NORTHEAST ONT    CXTI               49 17N  081 47W    1   X                8 CA
+ON OGOKI POST       CYKP  YKP          51 40N  085 54W  179   X                7 CA
+ON OLIPHANT (AUTOB) CWDF  WDF   71283  44 43N  081 16W  182   X                7 CA
+ON OSHAWA           CYOO               43 55N  078 54W  139   X                8 CA
+ON OTTAWA INTL      CYOW  YOW   71628  45 19N  075 40W  114   X     U          2 CA
+ON OTTAWA CDA RCS   CXOA        71063  45 23N  075 43W   79   X                8 CA
+ON N ONTARIO PORTAB CXQT  XQT          48 26N  089 13W  183   X                8 CA
+ON PARRY SOUND      CXPC        71172  45 21N  080 03W  176   X                8 CA
+ON PEAWANUCK        CYPO  YPO          54 59N  085 26W   53   X                8 CA
+ON PETAWAWA         CYWA  YWA   71625  45 57N  077 19W  130   X     T  Z       6 CA
+ON PETERBOROUGH ARP CYPQ  YPQ          44 13N  078 22W  191   X     T          6 CA
+ON PICKLE LAKE      CYPL  YPL   71845  51 28N  090 12W  373   X     T  X       5 CA
+ON POINT PETRE (MAR CWQP  WQP   71430  43 50N  077 09W   79   X                7 CA
+ON PORT COLBORNE(AU CWPC  WPC   71463  42 52N  079 15W  184   X                7 CA
+ON PORT WELLER (MAR CWWZ  WWZ   71432  43 15N  079 13W   79   X                7 CA
+ON PUKASKWA PARK    CWCJ  WCJ          48 36N  086 17W  206   X                7 CA
+ON RAWSON LAKE      CYTA               49 40N  093 44W  435   X                6 CA
+ON RAWSON LAKE      CTRA               49 40N  093 44W  435   X                7 CA
+ON RED LAKE AIRPORT CYRL  YRL   71854  51 04N  093 47W  383   X     T          6 CA
+ON RIDGETOWN RCS    CXRG        71307  42 27N  081 53W  205   X                8 CA
+ON ROQUEMAURE       CWGQ  WGQ   71736  48 37N  079 27W  269   X                7 CA
+ON S.E. SHOAL (MAPS CWNB  WNB   71466  41 49N  082 28W  195   X                7 CA
+ON SANDY LAKE       CZSJ        71098  53 04N  093 21W  290   X                8 CA
+ON SARNIA AIRPORT   CYZR  YZR   71634  43 00N  082 18W  181   X     T          6 CA
+ON SAULT STE MARIE  CYAM  YAM   71260  46 28N  084 31W  192   X     T          6 CA
+ON SIOUX LOOKOUT AR CYXL  YXL   71842  50 07N  091 54W  390   X     T          6 CA
+ON ST. CATHARINES A CYSN  YSN          43 12N  079 10W   98   X     T          6 CA
+QC STERLING         CYQC               46 19N  077 38W  139   X                6 CA
+ON SUDBURY AIRPORT  CYSB  YSB   71730  46 38N  080 48W  348   X     T          6 CA
+ON SUPERIOR W RADAR CXNI               48 51N  089 07W    1      X             8 CA
+ON TERRACE BAY (SAW CYTJ  YTJ          48 49N  087 05W  287   X     T          6 CA
+ON THUNDER BAY      CYQT  YQT   71749  48 22N  089 19W  199   X     U          0 CA
+ON THUNDER BAY      CZTB               48 22N  089 19W  199   X                8 CA
+ON TIMMINS AIRPORT  CYTS  YTS   71739  48 34N  081 22W  295   X     T          6 CA
+ON TORONTO BUTTONVI CYKZ  YKZ   71639  43 52N  079 22W  198   X     T          6 CA
+ON TORONTO IL  VOR  CYTZ  YTZ   71265  43 38N  079 24W   77   X     T          6 CA
+ON TORONTO/PEARSON  CYYZ  YYZ   71624  43 40N  079 37W  173   X     U          3 CA
+ON TORONTO CITY     CXTO        71508  43 40N  079 24W  113   X                8 CA
+ON TRENTON (CAN MIL CYTR  YTR   71621  44 07N  077 31W   86   X     T          6 CA
+ON TROWBRIDGE (MAPS CWAB  WAB   71461  48 17N  088 52W  218   X                7 CA
+ON UPPER RIDEAU LAK CWJM  WJM   71290  44 42N  076 17W  125   X                7 CA
+ON UPSALA (MARS)    CWDV  WDV   71435  49 01N  090 28W  489   X                7 CA
+ON UPSALA (RADAR)   CWIM               49 02N  090 25W  538      X             8 CA
+ON VINELAND (AU8)   CXVN  XVN   71171  43 11N  079 24W   79   X           A    7 CA
+ON WATERLOO WELL    CYKF  YKF   71368  43 28N  080 23W  317   X     T          6 CA
+ON WAWA AIRPORT     CYXZ  YXZ   71738  47 58N  084 46W  287   X     T          6 CA
+ON WELCOME ISLAND   CWEC        71751  48 22N  089 07W  209   X                8 CA
+ON WESTERN ISL (MAP CWMZ  WMZ   71438  45 01N  080 22W  191   X                7 CA
+ON WIARTON AIR      CYVV  YVV   71633  44 45N  081 05W  222   X     U          6 CA
+ON WINDSOR AIRPORT  CYQG  YQG   71538  42 16N  082 58W  190   X     T          6 CA
+ON SIMCOE (MARS)    CWSI  WSI   71527  42 51N  080 16W  241   Z                8 CA
+ON KENORA/ONT VOR   CVBI  VBI          49 28N  094 02W  394         Z          8 CA
+ON PICKLE LAKE      CWPL  WPL          51 28N  090 12W  386            Z       8 CA
+ON ALFRED           CTAE        71366  45 33N  074 53W   57   X                8 CA
+ON ALEXANDRIA 71393 CTAL               45 19N  074 37W   77   Z                8 CA
+ON MOOSE CREEK      CTCK        71304  45 15N  074 58W   85   X                8 CA
+ON CORNWALL         CTCW        71369  45 02N  074 41W   58   X                8 CA
+ON ALGONQUIN PARK   CTNK        71581  45 32N  078 16W  410   X                8 CA
+ON WINCHESTER       CTWN        71367  45 03N  075 20W   75   X                8 CA
+PE CHARLOTTETOWN AR CYYG  YYG   71706  46 16N  063 07W   54   X     T          6 CA
+PE CONFEDERATION BR CXBP               46 14N  063 44W   54   X                7 CA
+PE EAST POINT (MARS CWEP  WEP   71412  46 27N  061 58W   11   X                7 CA
+PE MAPLE PLAINS PEI CXMP               46 18N  063 35W   46   X                8 CA
+PE NORTH POINT (AUT CWNE  WNE          47 04N  064 00W   15   X                7 CA
+PE ST PETERS        CZSP        71310  46 27N  062 35W   30   X                8 CA
+PE SUMMERSIDE (AUTO CWSD               46 25N  063 51W   24   X                7 CA
+PE SUMMERSIDE(CAN M CYSU  YSU   71702  46 25N  063 49W   24   Z                8 CA
+PE HARRINGTON CDA   CAHR        71350  46 21N  063 10W   53   X                8 CA
+QC AMQUI            CWZS  WZS   71386  48 28N  067 26W  166   X                7 CA
+QC AKULIVIK AIRPORT CYKO  YKO          60 49N  078 09W    9   X                7 CA
+QC AUPALUK          CYLA  YLA          59 17N  069 35W   35   X                7 CA
+QC BAGOTVILLE(CAN M CYBG  YBG   71727  48 20N  070 59W  159   X     T          6 CA
+QC BAIE COMEAU AIRP CYBC  YBC   71187  49 07N  068 12W   22   X     T          6 CA
+QC BARRAGE ANGLIERS CWRC  WRC   71820  47 33N  079 14W  266   X                7 CA
+QC BEAUCEVILLE      CWHV  WHV   71323  46 12N  070 46W  229   X                7 CA
+QC BEAUPORT         CXBO  XBO   71578  46 50N  071 12W  100   X                7 CA
+QC BLANC SABLON ARP CYBX  YBX   71808  51 27N  057 10W   35   X     T          6 CA
+QC BONNARD(AUTO)    CWKD  WKD   71383  50 44N  071 01W  497   X                7 CA
+QC BORDER (MAPS)    CWTB  WTB   71901  55 19N  063 13W  479   X                7 CA
+QC CAP CHAT (MAPS)  CWSG  WSG   71428  49 07N  066 39W    5   X                7 CA
+QC CAP D'ESPOIR (MA CWRZ  WRZ   71429  48 25N  064 19W   16   X                7 CA
+QC CAP MADELEINE(MA CWSF  WSF   71425  49 15N  065 19W   29   X                7 CA
+QC CAP TOURMENTE    CWTN  WTN   71384  47 04N  070 47W    6   X                7 CA
+QC CHAMOUCHOUANE AU CWEE  WEE   71523  49 16N  073 20W  305   X                7 CA
+QC CHAPAIS          CWUK        71824  49 49N  074 59W  381   X                8 CA
+QC CHARLEVOIX (MRX) CWIS  WIS   71319  47 17N  070 38W  719   X                7 CA
+QC CHARLEVOIX AIRPO CYML  YML          47 36N  070 13W  298   Z                8 CA
+QC CHATHAM BROWNBRG CMBB               45 37N  074 25W   75   X                7 CA
+QC CHEVERY (MARS)   CWDM  WDM   71814  50 28N  059 37W    6   X                7 CA
+QC CHIBOUGAMAU CHAP CYMT  YMT   71822  49 46N  074 31W  387   X     T          6 CA
+QC CHUTE DES PASSES CWDT  WDT   71522  49 53N  071 15W  399   X                7 CA
+QC DESCHAMBAULTS    CWHQ  WHQ   71389  46 41N  071 58W   55   X                7 CA
+QC EASTMAIN RIVER A CZEM  ZEM          52 13N  078 31W    7   X                7 CA
+QC FRELIGHSBURG     CWFQ  WFQ   71373  45 02N  072 49W  152   X                7 CA
+QC GASPE AIRPORT    CYGP  YGP   71188  48 46N  064 28W   33   X     T          6 CA
+QC GATINEAU AIRPORT CYND  YND          45 31N  075 34W   64   X     T          6 CA
+QC HARRINGTON       CMHN               45 48N  074 39W  168   X                7 CA
+QC HAVRE ST PIERRE  CYGV  YGV   71313  50 16N  063 37W   33   X     T          6 CA
+QC HEATH POINT (MAP CWHP        71423  49 04N  061 42W    4   X                7 CA
+QC HIGH FALLS CS (A CXHF  XHF   71391  45 50N  075 39W  190   X                7 CA
+QC ICE AUX GRUES    CWIG  WIG          47 04N  070 32W   18   X                7 CA
+QC ICE AUX PERROQUE CWQR  WQR   71375  50 13N  064 13W    9   X                7 CA
+QC ILE BICQUETTE    CWQO  WQO   71385  48 25N  068 54W    1   X                7 CA
+QC ILE CHARRON      CWVZ  WVZ          45 35N  073 30W   12   X                7 CA
+QC ILE D'ORLEANS(AU CWER  WER   71424  47 00N  070 49W    5   X                7 CA
+QC ILE ROUGE(MAPS)  CWAF  WAF   71426  48 04N  069 32W    5   X                7 CA
+QC ILES DE LA MADEL CYGR  YGR   71709  47 25N  061 46W   10   X     T          6 CA
+QC ILES-DE-LA-MADEL CWGR  WGR   71710  47 25N  061 48W   60   X                7 CA
+QC INUKJUAK         CYPH  YPH   71306  58 28N  078 05W   25   X     T  X       5 CA
+QC IVUJIVIK ARPT(SA CYIK  YIK          62 25N  077 56W   42   X     T          6 CA
+QC JONQUIERE(AUTO)  CWJO  WJO   71617  48 26N  071 09W  133   X                7 CA
+QC KANGIKSUALUJJUAQ CYLU  YLU          58 43N  065 58W   60   X                7 CA
+QC KANGIQSUJUAQ(SAW CYKG  YKG          61 34N  071 55W  151   X                7 CA
+QC KANGIRSUK (SAWR) CYAS  YAS          60 01N  070 00W  117   X                7 CA
+QC KUUJJUAQ AIRPORT CYVP  YVP   71906  58 07N  068 25W   60   X     T  X       5 CA
+QC KUUJJUARAPIK ARP CYGW  YGW   71905  55 16N  077 46W   12   X     T          6 CA
+QC L'ACADIE         CWIZ  WIZ   71372  45 17N  073 20W   45   X                7 CA
+QC L'ASSOMPTION     CWEW  WEW   71524  45 49N  073 26W   21   X                7 CA
+QC LA BAIE          CWUX  WUX   71388  48 18N  070 56W  135   X                7 CA
+QC LA GRANDE III(SA CYAD  YAD          53 34N  076 12W  233   X                7 CA
+QC LA GRANDE IV ARP CYAH  YAH   71823  53 45N  073 40W  306   X     T  X       5 CA
+QC LA GRANDE RIVIER CYGL  YGL   71827  53 37N  077 42W  195   X     T          6 CA
+QC LA POCATIERE     CWST        71713  47 21N  070 01W   31   X                7 CA
+QC LA TUQUE         CWDQ  WDQ   71378  47 25N  072 47W  169   X                7 CA
+QC LAC EON (MAPS)   CWEO  WEO   71421  51 52N  063 16W  561   X                7 CA
+QC LAC MEMPHREMAGOG CWTT  WTT          45 16N  072 10W  209   X                7 CA
+QC LAC ST PIERRE (A CWBS  WBS   71198  46 11N  072 55W   16   X                7 CA
+QC LATERRIERE       CXLT        71040  48 18N  071 08W  162   X                8 CA
+QC LAUZON           CWLU  WLU          46 50N  071 10W   20   X                7 CA
+QC LENNOXVILLE      CWQH  WQH   71611  45 22N  071 49W  181   X                7 CA
+QC LOCHABER         CMHB               45 38N  075 12W  105   X                7 CA
+QC LONGUE PT DE MON CWBT  WBT   71512  50 16N  064 14W   11   X                7 CA
+QC MANIWAKI         CWMJ  WMJ   71721  46 16N  076 00W  200   X                7 CA
+QC MANIWAKI         CWMW  WMW   71722  46 22N  075 58W  170            X       8 CA
+QC MATAGAMI AIRPORT CYNM  YNM   71821  49 46N  077 49W  281   X                7 CA
+QC MCGILL RADAR     CWMN               45 25N  073 56W   63      X             8 CA
+QC MC TAVISH (AUT)  CWTA  WTA   71612  45 30N  073 35W   63   X                7 CA
+QC MISTOOK (AUT)    CWIX  WIX   71381  48 36N  071 43W  113   X                7 CA
+QC MONT JOLI AIRPOR CYYY  YYY   71718  48 36N  068 13W   52   X     T          6 CA
+QC MONT ORFORD      CWHY  WHY   71618  45 19N  072 15W  851   X                7 CA
+QC MONTREAL EST     CWPQ  WPQ   71675  45 38N  073 30W    6   X                7 CA
+QC MONTREAL/DORVAL  CYUL  YUL   71627  45 28N  073 44W   36   X     T          0 CA
+QC MONTREAL/DORVAL  CWTQ        71183  45 28N  073 45W   32   X                2 CA
+QC MONTREAL/MIRABEL CYMX  YMX   71626  45 40N  074 01W   82   X     T  T       1 CA
+QC NATASHQUAN AIRP  CYNA  YNA   71813  50 10N  061 49W   11   X     T          6 CA
+QC NEMISCAU ARPT(SA CYHH  YHH          51 42N  076 07W  244   X                7 CA
+QC NEW CARLISLE1    CWOC  WOC   71619  48 01N  065 19W   47   X                7 CA
+QC NICOLET (AUTOB)  CWNQ  WNQ   71723  46 13N  072 39W   10   X                7 CA
+QC NORMANDIN        CWOD  WOD   71379  48 51N  072 33W  137   X                7 CA
+QC ONATCHIWAY       CWXC  WXC   71387  48 53N  071 02W  300   X                7 CA
+QC PARC DES LAURENT CWPD  WPD   71382  47 34N  071 13W  803   X                7 CA
+QC PARENT (MARS)    CWPK  WPK   71726  47 55N  074 37W  442   X                7 CA
+QC POINTE DES MONTS CWTG  WTG   71427  49 19N  067 22W    5   X                7 CA
+QC POINTE NOIRES CS CWIP  WIP   71390  50 10N  066 26W   25   X                7 CA
+QC PORT MENIER (MAR CWBY  WBY   71810  49 49N  064 17W   53   X                7 CA
+QC PUVIRGNITUQ      CYPX  YPX          60 02N  077 16W   23   X     T          6 CA
+QC POINTE CLAVEAU   CWQV  WQV   71189  48 16N  070 07W    1   X                7 CA
+QC QUAQTAQ AIRPORT  CYHA  YQC   71904  61 02N  069 37W   30   X     T          6 CA
+QC QUEBEC           CYQB  YQB   71714  46 47N  071 22W   73   X     U          2 CA
+QC RAWDON           CMWD               46 01N  073 49W  210   X                7 CA
+QC RIVIERE DU LOUP  CWNH        71715  47 47N  069 32W  148   X                7 CA
+QC ROBERVAL AIRPORT CYRJ  YRJ   71728  48 31N  072 16W  179   X     T          6 CA
+QC ROUYN AIRPORT    CYUY  YUY          48 12N  078 49W  301   X     T          6 CA
+QC SAINT HUBERT ARP CYHU  YHU   71371  45 31N  073 25W   27   X     T          6 CA
+QC SAINT LOUIS      CMLI               45 52N  073 00W   31   X                7 CA
+QC SALLIUT ARPT (SA CYZG  YZG          62 10N  075 40W  226   X                7 CA
+QC SCHEFFERVILLE AR CYKL  YKL   71828  54 47N  066 49W  521   X     T          6 CA
+QC SEPT ILES AIRPOR CYZV  YZV   71811  50 13N  066 16W   55   X     T  X       5 CA
+QC SEPT ILES        CXZV               50 13N  066 15W   52   X                8 CA
+QC SHAWINIGAN       CXSH  XSH   71370  46 35N  072 44W  110   X                7 CA
+QC SHERBROOKE       CYSC  YSC   71610  45 26N  071 41W  241   X     U          6 CA
+QC ST ANICET        CWBZ  WBZ   71712  45 07N  074 16W   49   X                7 CA
+QC ST FOY/U LAVAL   CWJB  WJB   71392  46 47N  071 16W   91   X                7 CA
+QC ST GEDEON        CWIU  WIU          48 29N  071 47W  103   X                7 CA
+QC ST HENRI         CWIA  WIA          48 39N  071 51W  103   X                7 CA
+QC ST JOVITE (AUTOB CWJT  WJT   71376  46 04N  074 34W  239   X                7 CA
+QC ST CLOTHILDE (A  CWIT  WIT   71614  45 10N  073 40W   52   X                7 CA
+QC STE ANNE DE BELL CWVQ  WVQ   71377  45 25N  073 55W   39   X                7 CA
+QC TASIUJAQ A       CYTQ  YTQ          58 40N  069 57W   31   X     T          7 CA
+QC TEMISCAMINQUE    CWBA        71732  46 43N  079 06W  181   X                7 CA
+QC TROIS RIVIERES   CWTY  WTY   71724  46 21N  072 31W    6   X                7 CA
+QC TROIS RIVIERES   CYRQ               46 21N  072 41W   61   X     T          7 CA
+QC UMIUJAQ          CYMU  YMU          56 31N  076 31W   71   X                7 CA
+QC VAL D'OR AIRPORT CYVO  YVO   71725  48 04N  077 46W  337   X     T          6 CA
+QC VALCARTIER AIRPO CYOY  YOY   71716  46 53N  071 30W  168   X     T  Z       6 CA
+QC VARENNES         CWHM  WHM   71184  45 43N  073 22W  192   X                7 CA
+QC VILLEROY RADAR   CWVY  WVY   71616  46 27N  071 55W  108   X                7 CA
+QC WASKAGANISH AIRP CYKQ  YKQ          51 28N  078 45W   23   X     T          6 CA
+QC WEMINDJI         CYNC  YNC          53 01N  078 49W   14   X                7 CA
+QC INUKJUAK         CWPH  WPH          58 27N  078 07W  253            Z       8 CA
+QC VALCARTIER       CWQG  WQG   71151  46 53N  071 30W  168   Z                8 CA
+QC VAL D IRENE RADR CXAM               48 29N  067 36W  583      X             8 CA
+QC BEAUHARNOS       CMBR               45 19N  073 55W   22   X                8 CA
+QC ST CONSTANT      CMCT               45 20N  073 35W   39   X                8 CA
+QC COVEY HILL       CMCW               45 01N  073 52W  262   X                8 CA
+QC FORET MONTMORENC CMFM        71212  47 19N  071 09W  672   X                8 CA
+QC GRANBY           CMGB               45 22N  072 46W   86   X                8 CA
+QC HOWICK           CMHW               45 10N  073 52W   42   X                8 CA
+QC L ARTIFICE       CMLA               45 04N  073 50W   61   X                8 CA
+QC PIEDMONT         CMPD               45 53N  074 06W  175   X                8 CA
+QC S POLYCARPE71306 CMPL               45 18N  074 18W   56   Z                8 CA
+QC ROUGEMONT        CMRG               45 25N  073 03W   54   X                8 CA
+QC RIGAUD           CMRI        71305  45 29N  074 18W   30   X                8 CA
+QC RUSSELTOWN       CMRU               45 03N  073 48W   65   X                8 CA
+QC RUISSEAU CRANB   CMRY               45 07N  073 41W   59   X                8 CA
+QC ST SABINE        CMSB               45 13N  073 01W   49   X                8 CA
+QC ST CELESTIN      CMSC               46 12N  072 27W   55   X                8 CA
+QC ST M-D-NAPIERVIL CMSX               45 11N  073 37W   59   X                8 CA
+QC ST CHRYSOSTOME   CMYT               45 08N  073 46W   55   X                8 CA
+SK ASSINIBOIA ARPT  CWJI  WJI   71487  49 43N  105 55W  724   X                7 CA
+SK BROADVIEW        CWIK  WIK   71861  50 22N  102 35W  602   X        Z       7 CA
+SK BRATTS LAKE      CXBK  XBK   71569  50 12N  104 42W  580   X        O       7 CA
+SK BROADVIEW CS     CWXU        71737  50 23N  102 41W  600   X                8 CA
+SK BUFFALO NARROWS  CWVT  WVT   71077  55 49N  108 25W  434   X                7 CA
+SK BUFFALO NARROWS  CYVT  YVT          55 49N  108 25W  434   X     T  Z       6 CA
+SK CANDLE LAKE      CWLZ  WLZ   71146  53 44N  105 16W  503         T          8 CA
+SK CLUFF LAKE       CXXX        71073  58 23N  109 31W  339   X                7 CA
+SK CORONACH SPC     CWAQ  WAQ   71516  49 03N  105 29W  756   X                7 CA
+SK CYPRESS HILLS PA CWVP  WVP   71139  49 38N  109 31W 1271   X     T          6 CA
+SK EASTEND CYPRESS  CWEH  WEH   71131  49 25N  108 58W 1078   X                7 CA
+SK ELBOW (MARS)     CWOK  WOK   71450  51 07N  106 34W  595   X                7 CA
+SK ESTEVAN AIRPORT  CYEN  YEN   71862  49 13N  102 58W  581   X     T          7 CA
+SK HUDSON BAY       CYHB  YHB   71868  52 49N  102 19W  358   X                7 CA
+SK INDIAN HEAD CDA  CWBD  WBD   71194  50 33N  103 39W  582   X                7 CA
+SK JIMMY LAKE       CWHN  WHN          54 53N  109 58W  636   X                7 CA
+SK KEY LAKE         CYKJ  YKJ   71488  57 15N  105 37W  509   X     T          7 CA
+SK KINDERSLEY       CYKY  YKY   71129  51 31N  109 10W  694   X                7 CA
+SK LA RONGE AIRPORT CYVC  YVC   71922  55 09N  105 16W  379   X     T          6 CA
+SK LA RONGE AIRPORT CXOX  XOX   71586  55 09N  105 16W  379   X                7 CA
+SK LEADER ARPT (AUT CWJX  WJX   71459  50 53N  109 30W  672   X                7 CA
+SK LUCKY LAKE (AUTO CWLE  WLE   71455  50 57N  107 09W  665   X                7 CA
+SK MAPLECREEK (AUTO CWMQ  WMQ   71453  49 54N  109 28W  767   X                7 CA
+SK MEADOW LAKE AIRP CYLJ  YLJ   71125  54 07N  108 31W  480   X                7 CA
+SK MELFORT (AUTOB)  CWFF  WFF   71456  52 49N  104 35W  490   X                7 CA
+SK MOOSE JAW (CAN M CYMJ  YMJ   71864  50 19N  105 32W  577   X     T          6 CA
+SK MOOSE JAW        CZMJ               50 20N  105 34W  577   X                8 CA
+SK NIPAWIN AIRPORT  CYBU  YBU   71130  53 19N  104 00W  374   X                7 CA
+SK NIPAWIN          CWBU               53 20N  104 01W  373   X                8 CA
+SK NORTH BATTLEFORD CYQW  YQW   71876  52 46N  108 15W  548   X     T          6 CA
+SK PRINCE ALBERT AR CYPA  YPA   71869  53 13N  105 40W  428   X     T          6 CA
+SK REGINA AIRPORT   CYQR  YQR   71863  50 26N  104 40W  577   X     T          0 CA
+SK REGINA UNIVERSIT CWDJ  WDJ   71514  50 24N  104 35W  573   X                7 CA
+SK ROCKGLEN (MARS)  CWKO  WKO   71135  49 10N  105 58W  917   X                7 CA
+SK ROSETOWN EAST (A CWRJ  WRJ   71510  51 34N  107 55W  586   X                7 CA
+SK SASKATOON AIRPOR CYXE  YXE   71866  52 10N  106 42W  504   X     T  X       5 CA
+SK SOUTHEND (AUTOB) CWJH  WJH   71451  56 19N  103 16W  344   X                7 CA
+SK SPIRITWOOD WEST  CWSR  WSR   71133  53 22N  107 32W  584   X                7 CA
+SK STONY RAPIDS ARP CYSF  YSF   71132  59 15N  105 49W  250   X     T          6 CA
+SK SWIFT CURREN     CYYN  YYN   71870  50 16N  107 40W  818   X     U          6 CA
+SK URANIUM CITY(MAR CWDC  WDC   71076  59 34N  108 28W  318   X                7 CA
+SK VAL MARIE SE(AUT CWVN  WVN   71137  49 04N  107 34W  785   X                7 CA
+SK WATROUS EAST (AU CWIW  WIW   71511  51 40N  105 24W  526   X                7 CA
+SK WEYBURN (AUTOB)  CWWF  WWF   71452  49 42N  103 48W  589   X                7 CA
+SK WYNYARD (AUT)    CWOY  WOY   71865  51 46N  104 12W  560   X                7 CA
+SK YORKTON AIRPORT  CYQV  YQV   71292  51 16N  102 28W  498   X     U          6 CA
+SK WALDRON VOR      CYDR  YDR          50 22N  102 32W  615         Z          8 CA
+SK CANADA ARTCC     CZFD  ZFD          59 19N  107 11W  131         A          8 CA
+YT BEAVER CREEK ARP CYXQ  YXQ          62 25N  140 52W  649   X                7 CA
+YT BURWASH          CYDB  YDB   71967  61 22N  139 03W  801   X     T          6 CA
+YT CARMACKS         CXCK  XCK   71039  62 07N  136 12W  540   X                7 CA
+YT DAWSON AIRPORT   CYDA  YDA   71966  64 02N  139 07W  369   X     T          6 CA
+YT FARO (MARS)      CWUM  WUM   71949  62 13N  133 20W  717   X                7 CA
+YT FARO APT ARTCC   CZFA  ZFA          62 12N  133 22W  717   X     T          6 CA
+YT HAINES JUNCTION  CWHT  WHT   71505  60 46N  137 35W  599   X                7 CA
+YT HERSCHEL ISLAND  CWJN        71501  69 34N  138 55W    1   X                8 CA
+YT KOMAKUK BEACH    CWKM  WKM   71046  69 36N  140 10W   13   X                7 CA
+YT MARGARET LAKE    CWZR        71977  68 48N  140 51W  543   X                8 CA
+YT MAYO AIRPORT     CYMA        71965  63 37N  135 52W  504   X     T          6 CA
+YT OLD CROW AIRPORT CYOC  YOC          67 34N  139 49W  251   X     T          6 CA
+YT SHINGLE POINT AR CYUA  YUA   71968  68 57N  137 17W   38   X                7 CA
+YT STORM HILLS      CWVH  WVH   71052  68 54N  133 56W  261   X                7 CA
+YT TESLIN (MARS)    CWZW  WZW          60 10N  132 44W  705   X                7 CA
+YT TESLIN ARPT (AUT CYZW  YZW   71045  60 10N  132 45W  705   X     T          6 CA
+YT WATSON LAKE AIRP CYQH  YQH   71953  60 07N  128 49W  690   X     T          6 CA
+YT WATSON LAKE      CXQH        71199  60 07N  128 49W  690   X                8 CA
+YT WHITEHORSE AIRPO CYXY  YXY   71964  60 43N  135 04W  703   X     T  X       5 CA
