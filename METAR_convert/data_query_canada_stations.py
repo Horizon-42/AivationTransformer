@@ -15,32 +15,8 @@ from navcanada_weather_server import NavCanadaWeatherServer
 
 
 # Top 100 Canadian airport stations (ICAO codes)
-CANADIAN_STATIONS = [
-    # Major International Airports (Top 20)
-    'CYYZ', 'CYVR', 'CYUL', 'CYYC', 'CYEG', 'CYWG', 'CYOW', 'CYHZ', 
-    'CYQB', 'CYVG', 'CYYJ', 'CYXE', 'CYLW', 'CYQM', 'CYSJ', 'CYFC',
-    'CYQR', 'CYQX', 'CYHM', 'CYTR',
-    
-    # Regional Airports (20-40)
-    'CYKA', 'CYCD', 'CYPQ', 'CYZF', 'CYXY', 'CYQT', 'CYYG', 'CYQI',
-    'CYZR', 'CYPR', 'CYXJ', 'CYOD', 'CYXC', 'CYBL', 'CYXS', 'CYZV',
-    'CYGR', 'CYTH', 'CYXU', 'CYZT',
-    
-    # Northern and Remote Airports (40-60)
-    'CYLT', 'CYZP', 'CYFB', 'CYVM', 'CYEV', 'CYFS', 'CYVP', 'CYXT',
-    'CYZW', 'CYYR', 'CYXH', 'CYOC', 'CYLJ', 'CYYF', 'CYZH', 'CYGH',
-    'CYOW', 'CYPX', 'CYAX', 'CYBG',
-    
-    # Smaller Regional (60-80)
-    'CYQV', 'CYXL', 'CYXN', 'CYXP', 'CYXR', 'CYXZ', 'CYYA', 'CYYB',
-    'CYYE', 'CYYH', 'CYYN', 'CYYT', 'CYYY', 'CYZD', 'CYZE', 'CYZG',
-    'CYZM', 'CYZO', 'CYZS', 'CYZX',
-    
-    # Additional Stations (80-100)
-    'CYAB', 'CYAC', 'CYAD', 'CYAH', 'CYAL', 'CYAM', 'CYAQ', 'CYAT',
-    'CYAW', 'CYAY', 'CYAZ', 'CYBA', 'CYBB', 'CYBC', 'CYBK', 'CYBN',
-    'CYBO', 'CYBQ', 'CYBR', 'CYBT'
-]
+CANADIAN_STATIONS = ['CYYC', 'CYBW', 'CYOD', 'CYEG', 'CYXD', 'CYED', 'CZVL', 'CYPY', 'CYMM', 'CYQU', 'CYOJ', 'CYQL', 'CYLL', 'CYXH', 'CYPE', 'CYQF', 'CYZH', 'CYZU', 'CYXX', 'CBBC', 'CYBL', 'CYCG', 'CYQQ', 'CYXC', 'CYDQ', 'CYDL', 'CYYE', 'CYXJ', 'CYKA', 'CYLW', 'CYZY', 'CZMT', 'CYCD', 'CYYF', 'CYZT', 'CYXS', 'CYPR', 'CYDC', 'CYQZ', 'CYZP', 'CYYD', 'CYXT', 'CYAZ', 'CYVR', 'CYWH', 'CYYJ', 'CYWL', 'CYBR', 'CYYQ', 'CYDN', 'CYGX', 'CYIV', 'CYYL', 'CYPG', 'CYQD', 'CYTH', 'CYWG', 'CYNE', 'CZBF', 'CYFC', 'CYCX', 'CACQ', 'CYQM', 'CYSJ', 'CYSL', 'CYCA', 'CZUM', 'CYDF', 'CYQX', 'CYYR', 'CWWU', 'CYMH', 'CYDP', 'CYAY', 'CYYT', 'CYJT', 'CYWK', 'CYZX', 'CYHZ', 'CWSA', 'CYSA', 'CYAW', 'CYQY', 'CYQI', 'CYOA', 'CYWJ', 'CYGH', 'CZFM', 'CYFS', 'CYSM', 'CYHY', 'CYHI', 'CYEV', 'CYLK', 'CYVQ', 'CYPC', 'CYRA', 'CYSY', 'CYUB', 'CYWE', 'CYZF', 'CYLT', 'CYAB', 'CYEK', 'CYBK', 'CYVM', 'CYCB', 'CYTE',
+                     'CYCO', 'CYZS', 'CYCY', 'CYEU', 'CYFB', 'CYHK', 'CYUX', 'CYGT', 'CYWO', 'CYSR', 'CYXP', 'CYBB', 'CYIO', 'CYRT', 'CYUT', 'CYRB', 'CYYH', 'CYTL', 'CYBN', 'CYLD', 'CYHD', 'CYXR', 'CYEL', 'CYGQ', 'CYZE', 'CYHM', 'CYYU', 'CYQK', 'CYGK', 'CWSN', 'CYXU', 'CYSP', 'CYMO', 'CYQA', 'CYYB', 'CYOW', 'CYWA', 'CYPQ', 'CYPL', 'CYRL', 'CYZR', 'CYAM', 'CYXL', 'CYSN', 'CYSB', 'CYTJ', 'CYQT', 'CYTS', 'CYKZ', 'CYTZ', 'CYYZ', 'CYTR', 'CYKF', 'CYXZ', 'CYVV', 'CYQG', 'CYYG', 'CYBG', 'CYBC', 'CYBX', 'CYMT', 'CYGP', 'CYND', 'CYGV', 'CYGR', 'CYPH', 'CYIK', 'CYVP', 'CYGW', 'CYAH', 'CYGL', 'CYYY', 'CYUL', 'CYMX', 'CYNA', 'CYPX', 'CYHA', 'CYQB', 'CYRJ', 'CYUY', 'CYHU', 'CYKL', 'CYZV', 'CYSC', 'CYTQ', 'CYRQ', 'CYVO', 'CYOY', 'CYKQ', 'CYVT', 'CWVP', 'CYEN', 'CYKJ', 'CYVC', 'CYMJ', 'CYQW', 'CYPA', 'CYQR', 'CYXE', 'CYSF', 'CYYN', 'CYQV', 'CYDB', 'CYDA', 'CZFA', 'CYMA', 'CYOC', 'CYZW', 'CYQH', 'CYXY']
 
 
 def query_station_group(server: NavCanadaWeatherServer, 
