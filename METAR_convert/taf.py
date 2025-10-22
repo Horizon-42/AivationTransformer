@@ -473,6 +473,12 @@ class TAF:
                 probability = int(prob_match.group(1))
 
         # Parse period time
+        # Handle None values for taf_start/taf_end - use current time as fallback
+        if taf_start is None:
+            taf_start = datetime.now()
+        if taf_end is None:
+            taf_end = datetime.now()
+
         period_start = taf_start
         period_end = taf_end
 
@@ -485,7 +491,7 @@ class TAF:
             try:
                 period_start = datetime(
                     taf_start.year, taf_start.month, day, hour, minute, 0)
-            except ValueError:
+            except (ValueError, AttributeError):
                 pass
 
         # TEMPO/BECMG format: TEMPO 1215/1224 (DDHH/DDHH)
@@ -500,7 +506,7 @@ class TAF:
                     taf_start.year, taf_start.month, from_day, from_hour, 0, 0)
                 period_end = datetime(
                     taf_start.year, taf_start.month, to_day, to_hour, 0, 0)
-            except ValueError:
+            except (ValueError, AttributeError):
                 pass
 
         # Parse wind (e.g., 27010KT, VRB04KT, 36010G20KT)
@@ -552,6 +558,12 @@ class TAF:
             if wx in period_text:
                 weather_phenomena = wx
                 break
+
+        # Safety check: ensure period_start and period_end are valid datetime objects
+        if period_start is None:
+            period_start = datetime.now()
+        if period_end is None:
+            period_end = datetime.now()
 
         return TAFForecastPeriod(
             valid_from=period_start,
