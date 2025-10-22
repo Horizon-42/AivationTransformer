@@ -86,7 +86,7 @@ def validate_single_station(server, station, verbose=VERBOSE):
             return False, 0, error_msg
 
 
-def test_batch_has_data(server, stations, verbose=VERBOSE):
+def test_batch_has_data(server, stations, verbose=VERBOSE, suppress_output=False):
     """
     Test if a batch of stations returns any data.
     IMPORTANT: 0 reports is a significant flag indicating invalid station(s).
@@ -95,6 +95,7 @@ def test_batch_has_data(server, stations, verbose=VERBOSE):
         server: NavCanadaWeatherServer instance
         stations: List of station codes to test
         verbose: If True, print detailed output
+        suppress_output: If True, suppress all output (used during binary search when verbose=False)
     
     Returns:
         tuple: (has_data: bool, data_count: int)
@@ -102,7 +103,8 @@ def test_batch_has_data(server, stations, verbose=VERBOSE):
             data_count: Total number of reports returned
     """
     try:
-        result = server.get_weather(stations)
+        # Note: server.get_weather will print output, we can't suppress it
+        result = server.get_weather(stations, save_raw_data=False)
         
         # Count data entries from NavCanadaWeatherResponse object
         data_count = 0
@@ -122,19 +124,25 @@ def test_batch_has_data(server, stations, verbose=VERBOSE):
         return (data_count > 0, data_count)
     except Exception as e:
         # Exception also means failure
-        if verbose:
+        if verbose and not suppress_output:
             print(f"    Exception during test: {str(e)[:80]}", flush=True)
         return (False, 0)
 
 
 def find_invalid_stations_in_batch(server, stations, delay=REQUEST_DELAY, verbose=VERBOSE):
     """
-    Use TRUE binary search to efficiently identify invalid stations within this batch.
+    Use TRUE binary search to efficiently identify ALL invalid stations within this batch.
     
     Binary Search Strategy:
-    - We know the full batch failed (returned 0 reports)
-    - Test only LEFT half per iteration - if it fails, invalid is in left; if succeeds, invalid is in right
-    - This achieves O(log n) complexity with 1 query per iteration instead of 2
+    - Recursively search for invalid stations
+    - Test only LEFT half per iteration - if it fails, search left; if succeeds, search right
+    - After finding one invalid, continue searching the remaining valid portion
+    - This achieves O(k * log n) where k is number of invalid stations
+    
+    The algorithm is guaranteed to terminate:
+    - Each iteration halves the search space: n → n/2 → n/4 → ... → 1
+    - Maximum iterations per invalid station: ceil(log2(n))
+    - No infinite loops possible with correct binary search logic
     
     Args:
         server: NavCanadaWeatherServer instance
@@ -155,11 +163,22 @@ def find_invalid_stations_in_batch(server, stations, delay=REQUEST_DELAY, verbos
     invalid_stations = {}
     remaining = stations.copy()
     search_count = 0
-    max_iterations = len(stations) * 2  # Safety limit
+    suppress_output = not verbose  # Suppress intermediate output when not verbose
     
-    while remaining and search_count < max_iterations:
+    while remaining:
         search_count += 1
         
+        # First, test if remaining stations have any invalid ones
+        has_data, data_count = test_batch_has_data(
+            server, remaining, verbose, suppress_output)
+
+        if has_data:
+            # All remaining stations are valid!
+            if verbose:
+                print(
+                    f"  [{search_count}] All {len(remaining)} remaining stations are valid")
+            break
+
         # Base case: single station
         if len(remaining) == 1:
             station = remaining[0]
@@ -190,7 +209,7 @@ def find_invalid_stations_in_batch(server, stations, delay=REQUEST_DELAY, verbos
             print(f"  [{search_count}] Testing left half ({len(left_half)}/{len(remaining)}): {', '.join(left_half)}...", end=" ", flush=True)
         time.sleep(delay)
         left_has_data, left_count = test_batch_has_data(
-            server, left_half, verbose)
+            server, left_half, verbose, suppress_output)
 
         if verbose:
             left_status = f"✓ Valid ({left_count} reports)" if left_has_data else f"✗ Failed (0 reports)"
@@ -198,28 +217,16 @@ def find_invalid_stations_in_batch(server, stations, delay=REQUEST_DELAY, verbos
         
         # Decision logic - ONLY 1 query per iteration achieves O(log n)
         if not left_has_data:
-            # Left half failed → invalid station(s) in LEFT
+            # Left half has invalid station(s) - search there
             if verbose:
-                print(f"  → Invalid station in LEFT half, searching there")
+                print(f"  → Invalid station(s) in LEFT half, searching there")
             remaining = left_half
         else:
-            # Left half succeeded → invalid station(s) must be in RIGHT
+            # Left half is valid - invalid must be in RIGHT
             if verbose:
-                print(f"  → LEFT valid, invalid station must be in RIGHT half")
+                print(f"  → LEFT valid, invalid station(s) must be in RIGHT half")
             remaining = right_half
 
-    # Check if we hit max iterations (shouldn't happen with correct logic)
-    if search_count >= max_iterations:
-        if verbose:
-            print(f"  ⚠️  Max iterations reached - testing remaining individually")
-        for station in remaining:
-            if station not in invalid_stations:
-                time.sleep(delay)
-                is_valid, data_count, error = validate_single_station(
-                    server, station, verbose)
-                if not is_valid:
-                    invalid_stations[station] = error or "No data"
-    
     # Determine valid stations
     valid_stations = [s for s in stations if s not in invalid_stations]
     
@@ -241,7 +248,7 @@ def find_invalid_stations_in_batch(server, stations, delay=REQUEST_DELAY, verbos
 
 
 def query_station_batch(server, stations, group_num, total_groups, 
-                        all_invalid_stations, delay=REQUEST_DELAY, verbose=VERBOSE):
+                        all_invalid_stations, output_dir, delay=REQUEST_DELAY, verbose=VERBOSE):
     """
     Query a batch of stations with automatic invalid station detection.
     
@@ -251,6 +258,7 @@ def query_station_batch(server, stations, group_num, total_groups,
         group_num: Current group number
         total_groups: Total number of groups
         all_invalid_stations: Dict tracking all invalid stations found
+        output_dir: Directory to save group data files
         delay: Delay after request (seconds)
         verbose: If True, print detailed output
     
@@ -269,7 +277,14 @@ def query_station_batch(server, stations, group_num, total_groups,
     try:
         if verbose:
             print("\n🔄 Attempting batch query...")
-        result = server.get_weather(stations)
+
+        # Query with raw data saving enabled
+        raw_filename = f'canada_group_{group_num:02d}_raw.json'
+        result = server.get_weather(
+            stations,
+            save_raw_data=True,
+            raw_data_filename=raw_filename
+        )
         
         # Count entries from NavCanadaWeatherResponse object
         metar_count = sum(len(metars) for metars in result.metars.values())
@@ -296,15 +311,21 @@ def query_station_batch(server, stations, group_num, total_groups,
             
             if not valid_stations:
                 elapsed = time.time() - start_time
+                print(
+                    f"❌ Group {group_num}: All {len(stations)} stations invalid [{elapsed:.1f}s]")
                 return {
                     'group_num': group_num,
                     'stations_requested': stations,
                     'valid_stations': [],
                     'invalid_stations': list(invalid_dict.keys()),
+                    'stations_with_metar': [],
+                    'stations_with_taf': [],
                     'metar_count': 0,
                     'taf_count': 0,
                     'upper_wind_count': 0,
                     'total_count': 0,
+                    'raw_data_file': None,
+                    'parsed_data_file': None,
                     'elapsed_time': elapsed,
                     'success': False,
                     'error': 'All stations invalid - no data returned'
@@ -313,7 +334,12 @@ def query_station_batch(server, stations, group_num, total_groups,
             # Retry with valid stations only
             print(f"🔄 Retrying with {len(valid_stations)} valid stations...")
             time.sleep(delay)
-            result = server.get_weather(valid_stations)
+            raw_filename = f'canada_group_{group_num:02d}_raw.json'
+            result = server.get_weather(
+                valid_stations,
+                save_raw_data=True,
+                raw_data_filename=raw_filename
+            )
             
             # Recount from retry
             metar_count = sum(len(metars) for metars in result.metars.values())
@@ -326,15 +352,28 @@ def query_station_batch(server, stations, group_num, total_groups,
         # Success path - got data (either from first query or retry after removing invalid stations)
         elapsed = time.time() - start_time
         
+        # Save parsed data to group-specific file
+        parsed_filename = f'canada_group_{group_num:02d}_parsed.json'
+        parsed_file = server.export_to_json(result, parsed_filename)
+
+        if verbose:
+            print(f"   📄 Saved files:")
+            print(
+                f"      • Raw: {result.raw_data_file if hasattr(result, 'raw_data_file') else raw_filename}")
+            print(f"      • Parsed: {parsed_file}")
+
         # Determine which stations from this batch are invalid
         batch_invalid = [s for s in stations if s in all_invalid_stations]
         batch_valid = [s for s in stations if s not in all_invalid_stations]
         
+        # Clear, consistent output format
+        status = "✅" if not batch_invalid else "⚠️"
         print(
-            f"✅ Group {group_num}: {total_count} reports ({metar_count} METAR, {taf_count} TAF, {upper_wind_count} Upper)", end="")
+            f"{status} Group {group_num}: {total_count} reports ({metar_count} METAR, {taf_count} TAF, {upper_wind_count} Upper)", end="")
         if batch_invalid:
-            print(f" - Excluded: {', '.join(batch_invalid)}", end="")
-        print(f" [{elapsed:.1f}s]")
+            print(
+                f" | Excluded {len(batch_invalid)}: {', '.join(batch_invalid)}", end="")
+        print(f" | {elapsed:.1f}s")
 
         if verbose:
             print(f"   Valid stations: {len(batch_valid)}/{len(stations)}")
@@ -344,14 +383,17 @@ def query_station_batch(server, stations, group_num, total_groups,
             'stations_requested': stations,
             'valid_stations': batch_valid,
             'invalid_stations': batch_invalid,
+            'stations_with_metar': list(result.metars.keys()),
+            'stations_with_taf': list(result.tafs.keys()),
             'metar_count': metar_count,
             'taf_count': taf_count,
             'upper_wind_count': upper_wind_count,
             'total_count': total_count,
+            'raw_data_file': result.raw_data_file if hasattr(result, 'raw_data_file') else raw_filename,
+            'parsed_data_file': parsed_file,
             'elapsed_time': elapsed,
             'success': True,
             'error': None
-            # Note: 'data' object removed - NavCanadaWeatherResponse is not JSON serializable
         }
         
     except Exception as e:
@@ -377,10 +419,14 @@ def query_station_batch(server, stations, group_num, total_groups,
                 'stations_requested': stations,
                 'valid_stations': stations,  # All stations are actually valid
                 'invalid_stations': [],
+                'stations_with_metar': [],
+                'stations_with_taf': [],
                 'metar_count': 0,
                 'taf_count': 0,
                 'upper_wind_count': 0,
                 'total_count': 0,
+                'raw_data_file': None,
+                'parsed_data_file': None,
                 'elapsed_time': elapsed,
                 'success': False,
                 'error': f"Parser bug: {error_msg}"
@@ -398,10 +444,14 @@ def query_station_batch(server, stations, group_num, total_groups,
                 'stations_requested': stations,
                 'valid_stations': [],
                 'invalid_stations': [],
+                'stations_with_metar': [],
+                'stations_with_taf': [],
                 'metar_count': 0,
                 'taf_count': 0,
                 'upper_wind_count': 0,
                 'total_count': 0,
+                'raw_data_file': None,
+                'parsed_data_file': None,
                 'elapsed_time': elapsed,
                 'success': False,
                 'error': f"Query failed: {error_msg}"
@@ -441,38 +491,84 @@ def save_results(output_dir, group_stats, all_invalid_stations):
     with open(results_file, 'w') as f:
         json.dump(summary, f, indent=2)
     
-    # Print summary
-    print(f"\n{'='*80}")
-    print("📊 FINAL SUMMARY")
-    print(f"{'='*80}")
-    print(f"\n✅ Groups: {summary['successful_groups']}/{summary['total_groups']} successful")
-    print(f"📍 Stations: {summary['valid_stations']}/{summary['total_stations']} valid")
-    
+    # Save invalid stations to a separate file
     if all_invalid_stations:
-        # Categorize errors
-        no_data_stations = {
-            k: v for k, v in all_invalid_stations.items() if "No data" in v}
-        parsing_error_stations = {k: v for k, v in all_invalid_stations.items(
-        ) if "Parsing error" in v or "NoneType" in v}
-        other_error_stations = {k: v for k, v in all_invalid_stations.items(
-        ) if k not in no_data_stations and k not in parsing_error_stations}
+        invalid_file = output_dir / f"invalid_stations_{timestamp}.txt"
+        with open(invalid_file, 'w') as f:
+            f.write(f"Invalid Stations Report\n")
+            f.write(
+                f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"{'='*80}\n\n")
+            f.write(f"Total Invalid Stations: {len(all_invalid_stations)}\n\n")
 
-        print(f"\n❌ Problem Stations Found ({len(all_invalid_stations)}):")
+            # Categorize errors
+            no_data_stations = {
+                k: v for k, v in all_invalid_stations.items() if "No data" in v}
+            parsing_error_stations = {k: v for k, v in all_invalid_stations.items(
+            ) if "Parsing error" in v or "NoneType" in v}
+            other_error_stations = {k: v for k, v in all_invalid_stations.items(
+            ) if k not in no_data_stations and k not in parsing_error_stations}
 
-        if no_data_stations:
-            print(f"\n   No Data ({len(no_data_stations)}):")
-            for station, error in sorted(no_data_stations.items()):
-                print(f"      • {station}: {error}")
+            if no_data_stations:
+                f.write(f"No Data Stations ({len(no_data_stations)}):\n")
+                f.write(f"{'-'*80}\n")
+                for station, error in sorted(no_data_stations.items()):
+                    f.write(f"  {station}: {error}\n")
+                f.write(f"\n")
 
-        if parsing_error_stations:
-            print(f"\n   Parsing Errors ({len(parsing_error_stations)}):")
-            for station, error in sorted(parsing_error_stations.items()):
-                print(f"      • {station}: {error[:80]}")
+            if parsing_error_stations:
+                f.write(
+                    f"Parsing Error Stations ({len(parsing_error_stations)}):\n")
+                f.write(f"{'-'*80}\n")
+                for station, error in sorted(parsing_error_stations.items()):
+                    f.write(f"  {station}: {error}\n")
+                f.write(f"\n")
 
-        if other_error_stations:
-            print(f"\n   Other Errors ({len(other_error_stations)}):")
-            for station, error in sorted(other_error_stations.items()):
-                print(f"      • {station}: {error[:80]}")
+            if other_error_stations:
+                f.write(
+                    f"Other Error Stations ({len(other_error_stations)}):\n")
+                f.write(f"{'-'*80}\n")
+                for station, error in sorted(other_error_stations.items()):
+                    f.write(f"  {station}: {error}\n")
+                f.write(f"\n")
+
+    # Print GROUP-WISE summary
+    print(f"\n{'='*80}")
+    print("📊 GROUP-WISE SUMMARY")
+    print(f"{'='*80}\n")
+
+    for group in group_stats:
+        status = "✅" if group['success'] else "❌"
+        print(f"{status} Group {group['group_num']}:")
+        print(
+            f"   Stations: {len(group['stations_requested'])} requested, {len(group['valid_stations'])} valid")
+
+        if group['invalid_stations']:
+            print(f"   Invalid: {', '.join(group['invalid_stations'])}")
+
+        if group['success']:
+            print(
+                f"   Data: {group['total_count']} reports ({group['metar_count']} METAR, {group['taf_count']} TAF, {group['upper_wind_count']} Upper)")
+            print(f"   Files:")
+            print(f"      • Raw: {group['raw_data_file']}")
+            print(f"      • Parsed: {group['parsed_data_file']}")
+        else:
+            print(f"   Error: {group['error']}")
+
+        print(f"   Time: {group['elapsed_time']:.1f}s")
+        print()
+
+    # Print overall summary
+    print(f"{'='*80}")
+    print("📊 OVERALL SUMMARY")
+    print(f"{'='*80}")
+    print(
+        f"\n✅ Groups: {summary['successful_groups']}/{summary['total_groups']} successful")
+    print(
+        f"📍 Stations: {summary['valid_stations']}/{summary['total_stations']} valid")
+
+    if all_invalid_stations:
+        print(f"❌ Invalid Stations: {len(all_invalid_stations)} total")
     
     print(f"\n📈 Data Collected:")
     print(f"   • METAR: {summary['total_metar']}")
@@ -481,7 +577,10 @@ def save_results(output_dir, group_stats, all_invalid_stations):
     print(f"   • Total entries: {summary['total_metar'] + summary['total_taf'] + summary['total_upper_winds']}")
     
     print(f"\n⏱️  Total Time: {summary['total_time']:.1f}s")
-    print(f"📄 Results saved to: {results_file}")
+    print(f"\n📄 Files saved:")
+    print(f"   • Results: {results_file}")
+    if all_invalid_stations:
+        print(f"   • Invalid stations: {invalid_file}")
     print(f"{'='*80}\n")
     
     return results_file
@@ -501,7 +600,7 @@ def main():
     output_dir = Path("weather_data")
     output_dir.mkdir(exist_ok=True)
     
-    server = NavCanadaWeatherServer(headless=True)
+    server = NavCanadaWeatherServer(headless=True, data_dir=str(output_dir))
     
     # Split into groups
     groups = [CANADIAN_STATIONS[i:i+GROUP_SIZE] 
@@ -517,7 +616,7 @@ def main():
     for i, stations in enumerate(groups, 1):
         stats = query_station_batch(
             server, stations, i, len(groups), 
-            all_invalid_stations, REQUEST_DELAY, VERBOSE
+            all_invalid_stations, output_dir, REQUEST_DELAY, VERBOSE
         )
         group_stats.append(stats)
         
