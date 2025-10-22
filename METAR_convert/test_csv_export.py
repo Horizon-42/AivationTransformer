@@ -11,6 +11,7 @@ from csv_exporter import WeatherDataCSVExporter
 from metar import METAR, CloudLayer
 from taf import TAF, TAFCloudLayer, TAFForecastPeriod, IcingTurbulence, TemperatureForecast
 from upper_wind import UpperWind, UpperWindPeriod, UpperWindLevel
+from station_lookup import enrich_weather_data
 from datetime import datetime
 
 
@@ -212,6 +213,10 @@ def test_csv_export_from_json():
                 print(f"   ⚠️  Error parsing Upper Wind: {e}")
                 continue
         
+        # Enrich all weather data with station coordinates
+        print("\n📍 Enriching weather data with station coordinates...")
+        enrich_weather_data(metars_dict, tafs_dict, upper_winds)
+
         # Test CSV export
         print("\n🧪 Testing CSV Export...")
         test_output = Path("weather_data/test_csv_output")

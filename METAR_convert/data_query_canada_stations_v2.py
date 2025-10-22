@@ -20,6 +20,7 @@ from pathlib import Path
 from datetime import datetime
 from navcanada_weather_server import NavCanadaWeatherServer
 from csv_exporter import WeatherDataCSVExporter
+from station_lookup import enrich_weather_data
 
 
 # Configuration
@@ -364,6 +365,9 @@ def query_station_batch(server, stations, group_num, total_groups,
         # Save parsed data to group-specific file
         parsed_filename = f'canada_group_{group_num:02d}_parsed.json'
         parsed_file = server.export_to_json(result, parsed_filename)
+
+        # Enrich weather data with station coordinates
+        enrich_weather_data(result.metars, result.tafs, result.upper_winds)
 
         # Export to CSV files
         csv_exporter = WeatherDataCSVExporter(output_dir)
