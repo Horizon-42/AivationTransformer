@@ -257,7 +257,7 @@ def find_invalid_stations_in_batch(server, stations, delay=REQUEST_DELAY, verbos
 
 
 def query_station_batch(server, stations, group_num, total_groups, 
-                        all_invalid_stations, output_dir, delay=REQUEST_DELAY, verbose=VERBOSE):
+                        all_invalid_stations, output_dir, delay=REQUEST_DELAY, verbose=VERBOSE, output_format='csv'):
     """
     Query a batch of stations with automatic invalid station detection.
     
@@ -270,6 +270,7 @@ def query_station_batch(server, stations, group_num, total_groups,
         output_dir: Directory to save group data files
         delay: Delay after request (seconds)
         verbose: If True, print detailed output
+        output_format: 'csv' or 'json' - format for saving output files
     
     Returns:
         dict: Query results with statistics
@@ -364,19 +365,21 @@ def query_station_batch(server, stations, group_num, total_groups,
         
         # Save parsed data to group-specific file
         parsed_filename = f'canada_group_{group_num:02d}_parsed.json'
-        parsed_file = server.export_to_json(result, parsed_filename)
-
+        parsed_file = None
+        if output_format == 'json':
+            parsed_file = server.export_to_json(result, parsed_filename)
         # Enrich weather data with station coordinates
         enrich_weather_data(result.metars, result.tafs, result.upper_winds)
-
-        # Export to CSV files
-        csv_exporter = WeatherDataCSVExporter(output_dir)
-        csv_files = csv_exporter.export_all(
-            metars_dict=result.metars,
-            tafs_dict=result.tafs,
-            upper_winds=result.upper_winds,
-            group_num=group_num
-        )
+        # Export to CSV files only if selected
+        csv_files = {}
+        if output_format == 'csv':
+            csv_exporter = WeatherDataCSVExporter(output_dir)
+            csv_files = csv_exporter.export_all(
+                metars_dict=result.metars,
+                tafs_dict=result.tafs,
+                upper_winds=result.upper_winds,
+                group_num=group_num
+            )
 
         if verbose:
             print(f"   📄 Saved files:")
@@ -647,7 +650,8 @@ def main():
     for i, stations in enumerate(groups, 1):
         stats = query_station_batch(
             server, stations, i, len(groups), 
-            all_invalid_stations, output_dir, REQUEST_DELAY, VERBOSE
+            all_invalid_stations, output_dir, REQUEST_DELAY, VERBOSE,
+            output_format='csv'  # Change to 'json' to save only JSON
         )
         group_stats.append(stats)
         
