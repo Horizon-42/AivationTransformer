@@ -7,6 +7,7 @@ Features:
 - Rate limiting with configurable delays
 - Detailed tracking of invalid stations in reports
 - Retry logic for transient failures
+- CSV export for METAR, TAF, and Upper Wind data
 
 Usage:
     python data_query_canada_stations_v2.py
@@ -18,6 +19,7 @@ import time
 from pathlib import Path
 from datetime import datetime
 from navcanada_weather_server import NavCanadaWeatherServer
+from csv_exporter import WeatherDataCSVExporter
 
 
 # Configuration
@@ -332,6 +334,7 @@ def query_station_batch(server, stations, group_num, total_groups,
                     'total_count': 0,
                     'raw_data_file': None,
                     'parsed_data_file': None,
+                    'csv_files': {},
                     'elapsed_time': elapsed,
                     'success': False,
                     'error': 'All stations invalid - no data returned'
@@ -362,11 +365,23 @@ def query_station_batch(server, stations, group_num, total_groups,
         parsed_filename = f'canada_group_{group_num:02d}_parsed.json'
         parsed_file = server.export_to_json(result, parsed_filename)
 
+        # Export to CSV files
+        csv_exporter = WeatherDataCSVExporter(output_dir)
+        csv_files = csv_exporter.export_all(
+            metars_dict=result.metars,
+            tafs_dict=result.tafs,
+            upper_winds=result.upper_winds,
+            group_num=group_num
+        )
+
         if verbose:
             print(f"   📄 Saved files:")
             print(
                 f"      • Raw: {result.raw_data_file if hasattr(result, 'raw_data_file') else raw_filename}")
             print(f"      • Parsed: {parsed_file}")
+            if csv_files:
+                for data_type, csv_path in csv_files.items():
+                    print(f"      • CSV ({data_type}): {csv_path.name}")
 
         # Determine which stations from this batch are invalid
         batch_invalid = [s for s in stations if s in all_invalid_stations]
@@ -397,6 +412,7 @@ def query_station_batch(server, stations, group_num, total_groups,
             'total_count': total_count,
             'raw_data_file': result.raw_data_file if hasattr(result, 'raw_data_file') else raw_filename,
             'parsed_data_file': parsed_file,
+            'csv_files': {k: str(v) for k, v in csv_files.items()} if csv_files else {},
             'elapsed_time': elapsed,
             'success': True,
             'error': None
@@ -433,6 +449,7 @@ def query_station_batch(server, stations, group_num, total_groups,
                 'total_count': 0,
                 'raw_data_file': None,
                 'parsed_data_file': None,
+                'csv_files': {},
                 'elapsed_time': elapsed,
                 'success': False,
                 'error': f"Parser bug: {error_msg}"
@@ -458,6 +475,7 @@ def query_station_batch(server, stations, group_num, total_groups,
                 'total_count': 0,
                 'raw_data_file': None,
                 'parsed_data_file': None,
+                'csv_files': {},
                 'elapsed_time': elapsed,
                 'success': False,
                 'error': f"Query failed: {error_msg}"
@@ -558,6 +576,9 @@ def save_results(output_dir, group_stats, all_invalid_stations):
             print(f"   Files:")
             print(f"      • Raw: {group['raw_data_file']}")
             print(f"      • Parsed: {group['parsed_data_file']}")
+            if group.get('csv_files'):
+                for data_type, csv_path in group['csv_files'].items():
+                    print(f"      • CSV ({data_type}): {Path(csv_path).name}")
         else:
             print(f"   Error: {group['error']}")
 
