@@ -1,19 +1,27 @@
-"""
-METAR Data Model for Aviation Weather Transformer
+"""METAR data model and parsing helpers for the Aviation Weather Transformer."""
 
-This module defines the METAR data class for structured aviation weather observations.
-Based on aviationweather.gov API response format and ICAO standards.
+from __future__ import annotations
 
-Supports two parsing methods:
-1. from_api_response() - Parse from aviationweather.gov API JSON
-2. from_optimized_json() - Parse from Nav Canada optimized JSON structure
-"""
-
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Optional, List, Dict, Any, Union
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Optional, List, Dict, Any
 import json
 import re
+
+__all__ = ["CloudLayer", "METAR"]
+
+
+def _parse_iso8601(value: Optional[str]) -> datetime:
+    """Parse a potentially simple ISO-8601 string into a timezone-aware datetime."""
+    if not value:
+        return datetime.now(timezone.utc)
+
+    try:
+        if isinstance(value, datetime):
+            return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        return datetime.fromisoformat(str(value).replace('Z', '+00:00'))
+    except (ValueError, TypeError):
+        return datetime.now(timezone.utc)
 
 
 @dataclass
@@ -68,7 +76,7 @@ class METAR:
 
     # Sky Conditions
     sky_coverage: str = "CLR"  # Overall sky coverage (CLR, FEW, SCT, BKN, OVC)
-    cloud_layers: List[CloudLayer] = None  # Detailed cloud layer information
+    cloud_layers: List[CloudLayer] = field(default_factory=list)
 
     # Flight Categories
     flight_category: str = "VFR"  # VFR, MVFR, IFR, LIFR
@@ -78,7 +86,7 @@ class METAR:
     min_temperature_celsius: Optional[float] = None  # 24-hour minimum
 
     # Weather Phenomena
-    present_weather: List[str] = None  # Current weather phenomena codes
+    present_weather: List[str] = field(default_factory=list)
 
     # Quality Control
     quality_control_field: Optional[int] = None  # QC flags
@@ -87,12 +95,13 @@ class METAR:
     report_type: str = "METAR"  # METAR or SPECI
     raw_observation: str = ""  # Original raw METAR text
 
-    def __post_init__(self):
-        """Initialize default values for mutable fields"""
-        if self.cloud_layers is None:
-            self.cloud_layers = []
-        if self.present_weather is None:
-            self.present_weather = []
+    def __post_init__(self) -> None:
+        """Ensure datetimes remain timezone-aware and lists are unique when provided."""
+        if self.observation_time.tzinfo is None:
+            self.observation_time = self.observation_time.replace(
+                tzinfo=timezone.utc)
+        if self.receipt_time.tzinfo is None:
+            self.receipt_time = self.receipt_time.replace(tzinfo=timezone.utc)
 
     @classmethod
     def from_api_response(cls, data: Dict[str, Any]) -> 'METAR':
@@ -117,13 +126,8 @@ class METAR:
                 cloud_layers.append(layer)
 
         # Parse timestamps
-        observation_time = datetime.fromisoformat(
-            data['reportTime'].replace('Z', '+00:00')
-        ) if data.get('reportTime') else datetime.now()
-
-        receipt_time = datetime.fromisoformat(
-            data['receiptTime'].replace('Z', '+00:00')
-        ) if data.get('receiptTime') else datetime.now()
+        observation_time = _parse_iso8601(data.get('reportTime'))
+        receipt_time = _parse_iso8601(data.get('receiptTime'))
 
         return cls(
             # Station Information
@@ -208,17 +212,18 @@ class METAR:
                 station_id = station_match.group(1)
 
         # Parse observation time (DDHHMM format)
-        obs_time = None
+        obs_time: Optional[datetime] = None
         obs_timestamp = 0
         time_match = re.search(r'(\d{2})(\d{2})(\d{2})Z', raw_metar)
         if time_match:
             day = int(time_match.group(1))
             hour = int(time_match.group(2))
             minute = int(time_match.group(3))
-            # Use current month/year as approximation
-            now = datetime.now()
+            # Use current month/year as approximation (UTC)
+            now = datetime.now(timezone.utc)
             try:
-                obs_time = datetime(now.year, now.month, day, hour, minute, 0)
+                obs_time = datetime(now.year, now.month, day,
+                                    hour, minute, 0, tzinfo=timezone.utc)
                 obs_timestamp = int(obs_time.timestamp())
             except ValueError:
                 obs_time = now
@@ -329,13 +334,9 @@ class METAR:
                     flight_category = "MVFR"
 
         # Parse extraction time
-        receipt_time = datetime.now()
+        receipt_time = datetime.now(timezone.utc)
         if extraction_time:
-            try:
-                receipt_time = datetime.fromisoformat(
-                    extraction_time.replace('Z', '+00:00'))
-            except (ValueError, AttributeError):
-                pass
+            receipt_time = _parse_iso8601(extraction_time)
 
         return cls(
             # Station Information
@@ -347,7 +348,7 @@ class METAR:
             elevation_meters=0,  # Not available from raw METAR
 
             # Timing
-            observation_time=obs_time or datetime.now(),
+            observation_time=obs_time or datetime.now(timezone.utc),
             receipt_time=receipt_time,
             observation_timestamp=obs_timestamp,
 

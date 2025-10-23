@@ -6,15 +6,21 @@ to well-structured CSV files suitable for data analysis.
 """
 
 import csv
+import json
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Optional
 from datetime import datetime
+
+from metar import METAR
+from taf import TAF
+from upper_wind import UpperWind
+from sigmet import SIGMET
 
 
 class WeatherDataCSVExporter:
     """Exports aviation weather data to CSV files with appropriate schemas."""
     
-    def __init__(self, output_dir: Path):
+    def __init__(self, output_dir: Path, verbose: bool = True):
         """
         Initialize the CSV exporter.
         
@@ -23,9 +29,15 @@ class WeatherDataCSVExporter:
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
-    
-    def export_metars_to_csv(self, metars_dict: Dict[str, List[Any]], 
-                            filename: str = None) -> Path:
+        self.verbose = verbose
+
+    def _log(self, message: str) -> None:
+        """Emit messages when verbose mode is enabled."""
+        if self.verbose:
+            print(message)
+
+    def export_metars_to_csv(self, metars_dict: Dict[str, List[METAR]],
+                             filename: Optional[str] = None) -> Path:
         """
         Export METAR data to CSV format.
         
@@ -93,11 +105,12 @@ class WeatherDataCSVExporter:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             
+            rows_written = 0
+
             # Process each station's METARs
             for station_id, metars in metars_dict.items():
                 for metar in metars:
                     # Prepare cloud layers as JSON string
-                    import json
                     cloud_layers_str = json.dumps([
                         {
                             'coverage': layer.coverage,
@@ -144,12 +157,13 @@ class WeatherDataCSVExporter:
                     }
                     
                     writer.writerow(row)
+                    rows_written += 1
         
-        print(f"   📊 Exported {sum(len(metars) for metars in metars_dict.values())} METARs to: {filepath.name}")
+        self._log(f"   📊 Exported {rows_written} METARs to: {filepath.name}")
         return filepath
     
-    def export_tafs_to_csv(self, tafs_dict: Dict[str, List[Any]], 
-                           filename: str = None) -> Path:
+    def export_tafs_to_csv(self, tafs_dict: Dict[str, List[TAF]],
+                           filename: Optional[str] = None) -> Path:
         """
         Export TAF data to CSV format.
         
@@ -211,8 +225,7 @@ class WeatherDataCSVExporter:
         with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-            
-            import json
+
             total_periods = 0
             
             # Process each station's TAFs
@@ -269,11 +282,12 @@ class WeatherDataCSVExporter:
                         writer.writerow(row)
                         total_periods += 1
         
-        print(f"   📊 Exported {total_periods} TAF forecast periods to: {filepath.name}")
+        self._log(
+            f"   📊 Exported {total_periods} TAF forecast periods to: {filepath.name}")
         return filepath
     
-    def export_upper_winds_to_csv(self, upper_winds: List[Any], 
-                                  filename: str = None) -> Path:
+    def export_upper_winds_to_csv(self, upper_winds: List[UpperWind],
+                                  filename: Optional[str] = None) -> Path:
         """
         Export Upper Wind data to CSV format.
         
@@ -354,10 +368,11 @@ class WeatherDataCSVExporter:
                     writer.writerow(row)
                     total_periods += 1
         
-        print(f"   📊 Exported {total_periods} upper wind periods to: {filepath.name}")
+        self._log(
+            f"   📊 Exported {total_periods} upper wind periods to: {filepath.name}")
         return filepath
     
-    def export_sigmets_to_csv(self, sigmets: List[Any], filename: str = None) -> Path:
+    def export_sigmets_to_csv(self, sigmets: List[SIGMET], filename: Optional[str] = None) -> Path:
         """Export SIGMET advisories to CSV format."""
 
         if filename is None:
@@ -413,15 +428,15 @@ class WeatherDataCSVExporter:
                 writer.writerow(row)
                 total_sigmet += 1
 
-        print(
+        self._log(
             f"   📊 Exported {total_sigmet} SIGMET advisory(ies) to: {filepath.name}")
         return filepath
 
-    def export_all(self, metars_dict: Dict[str, List[Any]], 
-                   tafs_dict: Dict[str, List[Any]], 
-                   upper_winds: List[Any],
-                   sigmets: List[Any] = None,
-                   group_num: int = None) -> Dict[str, Path]:
+    def export_all(self, metars_dict: Dict[str, List[METAR]],
+                   tafs_dict: Dict[str, List[TAF]],
+                   upper_winds: List[UpperWind],
+                   sigmets: Optional[List[SIGMET]] = None,
+                   group_num: Optional[int] = None) -> Dict[str, Path]:
         """
         Export all weather data types to CSV files.
         

@@ -1,10 +1,6 @@
+"""Nav Canada weather data server and parsing utilities."""
 
-"""
-Nav Canada Weather Data Server
-
-Fetches and parses METAR, TAF, and Upper Wind data from Nav Canada.
-Provides a clean, object-oriented interface for aviation weather data.
-"""
+from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
@@ -15,8 +11,14 @@ from dataclasses import dataclass
 from navcanada_simple_client import NavCanadaSimpleClient
 from metar import METAR
 from taf import TAF
-from upper_wind import UpperWind
+from upper_wind import UpperWind, UpperWindMerger
 from sigmet import SIGMET, parse_sigmet_text
+
+__all__ = [
+    "NavCanadaWeatherRequest",
+    "NavCanadaWeatherResponse",
+    "NavCanadaWeatherServer",
+]
 
 
 @dataclass
@@ -52,7 +54,8 @@ class NavCanadaWeatherServer:
     def __init__(self, 
                  headless: bool = True, 
                  timeout: int = 30,
-                 data_dir: str = "weather_data"):
+                 data_dir: str = "weather_data",
+                 verbose: bool = True):
         """
         Initialize the Nav Canada weather server
         
@@ -60,11 +63,18 @@ class NavCanadaWeatherServer:
             headless: Run browser in headless mode
             timeout: Request timeout in seconds
             data_dir: Directory to save raw JSON data
+            verbose: Print progress information when True
         """
         self.headless = headless
         self.timeout = timeout
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(exist_ok=True)
+        self.verbose = verbose
+
+    def _log(self, message: str) -> None:
+        """Print messages when verbose output is enabled."""
+        if self.verbose:
+            print(message)
 
     def get_weather(self,
                     station_ids: Union[str, List[str]],
@@ -81,10 +91,11 @@ class NavCanadaWeatherServer:
         if not station_ids:
             raise ValueError("station_ids must not be empty")
 
-        print(f"\n{'='*70}")
-        print(f"🌐 Nav Canada Weather Server")
-        print(f"📍 Requesting data for: {', '.join(station_ids)}")
-        print(f"{'='*70}\n")
+        divider = '=' * 70
+        self._log(f"\n{divider}")
+        self._log("🌐 Nav Canada Weather Server")
+        self._log(f"📍 Requesting data for: {', '.join(station_ids)}")
+        self._log(f"{divider}\n")
 
         # Step 1: Extract raw data from Nav Canada
         raw_data = self._extract_raw_data(station_ids)
@@ -150,7 +161,7 @@ class NavCanadaWeatherServer:
 
     def _extract_raw_data(self, station_ids: List[str]) -> Dict[str, Any]:
         """Extract raw JSON data from Nav Canada using the simple client."""
-        print("📡 Extracting data from Nav Canada...")
+        self._log("📡 Extracting data from Nav Canada...")
         with NavCanadaSimpleClient(headless=self.headless, timeout=self.timeout) as client:
             return client.get_simple_weather_data(station_ids)
 
@@ -165,71 +176,96 @@ class NavCanadaWeatherServer:
         try:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(raw_data, f, indent=2, ensure_ascii=False)
-            print(f"💾 Raw data saved to: {filepath}")
+            self._log(f"💾 Raw data saved to: {filepath}")
             return str(filepath)
         except Exception as e:
-            print(f"⚠️ Failed to save raw data: {e}")
+            self._log(f"⚠️ Failed to save raw data: {e}")
             return None
 
 
     def _parse_weather_data(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Parse raw JSON into METAR, TAF, and Upper Wind objects."""
-        print("\n🔄 Parsing weather data into objects...")
+        """Parse raw JSON into METAR, TAF, Upper Wind, and SIGMET objects."""
+        self._log("\n🔄 Parsing weather data into objects...")
         weather_data = raw_data.get('weather_data', {})
-        parsed = {
-            'metars': {},
-            'tafs': {},
-            'upper_winds': [],
-            'sigmets': []
-        }
-        # Parse METARs
-        for station, entries in weather_data.get('METAR', {}).items():
-            metars = [
-                METAR.from_optimized_json(
-                    entry['bulletin'], station, entry.get('extraction_time', ''))
-                for entry in entries
-                if 'bulletin' in entry
-            ]
-            if metars:
-                parsed['metars'][station] = metars
-        print(
-            f"  ✅ Parsed {sum(len(v) for v in parsed['metars'].values())} METARs from {len(parsed['metars'])} stations")
-        # Parse TAFs
-        for station, entries in weather_data.get('TAF', {}).items():
-            tafs = [
-                TAF.from_optimized_json(
-                    entry['bulletin'], station, entry.get('extraction_time', ''))
-                for entry in entries
-                if 'bulletin' in entry
-            ]
-            if tafs:
-                parsed['tafs'][station] = tafs
-        print(f"  ✅ Parsed {sum(len(v) for v in parsed['tafs'].values())} TAFs from {len(parsed['tafs'])} stations")
-        # Parse Upper Winds and merge all periods for each station
-        upper_wind_data = weather_data.get('Upper_Wind', [])
-        bulletins = [entry.get('bulletin', '') for entry in upper_wind_data if entry.get(
-            'bulletin', '').startswith('VALID')]
-        from upper_wind import UpperWindMerger, UpperWind
-        station_map = UpperWindMerger.merge_bulletins(bulletins)
-        parsed['upper_winds'] = [
-            UpperWind(station=s, periods=p) for s, p in station_map.items()]
-        print(
-            f"  ✅ Parsed {len(parsed['upper_winds'])} Upper Wind report object(s) (one per station)")
 
-        # Parse SIGMETs
-        sigmet_entries = weather_data.get('SIGMET', [])
-        parsed_sigmet_list: List[SIGMET] = []
-        for entry in sigmet_entries:
+        metars = self._parse_metars(weather_data)
+        tafs = self._parse_tafs(weather_data)
+        upper_winds = self._parse_upper_winds(weather_data)
+        sigmets = self._parse_sigmets(weather_data)
+
+        metar_reports = sum(len(items) for items in metars.values())
+        taf_reports = sum(len(items) for items in tafs.values())
+
+        self._log(
+            f"  ✅ Parsed {metar_reports} METARs from {len(metars)} stations")
+        self._log(
+            f"  ✅ Parsed {taf_reports} TAFs from {len(tafs)} stations")
+        self._log(
+            f"  ✅ Parsed {len(upper_winds)} Upper Wind report object(s) (one per station)")
+        if sigmets:
+            self._log(f"  ✅ Parsed {len(sigmets)} SIGMET advisory(ies)")
+        else:
+            self._log("  ℹ️  No SIGMET advisories found in dataset")
+
+        return {
+            'metars': metars,
+            'tafs': tafs,
+            'upper_winds': upper_winds,
+            'sigmets': sigmets,
+        }
+
+    def _parse_metars(self, weather_data: Dict[str, Any]) -> Dict[str, List[METAR]]:
+        """Parse METAR entries from the weather data block."""
+        metars: Dict[str, List[METAR]] = {}
+        for station, entries in weather_data.get('METAR', {}).items():
+            bulletins = [
+                METAR.from_optimized_json(
+                    entry.get('bulletin', ''),
+                    station,
+                    entry.get('extraction_time', ''),
+                )
+                for entry in entries
+                if entry.get('bulletin')
+            ]
+            if bulletins:
+                metars[station] = bulletins
+        return metars
+
+    def _parse_tafs(self, weather_data: Dict[str, Any]) -> Dict[str, List[TAF]]:
+        """Parse TAF entries from the weather data block."""
+        tafs: Dict[str, List[TAF]] = {}
+        for station, entries in weather_data.get('TAF', {}).items():
+            forecasts = [
+                TAF.from_optimized_json(
+                    entry.get('bulletin', ''),
+                    station,
+                    entry.get('extraction_time', ''),
+                )
+                for entry in entries
+                if entry.get('bulletin')
+            ]
+            if forecasts:
+                tafs[station] = forecasts
+        return tafs
+
+    def _parse_upper_winds(self, weather_data: Dict[str, Any]) -> List[UpperWind]:
+        """Parse Upper Wind bulletins and merge periods by station."""
+        bulletins = [
+            entry.get('bulletin', '')
+            for entry in weather_data.get('Upper_Wind', [])
+            if isinstance(entry, dict) and entry.get('bulletin', '').startswith('VALID')
+        ]
+        station_map = UpperWindMerger.merge_bulletins(bulletins)
+        return [UpperWind(station=station, periods=periods) for station, periods in station_map.items()]
+
+    def _parse_sigmets(self, weather_data: Dict[str, Any]) -> List[SIGMET]:
+        """Parse SIGMET bulletins into structured advisories."""
+        parsed: List[SIGMET] = []
+        for entry in weather_data.get('SIGMET', []):
             bulletin = entry.get('bulletin') if isinstance(
                 entry, dict) else entry
             if bulletin:
-                parsed_sigmet_list.extend(parse_sigmet_text(bulletin))
-
-        parsed['sigmets'] = parsed_sigmet_list
-        if parsed_sigmet_list:
-            print(f"  ✅ Parsed {len(parsed_sigmet_list)} SIGMET advisory(ies)")
-        else:
-            print("  ℹ️  No SIGMET advisories found in dataset")
+                parsed.extend(parse_sigmet_text(bulletin))
         return parsed
 
 
@@ -239,26 +275,29 @@ class NavCanadaWeatherServer:
 
     def _print_summary(self, response: NavCanadaWeatherResponse):
         """Print summary of parsed data."""
-        print(f"\n{'='*70}")
-        print("📊 PARSING SUMMARY")
-        print(f"{'='*70}")
+        divider = '=' * 70
+        self._log(f"\n{divider}")
+        self._log("📊 PARSING SUMMARY")
+        self._log(divider)
         total_metars = sum(len(v) for v in response.metars.values())
-        print(f"\n🌤️  METAR:")
-        print(f"   • {total_metars} observation(s) from {len(response.metars)} station(s)")
+        self._log(f"\n🌤️  METAR:")
+        self._log(
+            f"   • {total_metars} observation(s) from {len(response.metars)} station(s)")
         for station, metars in response.metars.items():
-            print(f"   • {station}: {len(metars)} METAR(s)")
+            self._log(f"   • {station}: {len(metars)} METAR(s)")
         total_tafs = sum(len(v) for v in response.tafs.values())
-        print(f"\n📅 TAF:")
-        print(f"   • {total_tafs} forecast(s) from {len(response.tafs)} station(s)")
+        self._log(f"\n📅 TAF:")
+        self._log(
+            f"   • {total_tafs} forecast(s) from {len(response.tafs)} station(s)")
         for station, tafs in response.tafs.items():
-            print(f"   • {station}: {len(tafs)} TAF(s)")
-        print(f"\n🌬️  Upper Winds:")
-        print(f"   • {len(response.upper_winds)} report(s)")
-        print(f"\n⚠️  SIGMET:")
-        print(f"   • {len(response.sigmets)} advisory(ies)")
+            self._log(f"   • {station}: {len(tafs)} TAF(s)")
+        self._log(f"\n🌬️  Upper Winds:")
+        self._log(f"   • {len(response.upper_winds)} report(s)")
+        self._log(f"\n⚠️  SIGMET:")
+        self._log(f"   • {len(response.sigmets)} advisory(ies)")
         if response.raw_data_file:
-            print(f"\n📄 Raw data file: {response.raw_data_file}")
-        print(f"\n{'='*70}\n")
+            self._log(f"\n📄 Raw data file: {response.raw_data_file}")
+        self._log(f"\n{divider}\n")
 
     def export_to_json(self, 
                       response: NavCanadaWeatherResponse, 
@@ -299,12 +338,12 @@ class NavCanadaWeatherServer:
         try:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(export_data, f, indent=2, ensure_ascii=False)
-            
-            print(f"💾 Exported parsed data to: {filepath}")
+
+            self._log(f"💾 Exported parsed data to: {filepath}")
             return str(filepath)
             
         except Exception as e:
-            print(f"❌ Export failed: {e}")
+            self._log(f"❌ Export failed: {e}")
             return None
 
 

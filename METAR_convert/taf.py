@@ -1,19 +1,40 @@
-"""
-TAF Data Model for Aviation Weather Transformer
+"""TAF data model and parsing helpers for the Aviation Weather Transformer."""
 
-This module defines the TAF data class for structured aviation weather forecasts.
-Based on aviationweather.gov API response format and ICAO standards.
+from __future__ import annotations
 
-Supports two parsing methods:
-1. from_api_response() - Parse from aviationweather.gov API JSON
-2. from_optimized_json() - Parse from Nav Canada optimized JSON structure
-"""
-
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Union
 import json
 import re
+
+__all__ = [
+    "TAFCloudLayer",
+    "IcingTurbulence",
+    "TemperatureForecast",
+    "TAFForecastPeriod",
+    "TAF",
+]
+
+
+def _parse_iso8601(value: Optional[str]) -> datetime:
+    """Parse ISO-8601 strings into timezone aware datetimes."""
+    if not value:
+        return datetime.now(timezone.utc)
+    try:
+        return datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except (ValueError, AttributeError):
+        return datetime.now(timezone.utc)
+
+
+def _from_timestamp(value: Optional[float]) -> datetime:
+    """Convert epoch seconds into a UTC datetime."""
+    if not value:
+        return datetime.now(timezone.utc)
+    try:
+        return datetime.fromtimestamp(float(value), tz=timezone.utc)
+    except (ValueError, OSError):
+        return datetime.now(timezone.utc)
 
 
 @dataclass
@@ -80,25 +101,17 @@ class TAFForecastPeriod:
     altimeter_hpa: Optional[float] = None
 
     # Sky Conditions
-    cloud_layers: List[TAFCloudLayer] = None
+    cloud_layers: List[TAFCloudLayer] = field(default_factory=list)
 
     # Icing and Turbulence
-    icing_turbulence: List[IcingTurbulence] = None
+    icing_turbulence: List[IcingTurbulence] = field(default_factory=list)
 
     # Temperature Forecasts
-    temperature_forecasts: List[TemperatureForecast] = None
+    temperature_forecasts: List[TemperatureForecast] = field(
+        default_factory=list)
 
     # Decoding Issues
     not_decoded: Optional[str] = None  # Any parts that couldn't be decoded
-
-    def __post_init__(self):
-        """Initialize default values for mutable fields"""
-        if self.cloud_layers is None:
-            self.cloud_layers = []
-        if self.icing_turbulence is None:
-            self.icing_turbulence = []
-        if self.temperature_forecasts is None:
-            self.temperature_forecasts = []
 
     def is_significant_weather(self) -> bool:
         """Check if period contains significant weather phenomena"""
@@ -159,12 +172,7 @@ class TAF:
     remarks: str = ""  # TAF remarks section
 
     # Forecast Periods
-    forecast_periods: List[TAFForecastPeriod] = None
-
-    def __post_init__(self):
-        """Initialize default values for mutable fields"""
-        if self.forecast_periods is None:
-            self.forecast_periods = []
+    forecast_periods: List[TAFForecastPeriod] = field(default_factory=list)
 
     @classmethod
     def from_api_response(cls, data: Dict[str, Any]) -> 'TAF':
@@ -179,20 +187,12 @@ class TAF:
         """
 
         # Parse main TAF timing
-        bulletin_time = datetime.fromisoformat(
-            data['bulletinTime'].replace('Z', '+00:00')
-        ) if data.get('bulletinTime') else datetime.now()
+        bulletin_time = _parse_iso8601(data.get('bulletinTime'))
+        issue_time = _parse_iso8601(data.get('issueTime'))
+        database_time = _parse_iso8601(data.get('dbPopTime'))
 
-        issue_time = datetime.fromisoformat(
-            data['issueTime'].replace('Z', '+00:00')
-        ) if data.get('issueTime') else datetime.now()
-
-        database_time = datetime.fromisoformat(
-            data['dbPopTime'].replace('Z', '+00:00')
-        ) if data.get('dbPopTime') else datetime.now()
-
-        valid_from = datetime.fromtimestamp(data.get('validTimeFrom', 0))
-        valid_to = datetime.fromtimestamp(data.get('validTimeTo', 0))
+        valid_from = _from_timestamp(data.get('validTimeFrom', 0))
+        valid_to = _from_timestamp(data.get('validTimeTo', 0))
 
         # Parse forecast periods
         forecast_periods = []
@@ -227,18 +227,18 @@ class TAF:
                     for temp in fcst['temp']:
                         tf = TemperatureForecast(
                             temperature_celsius=temp.get('value'),
-                            time=datetime.fromtimestamp(
-                                temp.get('time', 0)) if temp.get('time') else None
+                            time=_from_timestamp(
+                                temp.get('time')) if temp.get('time') else None
                         )
                         temp_forecasts.append(tf)
 
                 period = TAFForecastPeriod(
-                    valid_from=datetime.fromtimestamp(fcst.get('timeFrom', 0)),
-                    valid_to=datetime.fromtimestamp(fcst.get('timeTo', 0)),
+                    valid_from=_from_timestamp(fcst.get('timeFrom', 0)),
+                    valid_to=_from_timestamp(fcst.get('timeTo', 0)),
                     valid_from_timestamp=fcst.get('timeFrom', 0),
                     valid_to_timestamp=fcst.get('timeTo', 0),
-                    becomes_time=datetime.fromtimestamp(
-                        fcst.get('timeBec', 0)) if fcst.get('timeBec') else None,
+                    becomes_time=_from_timestamp(
+                        fcst.get('timeBec')) if fcst.get('timeBec') else None,
 
                     forecast_change_type=fcst.get('fcstChange'),
                     probability_percent=fcst.get('probability'),
@@ -333,10 +333,10 @@ class TAF:
             day = int(time_match.group(1))
             hour = int(time_match.group(2))
             minute = int(time_match.group(3))
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             try:
                 issue_time = datetime(
-                    now.year, now.month, day, hour, minute, 0)
+                    now.year, now.month, day, hour, minute, 0, tzinfo=timezone.utc)
             except ValueError:
                 issue_time = now
 
@@ -353,20 +353,21 @@ class TAF:
             to_day = int(validity_match.group(3))
             to_hour = int(validity_match.group(4))
 
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             try:
                 valid_from = datetime(
-                    now.year, now.month, from_day, from_hour, 0, 0)
-                valid_to = datetime(now.year, now.month, to_day, to_hour, 0, 0)
+                    now.year, now.month, from_day, from_hour, 0, 0, tzinfo=timezone.utc)
+                valid_to = datetime(now.year, now.month,
+                                    to_day, to_hour, 0, 0, tzinfo=timezone.utc)
 
                 # Handle month rollover
                 if to_day < from_day:
                     if now.month == 12:
                         valid_to = datetime(
-                            now.year + 1, 1, to_day, to_hour, 0, 0)
+                            now.year + 1, 1, to_day, to_hour, 0, 0, tzinfo=timezone.utc)
                     else:
                         valid_to = datetime(
-                            now.year, now.month + 1, to_day, to_hour, 0, 0)
+                            now.year, now.month + 1, to_day, to_hour, 0, 0, tzinfo=timezone.utc)
 
                 valid_from_timestamp = int(valid_from.timestamp())
                 valid_to_timestamp = int(valid_to.timestamp())
@@ -403,11 +404,10 @@ class TAF:
                 forecast_periods.append(period)
 
         # Parse extraction time
-        database_time = datetime.now()
+        database_time = datetime.now(timezone.utc)
         if extraction_time:
             try:
-                database_time = datetime.fromisoformat(
-                    extraction_time.replace('Z', '+00:00'))
+                database_time = _parse_iso8601(extraction_time)
             except (ValueError, AttributeError):
                 pass
 
@@ -420,13 +420,13 @@ class TAF:
             elevation_meters=0,
 
             # Timing
-            bulletin_time=issue_time or datetime.now(),
-            issue_time=issue_time or datetime.now(),
+            bulletin_time=issue_time or datetime.now(timezone.utc),
+            issue_time=issue_time or datetime.now(timezone.utc),
             database_time=database_time,
 
             # Validity
-            valid_from=valid_from or datetime.now(),
-            valid_to=valid_to or datetime.now(),
+            valid_from=valid_from or datetime.now(timezone.utc),
+            valid_to=valid_to or datetime.now(timezone.utc),
             valid_from_timestamp=valid_from_timestamp,
             valid_to_timestamp=valid_to_timestamp,
 
