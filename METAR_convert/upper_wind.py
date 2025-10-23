@@ -31,7 +31,122 @@ Usage:
 """
 
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
+
+
+def _decode_temperature_code(code: str) -> Optional[int]:
+    """Decode two-digit temperature codes used below 24,000 ft."""
+
+    if not code or not code.isdigit():
+        return None
+
+    value = int(code)
+    if value == 99:
+        return None
+
+    if value >= 50:
+        # Values 50-99 represent positive temperatures by adding 50.
+        return value - 50
+    # Remaining values represent negative temperatures.
+    return -value
+
+
+def _decode_dd_speed(dd: int, speed_code: int) -> Tuple[Optional[int], Optional[int]]:
+    """Decode direction/speed using the WMO high-speed rule."""
+
+    if dd == 99 and speed_code == 0:
+        return 0, 0
+
+    direction_code = dd
+    speed = speed_code
+
+    if direction_code >= 50:
+        direction_deg = (direction_code - 50) * 10
+        if speed_code <= 99:
+            speed += 100
+    else:
+        direction_deg = direction_code * 10
+
+    if direction_deg == 360:
+        direction_deg = 0
+
+    return direction_deg, speed
+
+
+def _apply_high_speed_adjustment(direction: Optional[int], speed: Optional[int]) -> Tuple[Optional[int], Optional[int]]:
+    """Apply high-speed decoding when >99 kt is encoded via direction offset."""
+
+    if direction is None or speed is None:
+        return direction, speed
+
+    if direction >= 500 and speed <= 99:
+        direction -= 500
+        speed += 100
+        direction = (direction // 10) * 10
+
+    if direction >= 360:
+        direction %= 360
+
+    return direction, speed
+
+
+def _decode_compact_group(token: str, altitude_ft: int) -> Tuple[Optional[int], Optional[int], Optional[int]]:
+    """Decode compact ddff(tt) or ddfff groups when values are not space-separated."""
+
+    if not token:
+        return None, None, None
+
+    if token == "9900":
+        return 0, 0, None
+
+    if len(token) < 4 or not token.isdigit():
+        return None, None, None
+
+    dd = int(token[:2])
+    remainder = token[2:]
+
+    temperature: Optional[int] = None
+    speed_code: Optional[int] = None
+
+    if altitude_ft <= 24000 and len(remainder) >= 2:
+        speed_code = int(remainder[:2])
+        remainder = remainder[2:]
+        if len(remainder) >= 2:
+            temperature = _decode_temperature_code(remainder[:2])
+    else:
+        if remainder:
+            speed_code = int(remainder)
+
+    if speed_code is None:
+        return None, None, temperature
+
+    direction_deg, speed = _decode_dd_speed(dd, speed_code)
+    return direction_deg, speed, temperature
+
+
+def _decode_upper_wind_cell(value: str, altitude_ft: int) -> Tuple[Optional[int], Optional[int], Optional[int]]:
+    """Decode a single upper-wind cell into direction/speed/temperature."""
+
+    text = (value or "").strip()
+    if not text or any(marker in text for marker in {"////", "XXXX", "-----"}):
+        return None, None, None
+
+    if text.upper() == "CALM":
+        return 0, 0, None
+
+    numbers = re.findall(r"[+-]?\d+", text)
+
+    if len(numbers) >= 2:
+        direction = int(numbers[0])
+        speed = int(numbers[1])
+        temperature = int(numbers[2]) if len(numbers) >= 3 else None
+        direction, speed = _apply_high_speed_adjustment(direction, speed)
+        return direction, speed, temperature
+
+    if len(numbers) == 1:
+        return _decode_compact_group(numbers[0], altitude_ft)
+
+    return None, None, None
 
 
 class UpperWindLevel:
@@ -132,18 +247,11 @@ class UpperWind:
                     levels = []
                     for k, alt in enumerate(altitudes):
                         val = values[k] if k < len(values) else ''
-                        m_val = re.match(
-                            r"(\d{1,3})\s+(\d{1,3})(?:\s+([\-+]?\d+))?", val)
-                        if m_val:
-                            direction = int(m_val.group(1))
-                            speed = int(m_val.group(2))
-                            temperature = int(m_val.group(
-                                3)) if m_val.group(3) else None
-                            levels.append(UpperWindLevel(
-                                alt, direction, speed, temperature))
-                        else:
-                            levels.append(UpperWindLevel(
-                                alt, None, None, None))
+                        direction, speed, temperature = _decode_upper_wind_cell(
+                            val, alt)
+                        levels.append(
+                            UpperWindLevel(alt, direction, speed, temperature)
+                        )
                     stations_map.setdefault(station, []).append(
                         UpperWindPeriod(valid_time, use_period, levels)
                     )

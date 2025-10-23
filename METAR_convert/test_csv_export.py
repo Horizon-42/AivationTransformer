@@ -5,7 +5,6 @@ This script tests the CSV exporter using existing parsed JSON files
 to validate attribute names and data structure handling.
 """
 
-from station_lookup import enrich_weather_data
 import json
 from pathlib import Path
 import sys
@@ -15,6 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from station_lookup import enrich_weather_data
 from csv_exporter import WeatherDataCSVExporter
 from metar import METAR, CloudLayer
 from taf import TAF, TAFCloudLayer, TAFForecastPeriod, IcingTurbulence, TemperatureForecast
