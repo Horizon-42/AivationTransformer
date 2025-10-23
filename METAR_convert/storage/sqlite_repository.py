@@ -5,7 +5,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Protocol, TYPE_CHECKING
+from typing import Dict, Iterable, List, Optional, Protocol, Sequence, TYPE_CHECKING, Union
 
 from sqlalchemy import (
     Boolean,
@@ -23,13 +23,19 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
-from metar import METAR
-from sigmet import SIGMET
-from taf import TAF
-from upper_wind import UpperWind
+from ..metar import METAR, CloudLayer
+from ..sigmet import SIGMET
+from ..taf import (
+    TAF,
+    TAFCloudLayer,
+    TAFForecastPeriod,
+    IcingTurbulence,
+    TemperatureForecast,
+)
+from ..upper_wind import UpperWind, UpperWindPeriod, UpperWindLevel
 
 if TYPE_CHECKING:  # pragma: no cover - import only for type checking
-    from navcanada_weather_server import NavCanadaWeatherResponse
+    from ..navcanada_weather_server import NavCanadaWeatherResponse
 
 # ---------------------------------------------------------------------------
 # SQLAlchemy base / ORM models
@@ -343,6 +349,189 @@ class SigmetAreaPointRecord(Base):
 
 
 # ---------------------------------------------------------------------------
+# Domain mapping helpers
+# ---------------------------------------------------------------------------
+
+
+def _station_defaults(station: Optional[Station]) -> tuple[str, float, float, int]:
+    if station is None:
+        return "", 0.0, 0.0, 0
+
+    name = station.name or station.id or ""
+    latitude = station.latitude if station.latitude is not None else 0.0
+    longitude = station.longitude if station.longitude is not None else 0.0
+    elevation = station.elevation_meters if station.elevation_meters is not None else 0
+    return name, latitude, longitude, elevation
+
+
+def _metar_from_record(record: MetarObservation) -> METAR:
+    name, lat, lon, elev = _station_defaults(record.station)
+    return METAR(
+        station_id=record.station_id,
+        station_name=name or record.station_id,
+        latitude=lat,
+        longitude=lon,
+        elevation_meters=elev,
+        observation_time=record.observation_time,
+        receipt_time=record.receipt_time,
+        observation_timestamp=record.observation_timestamp,
+        temperature_celsius=record.temperature_celsius,
+        dewpoint_celsius=record.dewpoint_celsius,
+        wind_direction_degrees=record.wind_direction_degrees,
+        wind_speed_knots=record.wind_speed_knots,
+        wind_gust_knots=record.wind_gust_knots,
+        wind_variable=record.wind_variable,
+        visibility=record.visibility,
+        visibility_meters=record.visibility_meters,
+        altimeter_hpa=record.altimeter_hpa,
+        sea_level_pressure_hpa=record.sea_level_pressure_hpa,
+        pressure_tendency_hpa=record.pressure_tendency_hpa,
+        sky_coverage=record.sky_coverage,
+        cloud_layers=[
+            CloudLayer(
+                coverage=layer.coverage,
+                altitude_feet=layer.altitude_feet,
+                cloud_type=layer.cloud_type,
+            )
+            for layer in record.cloud_layers
+        ],
+        flight_category=record.flight_category,
+        max_temperature_celsius=record.max_temperature_celsius,
+        min_temperature_celsius=record.min_temperature_celsius,
+        present_weather=[phen.code for phen in record.weather if phen.code],
+        quality_control_field=record.quality_control_field,
+        report_type=record.report_type,
+        raw_observation=record.raw_observation,
+    )
+
+
+def _decode_wind_direction(value: Optional[str]) -> Optional[Union[int, str]]:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return value
+
+
+def _taf_period_from_record(period: TafForecastPeriodRecord) -> TAFForecastPeriod:
+    return TAFForecastPeriod(
+        valid_from=period.valid_from,
+        valid_to=period.valid_to,
+        valid_from_timestamp=period.valid_from_timestamp,
+        valid_to_timestamp=period.valid_to_timestamp,
+        becomes_time=period.becomes_time,
+        forecast_change_type=period.forecast_change_type,
+        probability_percent=period.probability_percent,
+        wind_direction_degrees=_decode_wind_direction(
+            period.wind_direction_degrees),
+        wind_speed_knots=period.wind_speed_knots,
+        wind_gust_knots=period.wind_gust_knots,
+        wind_shear_height_feet=period.wind_shear_height_feet,
+        wind_shear_direction_degrees=period.wind_shear_direction_degrees,
+        wind_shear_speed_knots=period.wind_shear_speed_knots,
+        visibility=period.visibility,
+        vertical_visibility_feet=period.vertical_visibility_feet,
+        weather_phenomena=period.weather_phenomena,
+        altimeter_hpa=period.altimeter_hpa,
+        cloud_layers=[
+            TAFCloudLayer(
+                coverage=layer.coverage,
+                base_altitude_feet=layer.base_altitude_feet,
+                cloud_type=layer.cloud_type,
+            )
+            for layer in period.cloud_layers
+        ],
+        icing_turbulence=[
+            IcingTurbulence(
+                intensity=item.intensity,
+                type=item.type,
+                base_altitude_feet=item.base_altitude_feet,
+                top_altitude_feet=item.top_altitude_feet,
+            )
+            for item in period.icing_turbulence
+        ],
+        temperature_forecasts=[
+            TemperatureForecast(
+                temperature_celsius=temp.temperature_celsius,
+                time=temp.time,
+            )
+            for temp in period.temperature_forecasts
+        ],
+        not_decoded=period.not_decoded,
+    )
+
+
+def _taf_from_record(record: TafBulletin) -> TAF:
+    name, lat, lon, elev = _station_defaults(record.station)
+    return TAF(
+        station_id=record.station_id,
+        station_name=name or record.station_id,
+        latitude=lat,
+        longitude=lon,
+        elevation_meters=elev,
+        bulletin_time=record.bulletin_time,
+        issue_time=record.issue_time,
+        database_time=record.database_time,
+        valid_from=record.valid_from,
+        valid_to=record.valid_to,
+        valid_from_timestamp=record.valid_from_timestamp,
+        valid_to_timestamp=record.valid_to_timestamp,
+        is_most_recent=record.is_most_recent,
+        is_prior_version=record.is_prior_version,
+        raw_taf=record.raw_taf,
+        remarks=record.remarks,
+        forecast_periods=[_taf_period_from_record(
+            period) for period in record.forecast_periods],
+    )
+
+
+def _upper_wind_period_from_record(record: UpperWindPeriodRecord) -> UpperWindPeriod:
+    return UpperWindPeriod(
+        valid_time=record.valid_time,
+        use_period=record.use_period,
+        levels=[
+            UpperWindLevel(
+                altitude_ft=level.altitude_ft,
+                direction_deg=level.direction_deg,
+                speed_kt=level.speed_kt,
+                temperature_c=level.temperature_c,
+            )
+            for level in record.levels
+        ],
+    )
+
+
+def _upper_wind_from_records(station_id: str, records: Sequence[UpperWindPeriodRecord]) -> UpperWind:
+    return UpperWind(
+        station=station_id,
+        periods=[_upper_wind_period_from_record(record) for record in records],
+    )
+
+
+def _sigmet_from_record(record: SigmetReport) -> SIGMET:
+    return SIGMET(
+        raw_text=record.raw_text,
+        sigmet_id=record.sigmet_identifier,
+        fir=record.fir,
+        sequence=record.sequence,
+        phenomenon=record.phenomenon,
+        observation_type=record.observation_type,
+        observation_time=record.observation_time,
+        valid_from=record.valid_from,
+        valid_to=record.valid_to,
+        levels=record.levels,
+        movement=record.movement,
+        change=record.change,
+        area_description=record.area_description,
+        area_points=[
+            {"latitude": point.latitude, "longitude": point.longitude}
+            for point in record.area_points
+        ],
+    )
+
+
+# ---------------------------------------------------------------------------
 # Repository protocol & implementation
 # ---------------------------------------------------------------------------
 
@@ -382,6 +571,117 @@ class SQLiteWeatherRepository:
             self._store_tafs(session, response.tafs)
             self._store_upper_winds(session, response.upper_winds)
             self._store_sigmets(session, response.sigmets)
+
+    # ------------------------------------------------------------------
+    # Read helpers returning domain objects
+    # ------------------------------------------------------------------
+    def fetch_metars(
+        self,
+        *,
+        station_ids: Optional[Iterable[str]] = None,
+        limit: Optional[int] = None,
+    ) -> List[METAR]:
+        """Return decoded METAR objects ordered by most recent observation."""
+
+        normalized = None
+        if station_ids:
+            normalized = {sid.strip().upper() for sid in station_ids if sid}
+            if not normalized:
+                return []
+
+        with self._session_scope() as session:
+            query = session.query(MetarObservation).order_by(
+                MetarObservation.observation_time.desc())
+            if normalized:
+                query = query.filter(
+                    MetarObservation.station_id.in_(normalized))
+            if limit and limit > 0:
+                query = query.limit(limit)
+
+            records = query.all()
+            return [_metar_from_record(record) for record in records]
+
+    def fetch_tafs(
+        self,
+        *,
+        station_ids: Optional[Iterable[str]] = None,
+        limit: Optional[int] = None,
+    ) -> List[TAF]:
+        """Return decoded TAF bulletins ordered by most recent issue time."""
+
+        normalized = None
+        if station_ids:
+            normalized = {sid.strip().upper() for sid in station_ids if sid}
+            if not normalized:
+                return []
+
+        with self._session_scope() as session:
+            query = session.query(TafBulletin).order_by(
+                TafBulletin.issue_time.desc())
+            if normalized:
+                query = query.filter(TafBulletin.station_id.in_(normalized))
+            if limit and limit > 0:
+                query = query.limit(limit)
+
+            records = query.all()
+            return [_taf_from_record(record) for record in records]
+
+    def fetch_upper_winds(
+        self,
+        *,
+        station_ids: Optional[Iterable[str]] = None,
+        limit: Optional[int] = None,
+    ) -> List[UpperWind]:
+        """Return decoded upper wind reports grouped by station."""
+
+        normalized = None
+        if station_ids:
+            normalized = [sid.strip().upper() for sid in station_ids if sid]
+            if not normalized:
+                return []
+
+        with self._session_scope() as session:
+            station_query = session.query(UpperWindPeriodRecord.station_id).distinct(
+            ).order_by(UpperWindPeriodRecord.station_id)
+            if normalized:
+                station_query = station_query.filter(
+                    UpperWindPeriodRecord.station_id.in_(normalized))
+            if limit and limit > 0:
+                station_query = station_query.limit(limit)
+
+            station_list = [row[0] for row in station_query.all()]
+            upper_winds: List[UpperWind] = []
+
+            for station_id in station_list:
+                period_records = (
+                    session.query(UpperWindPeriodRecord)
+                    .filter_by(station_id=station_id)
+                    .order_by(
+                        UpperWindPeriodRecord.valid_time.desc(),
+                        UpperWindPeriodRecord.use_period.desc(),
+                    )
+                    .all()
+                )
+                upper_winds.append(_upper_wind_from_records(
+                    station_id, period_records))
+
+            return upper_winds
+
+    def fetch_sigmets(
+        self,
+        *,
+        limit: Optional[int] = None,
+    ) -> List[SIGMET]:
+        """Return decoded SIGMET advisories ordered by creation time."""
+
+        with self._session_scope() as session:
+            query = session.query(SigmetReport).order_by(
+                SigmetReport.created_at.desc())
+            if limit and limit > 0:
+                query = query.limit(limit)
+
+            records = query.all()
+            return [_sigmet_from_record(record) for record in records]
 
     def close(self) -> None:
         """Dispose the underlying SQLAlchemy engine."""

@@ -14,21 +14,27 @@ Usage:
 """
 
 import argparse
-import pandas as pd
 import json
+import sys
 import time
-from pathlib import Path
 from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
-from navcanada_weather_server import NavCanadaWeatherServer
-from storage import SQLiteWeatherRepository
-from csv_exporter import WeatherDataCSVExporter
-from station_lookup import enrich_weather_data
-from sigmet import parse_sigmet_text, SIGMET
-from canadian_station_catalog import (
-    VALID_CANADIAN_STATIONS,
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+if __package__ in (None, ""):
+    sys.path.append(str(Path(__file__).resolve().parents[1]))
+
+import pandas as pd
+
+from METAR_convert.canadian_station_catalog import (
     INVALID_CANADIAN_STATIONS,
+    VALID_CANADIAN_STATIONS,
 )
+from METAR_convert.csv_exporter import WeatherDataCSVExporter
+from METAR_convert.navcanada_weather_server import NavCanadaWeatherServer
+from METAR_convert.sigmet import SIGMET, parse_sigmet_text
+from METAR_convert.station_lookup import enrich_weather_data
+from METAR_convert.storage import SQLiteWeatherRepository
 
 
 # Configuration

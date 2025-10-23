@@ -3,19 +3,23 @@
 from __future__ import annotations
 
 import json
+import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Union, TYPE_CHECKING
-from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from navcanada_simple_client import NavCanadaSimpleClient
-from metar import METAR
-from taf import TAF
-from upper_wind import UpperWind, UpperWindMerger
-from sigmet import SIGMET, parse_sigmet_text
+if __package__ in (None, ""):
+    sys.path.append(str(Path(__file__).resolve().parents[1]))
+
+from METAR_convert.metar import METAR
+from METAR_convert.navcanada_simple_client import NavCanadaSimpleClient
+from METAR_convert.sigmet import SIGMET, parse_sigmet_text
+from METAR_convert.taf import TAF
+from METAR_convert.upper_wind import UpperWind, UpperWindMerger
 
 if TYPE_CHECKING:  # pragma: no cover - avoids circular import at runtime
-    from storage import WeatherRepository
+    from METAR_convert.storage import WeatherRepository
 
 __all__ = [
     "NavCanadaWeatherRequest",

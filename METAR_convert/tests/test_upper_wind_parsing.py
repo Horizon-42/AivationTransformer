@@ -1,6 +1,6 @@
 import pytest
 
-from upper_wind import _decode_upper_wind_cell
+from METAR_convert.upper_wind import _decode_upper_wind_cell
 
 
 def test_decode_regular_entry_with_temperature():

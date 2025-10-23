@@ -5,21 +5,27 @@ This script tests the CSV exporter using existing parsed JSON files
 to validate attribute names and data structure handling.
 """
 
+from METAR_convert.upper_wind import UpperWind, UpperWindLevel, UpperWindPeriod
+from METAR_convert.taf import (
+    IcingTurbulence,
+    TAF,
+    TAFCloudLayer,
+    TAFForecastPeriod,
+    TemperatureForecast,
+)
+from METAR_convert.station_lookup import enrich_weather_data
+from METAR_convert.sigmet import parse_sigmet_text
+from METAR_convert.metar import CloudLayer, METAR
+from METAR_convert.csv_exporter import WeatherDataCSVExporter
 import json
-from pathlib import Path
 import sys
 from datetime import datetime
+from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from station_lookup import enrich_weather_data
-from csv_exporter import WeatherDataCSVExporter
-from metar import METAR, CloudLayer
-from taf import TAF, TAFCloudLayer, TAFForecastPeriod, IcingTurbulence, TemperatureForecast
-from upper_wind import UpperWind, UpperWindPeriod, UpperWindLevel
-from sigmet import parse_sigmet_text
 
 
 def run_csv_export_from_json():
