@@ -13,14 +13,17 @@ Usage:
     python data_query_canada_stations_v2.py
 """
 
+import argparse
 import pandas as pd
 import json
 import time
 from pathlib import Path
 from datetime import datetime
+from typing import Optional, List, Dict, Any
 from navcanada_weather_server import NavCanadaWeatherServer
 from csv_exporter import WeatherDataCSVExporter
 from station_lookup import enrich_weather_data
+from sigmet import parse_sigmet_text, SIGMET
 
 
 # Configuration
@@ -28,6 +31,27 @@ REQUEST_DELAY = 5.0  # Delay between requests (seconds)
 GROUP_SIZE = 50      # Number of stations per batch
 MAX_RETRIES = 3      # Max retries for transient failures
 VERBOSE = False      # Set to True for detailed output, False for minimal output
+SIGMET_HISTORY_FILE = Path("weather_data/SIGMET_example.txt")
+_SIGMET_HISTORY_CACHE: Optional[List[SIGMET]] = None
+_SIGMET_SAMPLE_APPLIED = False
+
+
+def parse_cli_args() -> argparse.Namespace:
+    """Parse command-line arguments for the data query script."""
+    parser = argparse.ArgumentParser(
+        description="Canadian aviation weather data query")
+    parser.add_argument(
+        "--output-format",
+        choices=["csv", "json"],
+        default="csv",
+        help="Select output format for exports (default: csv)",
+    )
+    parser.add_argument(
+        "--include-sigmet-history",
+        action="store_true",
+        help="Inject historical SIGMET advisories when live data is unavailable",
+    )
+    return parser.parse_args()
 
 
 # Top Canadian airport stations (ICAO codes)
@@ -40,6 +64,26 @@ INVAILD_STATIONS = ['CACQ', 'CWSN', 'CWVP', 'CYTJ',
 # remove known invalid stations from the main list
 for station in INVAILD_STATIONS:
     CANADIAN_STATIONS.remove(station)
+
+
+def get_sample_sigmets() -> List[SIGMET]:
+    """Load cached sample SIGMET advisories from history file if available."""
+    global _SIGMET_HISTORY_CACHE
+    if _SIGMET_HISTORY_CACHE is None:
+        if SIGMET_HISTORY_FILE.exists():
+            try:
+                history_text = SIGMET_HISTORY_FILE.read_text(encoding="utf-8")
+                _SIGMET_HISTORY_CACHE = parse_sigmet_text(history_text)
+                if VERBOSE:
+                    print(
+                        f"ℹ️  Loaded {len(_SIGMET_HISTORY_CACHE)} historical SIGMET advisory(ies) for testing")
+            except Exception as exc:
+                print(f"⚠️  Failed to load historical SIGMET data: {exc}")
+                _SIGMET_HISTORY_CACHE = []
+        else:
+            _SIGMET_HISTORY_CACHE = []
+    # Return a shallow copy to avoid external mutation of cache
+    return list(_SIGMET_HISTORY_CACHE)
 
 def validate_single_station(server, station, verbose=VERBOSE):
     """
@@ -256,8 +300,18 @@ def find_invalid_stations_in_batch(server, stations, delay=REQUEST_DELAY, verbos
     return valid_stations, invalid_stations
 
 
-def query_station_batch(server, stations, group_num, total_groups, 
-                        all_invalid_stations, output_dir, delay=REQUEST_DELAY, verbose=VERBOSE, output_format='csv'):
+def query_station_batch(
+    server,
+    stations,
+    group_num,
+    total_groups,
+    all_invalid_stations,
+    output_dir,
+    delay=REQUEST_DELAY,
+    verbose=VERBOSE,
+    output_format="csv",
+    include_sigmet_history=False,
+):
     """
     Query a batch of stations with automatic invalid station detection.
     
@@ -271,6 +325,7 @@ def query_station_batch(server, stations, group_num, total_groups,
         delay: Delay after request (seconds)
         verbose: If True, print detailed output
         output_format: 'csv' or 'json' - format for saving output files
+        include_sigmet_history: Whether to inject historical SIGMET advisories when live data is empty
     
     Returns:
         dict: Query results with statistics
@@ -295,6 +350,17 @@ def query_station_batch(server, stations, group_num, total_groups,
             save_raw_data=True,
             raw_data_filename=raw_filename
         )
+
+        sigmet_count = len(result.sigmets)
+        global _SIGMET_SAMPLE_APPLIED
+        if include_sigmet_history and sigmet_count == 0 and not _SIGMET_SAMPLE_APPLIED:
+            sample_sigmets = get_sample_sigmets()
+            if sample_sigmets:
+                result.sigmets.extend(sample_sigmets)
+                sigmet_count = len(result.sigmets)
+                _SIGMET_SAMPLE_APPLIED = True
+                print(
+                    f"   ℹ️  Injected {len(sample_sigmets)} historical SIGMET advisory(ies) for testing")
         
         # Count entries from NavCanadaWeatherResponse object
         metar_count = sum(len(metars) for metars in result.metars.values())
@@ -333,6 +399,7 @@ def query_station_batch(server, stations, group_num, total_groups,
                     'metar_count': 0,
                     'taf_count': 0,
                     'upper_wind_count': 0,
+                    'sigmet_count': sigmet_count,
                     'total_count': 0,
                     'raw_data_file': None,
                     'parsed_data_file': None,
@@ -351,6 +418,16 @@ def query_station_batch(server, stations, group_num, total_groups,
                 save_raw_data=True,
                 raw_data_filename=raw_filename
             )
+
+            sigmet_count = len(result.sigmets)
+            if include_sigmet_history and sigmet_count == 0 and not _SIGMET_SAMPLE_APPLIED:
+                sample_sigmets = get_sample_sigmets()
+                if sample_sigmets:
+                    result.sigmets.extend(sample_sigmets)
+                    sigmet_count = len(result.sigmets)
+                    _SIGMET_SAMPLE_APPLIED = True
+                    print(
+                        f"   ℹ️  Injected {len(sample_sigmets)} historical SIGMET advisory(ies) for testing")
             
             # Recount from retry
             metar_count = sum(len(metars) for metars in result.metars.values())
@@ -378,6 +455,7 @@ def query_station_batch(server, stations, group_num, total_groups,
                 metars_dict=result.metars,
                 tafs_dict=result.tafs,
                 upper_winds=result.upper_winds,
+                sigmets=result.sigmets,
                 group_num=group_num
             )
 
@@ -397,7 +475,7 @@ def query_station_batch(server, stations, group_num, total_groups,
         # Clear, consistent output format
         status = "✅" if not batch_invalid else "⚠️"
         print(
-            f"{status} Group {group_num}: {total_count} reports ({metar_count} METAR, {taf_count} TAF, {upper_wind_count} Upper)", end="")
+            f"{status} Group {group_num}: {total_count} reports ({metar_count} METAR, {taf_count} TAF, {upper_wind_count} Upper, {sigmet_count} SIGMET)", end="")
         if batch_invalid:
             print(
                 f" | Excluded {len(batch_invalid)}: {', '.join(batch_invalid)}", end="")
@@ -416,6 +494,7 @@ def query_station_batch(server, stations, group_num, total_groups,
             'metar_count': metar_count,
             'taf_count': taf_count,
             'upper_wind_count': upper_wind_count,
+            'sigmet_count': sigmet_count,
             'total_count': total_count,
             'raw_data_file': result.raw_data_file if hasattr(result, 'raw_data_file') else raw_filename,
             'parsed_data_file': parsed_file,
@@ -453,6 +532,7 @@ def query_station_batch(server, stations, group_num, total_groups,
                 'metar_count': 0,
                 'taf_count': 0,
                 'upper_wind_count': 0,
+                'sigmet_count': sigmet_count,
                 'total_count': 0,
                 'raw_data_file': None,
                 'parsed_data_file': None,
@@ -479,6 +559,7 @@ def query_station_batch(server, stations, group_num, total_groups,
                 'metar_count': 0,
                 'taf_count': 0,
                 'upper_wind_count': 0,
+                'sigmet_count': 0,
                 'total_count': 0,
                 'raw_data_file': None,
                 'parsed_data_file': None,
@@ -515,6 +596,7 @@ def save_results(output_dir, group_stats, all_invalid_stations):
         'total_metar': sum(g['metar_count'] for g in group_stats),
         'total_taf': sum(g['taf_count'] for g in group_stats),
         'total_upper_winds': sum(g['upper_wind_count'] for g in group_stats),
+        'total_sigmet': sum(g['sigmet_count'] for g in group_stats),
         'total_time': sum(g['elapsed_time'] for g in group_stats),
         'group_details': group_stats
     }
@@ -579,7 +661,7 @@ def save_results(output_dir, group_stats, all_invalid_stations):
 
         if group['success']:
             print(
-                f"   Data: {group['total_count']} reports ({group['metar_count']} METAR, {group['taf_count']} TAF, {group['upper_wind_count']} Upper)")
+                f"   Data: {group['total_count']} reports ({group['metar_count']} METAR, {group['taf_count']} TAF, {group['upper_wind_count']} Upper, {group['sigmet_count']} SIGMET)")
             print(f"   Files:")
             print(f"      • Raw: {group['raw_data_file']}")
             print(f"      • Parsed: {group['parsed_data_file']}")
@@ -608,6 +690,7 @@ def save_results(output_dir, group_stats, all_invalid_stations):
     print(f"   • METAR: {summary['total_metar']}")
     print(f"   • TAF: {summary['total_taf']}")
     print(f"   • Upper Winds: {summary['total_upper_winds']}")
+    print(f"   • SIGMET: {summary['total_sigmet']}")
     print(f"   • Total entries: {summary['total_metar'] + summary['total_taf'] + summary['total_upper_winds']}")
     
     print(f"\n⏱️  Total Time: {summary['total_time']:.1f}s")
@@ -622,12 +705,23 @@ def save_results(output_dir, group_stats, all_invalid_stations):
 
 def main():
     """Main execution function"""
+    args = parse_cli_args()
+    output_format = args.output_format
+    include_sigmet_history = args.include_sigmet_history
+
+    # Reset global SIGMET sample flag for each run
+    global _SIGMET_SAMPLE_APPLIED
+    _SIGMET_SAMPLE_APPLIED = False
+
     print("\n🌤️  Canadian Weather Stations Data Query v2")
     print(f"{'='*80}")
     print(f"📅 Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📍 Total stations: {len(CANADIAN_STATIONS)}")
     print(f"📦 Group size: {GROUP_SIZE}")
     print(f"⏱️  Request delay: {REQUEST_DELAY}s")
+    print(f"🗂️  Output format: {output_format.upper()}")
+    history_status = "enabled" if include_sigmet_history else "disabled"
+    print(f"🛰️  SIGMET history injection: {history_status}")
     print(f"{'='*80}")
     
     # Setup
@@ -649,9 +743,16 @@ def main():
     # Process each group
     for i, stations in enumerate(groups, 1):
         stats = query_station_batch(
-            server, stations, i, len(groups), 
-            all_invalid_stations, output_dir, REQUEST_DELAY, VERBOSE,
-            output_format='csv'  # Change to 'json' to save only JSON
+            server,
+            stations,
+            i,
+            len(groups),
+            all_invalid_stations,
+            output_dir,
+            REQUEST_DELAY,
+            VERBOSE,
+            output_format=output_format,
+            include_sigmet_history=include_sigmet_history,
         )
         group_stats.append(stats)
         

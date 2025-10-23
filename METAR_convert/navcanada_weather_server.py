@@ -16,6 +16,7 @@ from navcanada_simple_client import NavCanadaSimpleClient
 from metar import METAR
 from taf import TAF
 from upper_wind import UpperWind
+from sigmet import SIGMET, parse_sigmet_text
 
 
 @dataclass
@@ -34,6 +35,7 @@ class NavCanadaWeatherResponse:
     metars: Dict[str, List[METAR]]
     tafs: Dict[str, List[TAF]]
     upper_winds: List[UpperWind]
+    sigmets: List[SIGMET]
     raw_data_file: Optional[str]
     extraction_summary: Dict[str, Any]
     session_info: Dict[str, Any]
@@ -103,6 +105,7 @@ class NavCanadaWeatherServer:
             metars=parsed_data['metars'],
             tafs=parsed_data['tafs'],
             upper_winds=parsed_data['upper_winds'],
+            sigmets=parsed_data['sigmets'],
             raw_data_file=raw_data_filepath,
             extraction_summary=raw_data.get('extraction_summary', {}),
             session_info=raw_data.get('session_info', {})
@@ -176,7 +179,8 @@ class NavCanadaWeatherServer:
         parsed = {
             'metars': {},
             'tafs': {},
-            'upper_winds': []
+            'upper_winds': [],
+            'sigmets': []
         }
         # Parse METARs
         for station, entries in weather_data.get('METAR', {}).items():
@@ -211,6 +215,21 @@ class NavCanadaWeatherServer:
             UpperWind(station=s, periods=p) for s, p in station_map.items()]
         print(
             f"  ✅ Parsed {len(parsed['upper_winds'])} Upper Wind report object(s) (one per station)")
+
+        # Parse SIGMETs
+        sigmet_entries = weather_data.get('SIGMET', [])
+        parsed_sigmet_list: List[SIGMET] = []
+        for entry in sigmet_entries:
+            bulletin = entry.get('bulletin') if isinstance(
+                entry, dict) else entry
+            if bulletin:
+                parsed_sigmet_list.extend(parse_sigmet_text(bulletin))
+
+        parsed['sigmets'] = parsed_sigmet_list
+        if parsed_sigmet_list:
+            print(f"  ✅ Parsed {len(parsed_sigmet_list)} SIGMET advisory(ies)")
+        else:
+            print("  ℹ️  No SIGMET advisories found in dataset")
         return parsed
 
 
@@ -235,6 +254,8 @@ class NavCanadaWeatherServer:
             print(f"   • {station}: {len(tafs)} TAF(s)")
         print(f"\n🌬️  Upper Winds:")
         print(f"   • {len(response.upper_winds)} report(s)")
+        print(f"\n⚠️  SIGMET:")
+        print(f"   • {len(response.sigmets)} advisory(ies)")
         if response.raw_data_file:
             print(f"\n📄 Raw data file: {response.raw_data_file}")
         print(f"\n{'='*70}\n")
@@ -269,6 +290,7 @@ class NavCanadaWeatherServer:
                 for station, tafs in response.tafs.items()
             },
             'upper_winds': [wind.to_dict() for wind in response.upper_winds],
+            'sigmets': [sigmet.to_dict() for sigmet in response.sigmets],
             # ...existing code...
             'extraction_summary': response.extraction_summary,
             'session_info': response.session_info

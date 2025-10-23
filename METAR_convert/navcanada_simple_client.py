@@ -7,9 +7,12 @@ Optimized version that organizes data by type and station:
 - Easy to parse and work with
 """
 
-import time
 import json
 import re
+import stat
+import subprocess
+import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any
@@ -21,6 +24,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
 
@@ -49,25 +53,71 @@ class NavCanadaSimpleClient:
         chrome_options = Options()
         
         if self.headless:
-            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("--disable-gpu")
         
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--window-size=1920,1080")
         chrome_options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
+        chrome_options.add_argument("--remote-debugging-port=0")
         
         try:
-            service = Service(ChromeDriverManager().install())
+            service = Service()
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
             self.driver.set_page_load_timeout(self.timeout)
             print("✅ Simple client ready")
             return True
-            
+
+        except WebDriverException as exc:
+            print(f"⚠️  Selenium Manager driver resolution failed: {exc}")
+            try:
+                driver_path = ChromeDriverManager().install()
+                self._prepare_chromedriver_binary(driver_path)
+                service = Service(driver_path)
+                self.driver = webdriver.Chrome(
+                    service=service, options=chrome_options)
+                self.driver.set_page_load_timeout(self.timeout)
+                print("✅ Simple client ready via webdriver-manager fallback")
+                return True
+            except Exception as second_exc:
+                print(f"❌ Client setup failed after fallback: {second_exc}")
+                return False
         except Exception as e:
             print(f"❌ Client setup failed: {e}")
             return False
-    
+
+    def _prepare_chromedriver_binary(self, driver_path: str) -> None:
+        """Ensure the downloaded ChromeDriver binary can execute, especially on macOS."""
+        if not driver_path:
+            return
+
+        path_obj = Path(driver_path)
+        if not path_obj.exists():
+            return
+
+        # Guarantee execute permissions
+        try:
+            current_mode = path_obj.stat().st_mode
+            path_obj.chmod(current_mode | stat.S_IXUSR |
+                           stat.S_IXGRP | stat.S_IXOTH)
+        except Exception as chmod_exc:
+            print(
+                f"⚠️  Unable to adjust chromedriver permissions: {chmod_exc}")
+
+        # macOS quarantine flag blocks execution of downloaded binaries
+        if sys.platform == "darwin":
+            try:
+                subprocess.run(
+                    ["xattr", "-dr", "com.apple.quarantine", str(path_obj)],
+                    check=False,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except FileNotFoundError:
+                # xattr not available; ignore
+                pass
+
     def connect(self) -> bool:
         """Connect to Nav Canada"""
         print(f"🌐 Connecting to: {self.base_url}")
@@ -532,8 +582,12 @@ class NavCanadaSimpleClient:
     def cleanup(self):
         """Cleanup resources"""
         if self.driver:
-            self.driver.quit()
-            print("✅ Simple client closed")
+            try:
+                self.driver.quit()
+            except Exception as exc:
+                print(f"⚠️  Driver shutdown warning: {exc}")
+            else:
+                print("✅ Simple client closed")
     
     def __enter__(self):
         return self

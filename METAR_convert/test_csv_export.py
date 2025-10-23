@@ -11,6 +11,7 @@ from csv_exporter import WeatherDataCSVExporter
 from metar import METAR, CloudLayer
 from taf import TAF, TAFCloudLayer, TAFForecastPeriod, IcingTurbulence, TemperatureForecast
 from upper_wind import UpperWind, UpperWindPeriod, UpperWindLevel
+from sigmet import parse_sigmet_text
 from station_lookup import enrich_weather_data
 from datetime import datetime
 
@@ -212,7 +213,14 @@ def test_csv_export_from_json():
             except Exception as e:
                 print(f"   ⚠️  Error parsing Upper Wind: {e}")
                 continue
-        
+
+        # Parse SIGMETs from history sample file (ensures consistent test data)
+        sigmets = []
+        sigmet_history_path = Path("weather_data/SIGMET_example.txt")
+        if sigmet_history_path.exists():
+            sigmet_text = sigmet_history_path.read_text(encoding='utf-8')
+            sigmets = parse_sigmet_text(sigmet_text)
+
         # Enrich all weather data with station coordinates
         print("\n📍 Enriching weather data with station coordinates...")
         enrich_weather_data(metars_dict, tafs_dict, upper_winds)
@@ -269,6 +277,28 @@ def test_csv_export_from_json():
                 import traceback
                 traceback.print_exc()
                 return False
+
+        if sigmets:
+            print("\n   Testing SIGMET CSV export...")
+            try:
+                sigmet_file = exporter.export_sigmets_to_csv(
+                    sigmets, "test_sigmets.csv")
+                print(f"   ✅ SIGMET CSV created: {sigmet_file}")
+
+                file_size = sigmet_file.stat().st_size
+                print(f"      File size: {file_size:,} bytes")
+
+                with open(sigmet_file, 'r') as f:
+                    lines = [f.readline().strip() for _ in range(3)]
+                print(f"      Header: {lines[0]}")
+                if len(lines) > 1:
+                    print(f"      Sample row: {lines[1]}")
+
+            except Exception as e:
+                print(f"   ❌ SIGMET CSV export failed: {e}")
+                import traceback
+                traceback.print_exc()
+                return False
         
         # Test TAF export
         if tafs_dict:
@@ -276,26 +306,26 @@ def test_csv_export_from_json():
             try:
                 taf_file = exporter.export_tafs_to_csv(tafs_dict, "test_tafs.csv")
                 print(f"   ✅ TAF CSV created: {taf_file}")
-                
+
                 file_size = taf_file.stat().st_size
                 print(f"      File size: {file_size:,} bytes")
-                
+
                 with open(taf_file, 'r') as f:
                     lines = [f.readline().strip() for _ in range(3)]
                 print(f"      Header: {lines[0][:80]}...")
                 if len(lines) > 1:
                     print(f"      Sample row: {lines[1][:80]}...")
-                    
+
             except Exception as e:
                 print(f"   ❌ TAF CSV export failed: {e}")
                 import traceback
                 traceback.print_exc()
                 return False
-        
+
         print("\n✅ CSV export test completed successfully!")
         print(f"   Test files saved to: {test_output}")
         return True
-        
+
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback

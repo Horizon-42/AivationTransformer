@@ -357,9 +357,70 @@ class WeatherDataCSVExporter:
         print(f"   📊 Exported {total_periods} upper wind periods to: {filepath.name}")
         return filepath
     
+    def export_sigmets_to_csv(self, sigmets: List[Any], filename: str = None) -> Path:
+        """Export SIGMET advisories to CSV format."""
+
+        if filename is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"sigmets_{timestamp}.csv"
+
+        filepath = self.output_dir / filename
+
+        fieldnames = [
+            'sigmet_id',
+            'fir',
+            'sequence',
+            'phenomenon',
+            'observation_type',
+            'observation_time_z',
+            'valid_from',
+            'valid_to',
+            'levels',
+            'movement',
+            'change',
+            'area_description',
+            'area_polygon'
+        ]
+
+        with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+
+            total_sigmet = 0
+            for sigmet in sigmets:
+                area_polygon = ''
+                if getattr(sigmet, 'area_points', None):
+                    area_polygon = ';'.join(
+                        f"{point['latitude']},{point['longitude']}" for point in sigmet.area_points
+                    )
+
+                row = {
+                    'sigmet_id': getattr(sigmet, 'sigmet_id', ''),
+                    'fir': getattr(sigmet, 'fir', ''),
+                    'sequence': getattr(sigmet, 'sequence', ''),
+                    'phenomenon': getattr(sigmet, 'phenomenon', ''),
+                    'observation_type': getattr(sigmet, 'observation_type', ''),
+                    'observation_time_z': getattr(sigmet, 'observation_time', ''),
+                    'valid_from': getattr(sigmet, 'valid_from', ''),
+                    'valid_to': getattr(sigmet, 'valid_to', ''),
+                    'levels': getattr(sigmet, 'levels', ''),
+                    'movement': getattr(sigmet, 'movement', ''),
+                    'change': getattr(sigmet, 'change', ''),
+                    'area_description': getattr(sigmet, 'area_description', ''),
+                    'area_polygon': area_polygon,
+                }
+
+                writer.writerow(row)
+                total_sigmet += 1
+
+        print(
+            f"   📊 Exported {total_sigmet} SIGMET advisory(ies) to: {filepath.name}")
+        return filepath
+
     def export_all(self, metars_dict: Dict[str, List[Any]], 
                    tafs_dict: Dict[str, List[Any]], 
                    upper_winds: List[Any],
+                   sigmets: List[Any] = None,
                    group_num: int = None) -> Dict[str, Path]:
         """
         Export all weather data types to CSV files.
@@ -393,6 +454,12 @@ class WeatherDataCSVExporter:
             files['upper_winds'] = self.export_upper_winds_to_csv(
                 upper_winds, 
                 f"{prefix}upper_winds.csv"
+            )
+
+        if sigmets:
+            files['sigmets'] = self.export_sigmets_to_csv(
+                sigmets,
+                f"{prefix}sigmets.csv"
             )
         
         return files
