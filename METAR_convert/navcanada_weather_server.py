@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any, Union, TYPE_CHECKING
 from dataclasses import dataclass
 
 from navcanada_simple_client import NavCanadaSimpleClient
@@ -13,6 +13,9 @@ from metar import METAR
 from taf import TAF
 from upper_wind import UpperWind, UpperWindMerger
 from sigmet import SIGMET, parse_sigmet_text
+
+if TYPE_CHECKING:  # pragma: no cover - avoids circular import at runtime
+    from storage import WeatherRepository
 
 __all__ = [
     "NavCanadaWeatherRequest",
@@ -55,7 +58,8 @@ class NavCanadaWeatherServer:
                  headless: bool = True, 
                  timeout: int = 30,
                  data_dir: str = "weather_data",
-                 verbose: bool = True):
+                 verbose: bool = True,
+                 repository: Optional["WeatherRepository"] = None):
         """
         Initialize the Nav Canada weather server
         
@@ -70,6 +74,7 @@ class NavCanadaWeatherServer:
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(exist_ok=True)
         self.verbose = verbose
+        self.repository = repository
 
     def _log(self, message: str) -> None:
         """Print messages when verbose output is enabled."""
@@ -123,6 +128,9 @@ class NavCanadaWeatherServer:
         )
 
         self._print_summary(response)
+
+        if self.repository is not None:
+            self.repository.store_response(response)
         
         return response
 

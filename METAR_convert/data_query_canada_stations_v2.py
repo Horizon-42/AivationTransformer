@@ -21,6 +21,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from navcanada_weather_server import NavCanadaWeatherServer
+from storage import SQLiteWeatherRepository
 from csv_exporter import WeatherDataCSVExporter
 from station_lookup import enrich_weather_data
 from sigmet import parse_sigmet_text, SIGMET
@@ -403,6 +404,15 @@ def query_station_batch(
     print(f"{'='*80}")
     
     start_time = time.time()
+    raw_filename = f'canada_group_{group_num:02d}_raw.json'
+    sigmet_count = 0
+    metar_count = 0
+    taf_count = 0
+    upper_wind_count = 0
+    total_count = 0
+    parsed_file = None
+    csv_files = {}
+    result = None
     
     # First, try querying all stations together
     try:
@@ -410,7 +420,6 @@ def query_station_batch(
             print("\n🔄 Attempting batch query...")
 
         # Query with raw data saving enabled
-        raw_filename = f'canada_group_{group_num:02d}_raw.json'
         result = server.get_weather(
             stations,
             save_raw_data=True,
@@ -510,13 +519,11 @@ def query_station_batch(
         
         # Save parsed data to group-specific file
         parsed_filename = f'canada_group_{group_num:02d}_parsed.json'
-        parsed_file = None
         if output_format == 'json':
             parsed_file = server.export_to_json(result, parsed_filename)
         # Enrich weather data with station coordinates
         enrich_weather_data(result.metars, result.tafs, result.upper_winds)
         # Export to CSV files only if selected
-        csv_files = {}
         if output_format == 'csv':
             csv_exporter = WeatherDataCSVExporter(output_dir)
             csv_files = csv_exporter.export_all(
@@ -796,7 +803,12 @@ def main():
     output_dir = Path("weather_data")
     output_dir.mkdir(exist_ok=True)
     
-    server = NavCanadaWeatherServer(headless=True, data_dir=str(output_dir))
+    repository = SQLiteWeatherRepository(Path(output_dir) / "weather.db")
+    server = NavCanadaWeatherServer(
+        headless=True,
+        data_dir=str(output_dir),
+        repository=repository,
+    )
     
     # Split into groups
     groups = [CANADIAN_STATIONS[i:i+GROUP_SIZE] 
@@ -834,6 +846,8 @@ def main():
     save_results(output_dir, group_stats, all_invalid_stations)
     
     print("✅ Query complete!")
+
+    repository.close()
 
 
 if __name__ == "__main__":

@@ -9,6 +9,29 @@ This client uses a simple approach:
 - **Bulletin column** → **Value** (the actual weather data text)
 - No complex parsing or data transformation
 
+### Database Integration
+
+The toolchain now ships with an **optional SQLite persistence layer** powered by SQLAlchemy. When you run `data_query_canada_stations_v2.py`, decoded METAR/TAF/Upper-Wind/SIGMET objects are saved to `weather_data/weather.db`. Existing workflows remain unchanged—if you instantiate `NavCanadaWeatherServer` without a repository, no database is touched.
+
+```python
+from storage import SQLiteWeatherRepository
+from navcanada_weather_server import NavCanadaWeatherServer
+
+repository = SQLiteWeatherRepository("weather_data/weather.db")
+server = NavCanadaWeatherServer(repository=repository)
+response = server.get_weather(["CYVR", "CYYC"])
+repository.close()
+```
+
+The repository now persists the decoded objects themselves:
+
+- `metar_observations`, `metar_cloud_layers`, and `metar_weather` capture the structured `METAR` dataclass plus its nested cloud layers and weather codes.
+- `taf_bulletins` with child tables (`taf_forecast_periods`, `taf_cloud_layers`, `taf_icing_turbulence`, `taf_temperature_forecasts`) retain each parsed forecast period from `taf.py`.
+- `upper_wind_periods` and `upper_wind_levels` store the parsed altitude grids from `upper_wind.py`.
+- `sigmet_reports` and `sigmet_area_points` persist the parsed polygons from `sigmet.py`.
+
+> **Migration tip:** the schema changed from the earlier JSON blobs—delete any existing `weather_data/weather.db` file to let the new tables be created cleanly.
+
 ## Files
 
 - `navcanada_simple_client.py` - Main simple client class
