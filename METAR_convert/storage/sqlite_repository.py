@@ -18,6 +18,7 @@ from sqlalchemy import (
     UniqueConstraint,
     create_engine,
     delete,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
@@ -331,6 +332,7 @@ class SQLiteWeatherRepository:
             db_url = db_path if db_path.startswith("sqlite") else f"sqlite:///{Path(db_path).expanduser().resolve()}"
 
         self.engine = create_engine(db_url, echo=echo, future=True)
+        self._apply_legacy_migrations()
         Base.metadata.create_all(self.engine)
         self._session_factory = sessionmaker(self.engine, expire_on_commit=False, future=True)
 
@@ -552,6 +554,119 @@ class SQLiteWeatherRepository:
                 ],
             )
             session.add(record)
+
+    # ------------------------------------------------------------------
+    # Schema migrations
+    # ------------------------------------------------------------------
+    def _apply_legacy_migrations(self) -> None:
+        """Handle schema adjustments for previously created databases."""
+        try:
+            with self.engine.begin() as connection:
+                connection.execute(
+                    text("DROP INDEX IF EXISTS uq_taf_period_identity"))
+
+                schema_sql = connection.execute(
+                    text(
+                        "SELECT sql FROM sqlite_master WHERE type='table' AND name='taf_forecast_periods'")
+                ).scalar()
+
+                if schema_sql and "UNIQUE" in schema_sql.upper():
+                    self._rebuild_taf_forecast_periods(connection)
+        except Exception:
+            # Best-effort migration; ignore if database is fresh or index missing
+            pass
+
+    def _rebuild_taf_forecast_periods(self, connection) -> None:
+        """Rebuild taf_forecast_periods table without legacy UNIQUE constraint."""
+        try:
+            connection.execute(text("PRAGMA foreign_keys=OFF"))
+
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS taf_forecast_periods__new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        taf_id INTEGER NOT NULL,
+                        valid_from TIMESTAMP,
+                        valid_to TIMESTAMP,
+                        valid_from_timestamp INTEGER,
+                        valid_to_timestamp INTEGER,
+                        becomes_time TIMESTAMP,
+                        forecast_change_type TEXT,
+                        probability_percent INTEGER,
+                        wind_direction_degrees TEXT,
+                        wind_speed_knots INTEGER,
+                        wind_gust_knots INTEGER,
+                        wind_shear_height_feet INTEGER,
+                        wind_shear_direction_degrees INTEGER,
+                        wind_shear_speed_knots INTEGER,
+                        visibility TEXT NOT NULL,
+                        vertical_visibility_feet INTEGER,
+                        weather_phenomena TEXT,
+                        altimeter_hpa REAL,
+                        not_decoded TEXT,
+                        FOREIGN KEY(taf_id) REFERENCES taf_bulletins(id) ON DELETE CASCADE
+                    )
+                    """
+                )
+            )
+
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO taf_forecast_periods__new (
+                        id,
+                        taf_id,
+                        valid_from,
+                        valid_to,
+                        valid_from_timestamp,
+                        valid_to_timestamp,
+                        becomes_time,
+                        forecast_change_type,
+                        probability_percent,
+                        wind_direction_degrees,
+                        wind_speed_knots,
+                        wind_gust_knots,
+                        wind_shear_height_feet,
+                        wind_shear_direction_degrees,
+                        wind_shear_speed_knots,
+                        visibility,
+                        vertical_visibility_feet,
+                        weather_phenomena,
+                        altimeter_hpa,
+                        not_decoded
+                    )
+                    SELECT
+                        id,
+                        taf_id,
+                        valid_from,
+                        valid_to,
+                        valid_from_timestamp,
+                        valid_to_timestamp,
+                        becomes_time,
+                        forecast_change_type,
+                        probability_percent,
+                        wind_direction_degrees,
+                        wind_speed_knots,
+                        wind_gust_knots,
+                        wind_shear_height_feet,
+                        wind_shear_direction_degrees,
+                        wind_shear_speed_knots,
+                        visibility,
+                        vertical_visibility_feet,
+                        weather_phenomena,
+                        altimeter_hpa,
+                        not_decoded
+                    FROM taf_forecast_periods
+                    """
+                )
+            )
+
+            connection.execute(text("DROP TABLE taf_forecast_periods"))
+            connection.execute(
+                text("ALTER TABLE taf_forecast_periods__new RENAME TO taf_forecast_periods"))
+        finally:
+            connection.execute(text("PRAGMA foreign_keys=ON"))
 
 
 __all__ = [
