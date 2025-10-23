@@ -18,7 +18,7 @@ import pandas as pd
 import json
 import time
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from navcanada_weather_server import NavCanadaWeatherServer
 from csv_exporter import WeatherDataCSVExporter
@@ -34,6 +34,7 @@ VERBOSE = False      # Set to True for detailed output, False for minimal output
 SIGMET_HISTORY_FILE = Path("weather_data/SIGMET_example.txt")
 _SIGMET_HISTORY_CACHE: Optional[List[SIGMET]] = None
 _SIGMET_SAMPLE_APPLIED = False
+DEFAULT_SIGMET_HISTORY = """WSCN31 CWAO 181200\nCZUL SIGMET A3 VALID 181200/181600 CZUL-\nMONTREAL FIR SEV TURB OBS AT 1200Z WI N4520 W07430 - N4550 W07310 - N4430 W07250 - N4400 W07400 - N4520 W07430 SFC/FL200 MOV NE 20KT NC =\n\nWSCN32 CWAO 181300\nCZUL SIGMET A4 VALID 181300/181700 CZUL-\nMONTREAL FIR SEV ICE FCST WI N4700 W07500 - N4650 W07330 - N4550 W07300 - N4600 W07450 - N4700 W07500 SFC/FL180 MOV E 15KT WKN ="""
 
 
 def parse_cli_args() -> argparse.Namespace:
@@ -70,20 +71,85 @@ def get_sample_sigmets() -> List[SIGMET]:
     """Load cached sample SIGMET advisories from history file if available."""
     global _SIGMET_HISTORY_CACHE
     if _SIGMET_HISTORY_CACHE is None:
+        history_text: Optional[str] = None
         if SIGMET_HISTORY_FILE.exists():
             try:
                 history_text = SIGMET_HISTORY_FILE.read_text(encoding="utf-8")
-                _SIGMET_HISTORY_CACHE = parse_sigmet_text(history_text)
+            except Exception as exc:
+                print(f"⚠️  Failed to load historical SIGMET data: {exc}")
+        if history_text:
+            parsed = parse_sigmet_text(history_text)
+            if parsed:
+                _SIGMET_HISTORY_CACHE = parsed
                 if VERBOSE:
                     print(
                         f"ℹ️  Loaded {len(_SIGMET_HISTORY_CACHE)} historical SIGMET advisory(ies) for testing")
-            except Exception as exc:
-                print(f"⚠️  Failed to load historical SIGMET data: {exc}")
-                _SIGMET_HISTORY_CACHE = []
-        else:
-            _SIGMET_HISTORY_CACHE = []
+        if _SIGMET_HISTORY_CACHE is None:
+            fallback_parsed = parse_sigmet_text(DEFAULT_SIGMET_HISTORY)
+            _SIGMET_HISTORY_CACHE = fallback_parsed
+            if fallback_parsed:
+                print(
+                    f"ℹ️  Using embedded SIGMET history sample ({len(fallback_parsed)} advisory(ies))")
+            else:
+                print("⚠️  No SIGMET history data available for injection")
     # Return a shallow copy to avoid external mutation of cache
     return list(_SIGMET_HISTORY_CACHE)
+
+
+def append_sigmets_to_raw(raw_file: Optional[str], sigmets: List[SIGMET]) -> None:
+    """Append SIGMET bulletins to the raw JSON file to mirror injected history."""
+    if not raw_file or not sigmets:
+        return
+
+    raw_path = Path(raw_file)
+    if not raw_path.exists():
+        return
+
+    try:
+        raw_json = json.loads(raw_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(f"⚠️  Unable to augment raw SIGMET data: {exc}")
+        return
+
+    weather_data = raw_json.setdefault("weather_data", {})
+    sigmet_section = weather_data.setdefault("SIGMET", [])
+    existing_bulletins = {
+        entry.get("bulletin")
+        for entry in sigmet_section
+        if isinstance(entry, dict) and entry.get("bulletin")
+    }
+
+    next_index = (
+        max(
+            [entry.get("row_index", 0)
+             for entry in sigmet_section if isinstance(entry, dict)],
+            default=0,
+        )
+        + 1
+    )
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    appended = 0
+    for sigmet in sigmets:
+        raw_text = sigmet.raw_text.strip()
+        if not raw_text:
+            continue
+        if not raw_text.endswith("="):
+            raw_text = f"{raw_text} ="
+        if raw_text in existing_bulletins:
+            continue
+        sigmet_section.append(
+            {
+                "bulletin": raw_text,
+                "row_index": next_index + appended,
+                "extraction_time": timestamp,
+            }
+        )
+        appended += 1
+        existing_bulletins.add(raw_text)
+
+    if appended:
+        raw_path.write_text(json.dumps(raw_json, indent=2))
 
 def validate_single_station(server, station, verbose=VERBOSE):
     """
@@ -357,6 +423,7 @@ def query_station_batch(
             sample_sigmets = get_sample_sigmets()
             if sample_sigmets:
                 result.sigmets.extend(sample_sigmets)
+                append_sigmets_to_raw(result.raw_data_file, sample_sigmets)
                 sigmet_count = len(result.sigmets)
                 _SIGMET_SAMPLE_APPLIED = True
                 print(
@@ -424,6 +491,7 @@ def query_station_batch(
                 sample_sigmets = get_sample_sigmets()
                 if sample_sigmets:
                     result.sigmets.extend(sample_sigmets)
+                    append_sigmets_to_raw(result.raw_data_file, sample_sigmets)
                     sigmet_count = len(result.sigmets)
                     _SIGMET_SAMPLE_APPLIED = True
                     print(
