@@ -5,19 +5,25 @@ This script tests the CSV exporter using existing parsed JSON files
 to validate attribute names and data structure handling.
 """
 
+from station_lookup import enrich_weather_data
 import json
 from pathlib import Path
+import sys
+from datetime import datetime
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from csv_exporter import WeatherDataCSVExporter
 from metar import METAR, CloudLayer
 from taf import TAF, TAFCloudLayer, TAFForecastPeriod, IcingTurbulence, TemperatureForecast
 from upper_wind import UpperWind, UpperWindPeriod, UpperWindLevel
 from sigmet import parse_sigmet_text
-from station_lookup import enrich_weather_data
-from datetime import datetime
 
 
-def test_csv_export_from_json():
-    """Test CSV export using an existing parsed JSON file"""
+def run_csv_export_from_json():
+    """Run CSV export smoke-test using an existing parsed JSON file"""
     
     # Find an existing parsed JSON file
     weather_data_dir = Path("weather_data")
@@ -333,11 +339,15 @@ def test_csv_export_from_json():
         return False
 
 
+def test_csv_export_from_json():
+    assert run_csv_export_from_json() is True
+
+
 if __name__ == "__main__":
     print("🧪 CSV Export Test Script")
     print("="*80)
     
-    success = test_csv_export_from_json()
+    success = run_csv_export_from_json()
     
     if success:
         print("\n" + "="*80)

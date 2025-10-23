@@ -18,6 +18,7 @@ from sqlalchemy import (
     UniqueConstraint,
     create_engine,
     delete,
+    select,
     text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
@@ -39,6 +40,35 @@ class Base(DeclarativeBase):
     """Shared declarative base for ORM models."""
 
 
+class Station(Base):
+    __tablename__ = "stations"
+
+    id: Mapped[str] = mapped_column(String(8), primary_key=True)
+    name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    elevation_meters: Mapped[Optional[int]
+                             ] = mapped_column(Integer, nullable=True)
+    country_code: Mapped[Optional[str]] = mapped_column(
+        String(4), nullable=True)
+    region: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)
+    first_seen: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    metar_reports: Mapped[List["MetarObservation"]] = relationship(
+        back_populates="station", cascade="all, delete", passive_deletes=True
+    )
+    taf_reports: Mapped[List["TafBulletin"]] = relationship(
+        back_populates="station", cascade="all, delete", passive_deletes=True
+    )
+    upper_wind_periods: Mapped[List["UpperWindPeriodRecord"]] = relationship(
+        back_populates="station", cascade="all, delete", passive_deletes=True
+    )
+
+
 class MetarObservation(Base):
     __tablename__ = "metar_observations"
     __table_args__ = (
@@ -46,11 +76,9 @@ class MetarObservation(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    station_id: Mapped[str] = mapped_column(String(8), index=True)
-    station_name: Mapped[str] = mapped_column(String(128))
-    latitude: Mapped[float] = mapped_column(Float)
-    longitude: Mapped[float] = mapped_column(Float)
-    elevation_meters: Mapped[int] = mapped_column(Integer)
+    station_id: Mapped[str] = mapped_column(
+        ForeignKey("stations.id", ondelete="CASCADE"), index=True
+    )
 
     observation_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     receipt_time: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -80,6 +108,8 @@ class MetarObservation(Base):
     raw_observation: Mapped[str] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+
+    station: Mapped["Station"] = relationship(back_populates="metar_reports")
 
     cloud_layers: Mapped[List["MetarCloudLayer"]] = relationship(
         back_populates="metar", cascade="all, delete-orphan"
@@ -122,11 +152,9 @@ class TafBulletin(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    station_id: Mapped[str] = mapped_column(String(8), index=True)
-    station_name: Mapped[str] = mapped_column(String(128))
-    latitude: Mapped[float] = mapped_column(Float)
-    longitude: Mapped[float] = mapped_column(Float)
-    elevation_meters: Mapped[int] = mapped_column(Integer)
+    station_id: Mapped[str] = mapped_column(
+        ForeignKey("stations.id", ondelete="CASCADE"), index=True
+    )
 
     bulletin_time: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     issue_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
@@ -143,6 +171,8 @@ class TafBulletin(Base):
     remarks: Mapped[str] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+
+    station: Mapped["Station"] = relationship(back_populates="taf_reports")
 
     forecast_periods: Mapped[List["TafForecastPeriodRecord"]] = relationship(
         back_populates="taf", cascade="all, delete-orphan"
@@ -242,7 +272,9 @@ class UpperWindPeriodRecord(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    station_id: Mapped[str] = mapped_column(String(8), index=True)
+    station_id: Mapped[str] = mapped_column(
+        ForeignKey("stations.id", ondelete="CASCADE"), index=True
+    )
     valid_time: Mapped[str] = mapped_column(String(16))
     use_period: Mapped[str] = mapped_column(String(24))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
@@ -250,6 +282,9 @@ class UpperWindPeriodRecord(Base):
     levels: Mapped[List["UpperWindLevelRecord"]] = relationship(
         back_populates="period", cascade="all, delete-orphan"
     )
+
+    station: Mapped["Station"] = relationship(
+        back_populates="upper_wind_periods")
 
 
 class UpperWindLevelRecord(Base):
@@ -335,6 +370,7 @@ class SQLiteWeatherRepository:
         self._apply_legacy_migrations()
         Base.metadata.create_all(self.engine)
         self._session_factory = sessionmaker(self.engine, expire_on_commit=False, future=True)
+        self._seed_canadian_stations()
 
     # ------------------------------------------------------------------
     # Public API
@@ -366,9 +402,159 @@ class SQLiteWeatherRepository:
         finally:
             session.close()
 
+    def _seed_canadian_stations(self) -> None:
+        """Populate the stations table with vetted Canadian stations if missing."""
+        try:
+            from canadian_station_catalog import VALID_CANADIAN_STATIONS
+            from station_lookup import StationDatabase
+        except Exception:
+            # Seeding is a best-effort enrichment; skip if dependencies are unavailable.
+            return
+
+        target_ids = {code.strip().upper()
+                      for code in VALID_CANADIAN_STATIONS if code}
+        if not target_ids:
+            return
+
+        target_list = sorted(target_ids)
+
+        with self._session_scope() as session:
+            existing_ids = set(
+                session.scalars(select(Station.id).where(
+                    Station.id.in_(target_list)))
+            )
+            missing = [code for code in target_list if code not in existing_ids]
+            if not missing:
+                return
+
+            db = StationDatabase()
+            for code in missing:
+                info = db.lookup(code) or {}
+                self._upsert_station(
+                    session,
+                    code,
+                    name=info.get("name"),
+                    latitude=info.get("latitude"),
+                    longitude=info.get("longitude"),
+                    elevation_meters=info.get("elevation_m"),
+                    country_code="CA",
+                    region=info.get("province"),
+                )
+
+    # ------------------------------------------------------------------
+    # Station management helpers
+    # ------------------------------------------------------------------
+    def _upsert_station(
+        self,
+        session: Session,
+        station_id: str,
+        *,
+        name: Optional[str] = None,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+        elevation_meters: Optional[int] = None,
+        country_code: Optional[str] = None,
+        region: Optional[str] = None,
+    ) -> Optional[Station]:
+        station_id = (station_id or "").strip().upper()
+        if not station_id:
+            return None
+
+        station: Optional[Station] = session.get(Station, station_id)
+
+        name_value = self._clean_station_str(name)
+        latitude_value = self._clean_station_float(latitude)
+        longitude_value = self._clean_station_float(longitude)
+        elevation_value = self._clean_station_int(elevation_meters)
+        country_value = self._clean_station_str(country_code)
+        region_value = self._clean_station_str(region)
+
+        if station is None:
+            station = Station(
+                id=station_id,
+                name=name_value,
+                latitude=latitude_value,
+                longitude=longitude_value,
+                elevation_meters=elevation_value,
+                country_code=country_value,
+                region=region_value,
+            )
+            session.add(station)
+            return station
+
+        updated = False
+
+        if name_value and station.name != name_value:
+            station.name = name_value
+            updated = True
+        if latitude_value is not None:
+            if station.latitude is None or abs(latitude_value) > 1e-6:
+                if station.latitude != latitude_value:
+                    station.latitude = latitude_value
+                    updated = True
+        if longitude_value is not None:
+            if station.longitude is None or abs(longitude_value) > 1e-6:
+                if station.longitude != longitude_value:
+                    station.longitude = longitude_value
+                    updated = True
+        if elevation_value is not None:
+            if station.elevation_meters is None or elevation_value != 0:
+                if station.elevation_meters != elevation_value:
+                    station.elevation_meters = elevation_value
+                    updated = True
+        if country_value and station.country_code != country_value:
+            station.country_code = country_value
+            updated = True
+        if region_value and station.region != region_value:
+            station.region = region_value
+            updated = True
+
+        if updated:
+            station.updated_at = datetime.utcnow()
+
+        return station
+
+    @staticmethod
+    def _clean_station_str(value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        cleaned = str(value).strip()
+        return cleaned or None
+
+    @staticmethod
+    def _clean_station_float(value: Optional[float]) -> Optional[float]:
+        if value is None:
+            return None
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return None
+        return round(numeric, 6)
+
+    @staticmethod
+    def _clean_station_int(value: Optional[int]) -> Optional[int]:
+        if value is None:
+            return None
+        try:
+            numeric = int(value)
+        except (TypeError, ValueError):
+            return None
+        return numeric
+
     def _store_metars(self, session: Session, metars: Dict[str, List[METAR]]) -> None:
         for station_metars in metars.values():
             for metar in station_metars:
+                station = self._upsert_station(
+                    session,
+                    metar.station_id,
+                    name=metar.station_name,
+                    latitude=metar.latitude,
+                    longitude=metar.longitude,
+                    elevation_meters=metar.elevation_meters,
+                )
+                if station is None:
+                    continue
+
                 session.execute(
                     delete(MetarObservation)
                     .where(MetarObservation.station_id == metar.station_id)
@@ -377,10 +563,6 @@ class SQLiteWeatherRepository:
 
                 record = MetarObservation(
                     station_id=metar.station_id,
-                    station_name=metar.station_name,
-                    latitude=metar.latitude,
-                    longitude=metar.longitude,
-                    elevation_meters=metar.elevation_meters,
                     observation_time=metar.observation_time,
                     receipt_time=metar.receipt_time,
                     observation_timestamp=metar.observation_timestamp,
@@ -421,6 +603,17 @@ class SQLiteWeatherRepository:
     def _store_tafs(self, session: Session, tafs: Dict[str, List[TAF]]) -> None:
         for station_tafs in tafs.values():
             for taf in station_tafs:
+                station = self._upsert_station(
+                    session,
+                    taf.station_id,
+                    name=taf.station_name,
+                    latitude=taf.latitude,
+                    longitude=taf.longitude,
+                    elevation_meters=taf.elevation_meters,
+                )
+                if station is None:
+                    continue
+
                 session.execute(
                     delete(TafBulletin)
                     .where(TafBulletin.station_id == taf.station_id)
@@ -429,10 +622,6 @@ class SQLiteWeatherRepository:
 
                 record = TafBulletin(
                     station_id=taf.station_id,
-                    station_name=taf.station_name,
-                    latitude=taf.latitude,
-                    longitude=taf.longitude,
-                    elevation_meters=taf.elevation_meters,
                     bulletin_time=taf.bulletin_time,
                     issue_time=taf.issue_time,
                     database_time=taf.database_time,
@@ -500,6 +689,9 @@ class SQLiteWeatherRepository:
 
     def _store_upper_winds(self, session: Session, upper_winds: List[UpperWind]) -> None:
         for upper_wind in upper_winds:
+            station = self._upsert_station(session, upper_wind.station)
+            if station is None:
+                continue
             for period in upper_wind.periods:
                 session.execute(
                     delete(UpperWindPeriodRecord)
@@ -562,19 +754,377 @@ class SQLiteWeatherRepository:
         """Handle schema adjustments for previously created databases."""
         try:
             with self.engine.begin() as connection:
-                connection.execute(
-                    text("DROP INDEX IF EXISTS uq_taf_period_identity"))
+                self._drop_legacy_taf_index(connection)
+                self._ensure_station_catalog(connection)
+                self._populate_station_catalog(connection)
 
-                schema_sql = connection.execute(
-                    text(
-                        "SELECT sql FROM sqlite_master WHERE type='table' AND name='taf_forecast_periods'")
-                ).scalar()
+                if self._table_has_legacy_station_fields(connection, "metar_observations"):
+                    self._rebuild_metar_observations(connection)
 
-                if schema_sql and "UNIQUE" in schema_sql.upper():
+                if self._table_has_legacy_station_fields(connection, "taf_bulletins"):
+                    self._rebuild_taf_bulletins(connection)
+
+                if not self._upper_wind_periods_have_station_fk(connection):
+                    self._rebuild_upper_wind_periods(connection)
+
+                if self._taf_forecast_periods_has_legacy_unique(connection):
                     self._rebuild_taf_forecast_periods(connection)
         except Exception:
             # Best-effort migration; ignore if database is fresh or index missing
             pass
+
+    # ------------------------------------------------------------------
+    # Migration helpers
+    # ------------------------------------------------------------------
+    def _drop_legacy_taf_index(self, connection) -> None:
+        connection.execute(text("DROP INDEX IF EXISTS uq_taf_period_identity"))
+
+    def _ensure_station_catalog(self, connection) -> None:
+        if self._table_exists(connection, "stations"):
+            return
+
+        connection.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS stations (
+                    id VARCHAR(8) PRIMARY KEY,
+                    name VARCHAR(128),
+                    latitude FLOAT,
+                    longitude FLOAT,
+                    elevation_meters INTEGER,
+                    country_code VARCHAR(4),
+                    region VARCHAR(8),
+                    first_seen TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+        )
+
+    def _populate_station_catalog(self, connection) -> None:
+        if not self._table_exists(connection, "stations"):
+            return
+
+        if self._table_has_legacy_station_fields(connection, "metar_observations"):
+            self._populate_station_catalog_from_table(
+                connection, "metar_observations")
+
+        if self._table_has_legacy_station_fields(connection, "taf_bulletins"):
+            self._populate_station_catalog_from_table(
+                connection, "taf_bulletins")
+
+    def _populate_station_catalog_from_table(self, connection, table_name: str) -> None:
+        connection.execute(
+            text(
+                f"""
+                INSERT INTO stations (id, name, latitude, longitude, elevation_meters)
+                SELECT
+                    TRIM(station_id) AS station_id,
+                    MAX(NULLIF(station_name, '')) AS station_name,
+                    MAX(NULLIF(latitude, 0)) AS latitude,
+                    MAX(NULLIF(longitude, 0)) AS longitude,
+                    MAX(NULLIF(elevation_meters, 0)) AS elevation_meters
+                FROM {table_name}
+                WHERE station_id IS NOT NULL AND TRIM(station_id) != ''
+                GROUP BY TRIM(station_id)
+                ON CONFLICT(id) DO UPDATE SET
+                    name = COALESCE(excluded.name, stations.name),
+                    latitude = COALESCE(excluded.latitude, stations.latitude),
+                    longitude = COALESCE(excluded.longitude, stations.longitude),
+                    elevation_meters = COALESCE(excluded.elevation_meters, stations.elevation_meters),
+                    updated_at = CURRENT_TIMESTAMP
+                """
+            )
+        )
+
+    def _table_exists(self, connection, table_name: str) -> bool:
+        result = connection.execute(
+            text("SELECT 1 FROM sqlite_master WHERE type='table' AND name=:name"),
+            {"name": table_name},
+        ).scalar()
+        return bool(result)
+
+    def _get_table_columns(self, connection, table_name: str) -> set[str]:
+        if not self._table_exists(connection, table_name):
+            return set()
+
+        rows = connection.execute(
+            text(f"PRAGMA table_info('{table_name}')")).fetchall()
+        return {row[1] for row in rows}
+
+    def _table_has_legacy_station_fields(self, connection, table_name: str) -> bool:
+        legacy_columns = {"station_name", "latitude",
+                          "longitude", "elevation_meters"}
+        columns = self._get_table_columns(connection, table_name)
+        return bool(columns) and legacy_columns.issubset(columns)
+
+    def _upper_wind_periods_have_station_fk(self, connection) -> bool:
+        if not self._table_exists(connection, "upper_wind_periods"):
+            return True
+
+        refs = connection.execute(
+            text("PRAGMA foreign_key_list('upper_wind_periods')")).fetchall()
+        return any(row[2] == "stations" for row in refs)
+
+    def _taf_forecast_periods_has_legacy_unique(self, connection) -> bool:
+        if not self._table_exists(connection, "taf_forecast_periods"):
+            return False
+
+        schema_sql = connection.execute(
+            text(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='taf_forecast_periods'"
+            )
+        ).scalar()
+        return bool(schema_sql and "UNIQUE" in schema_sql.upper())
+
+    def _rebuild_metar_observations(self, connection) -> None:
+        try:
+            connection.execute(text("PRAGMA foreign_keys=OFF"))
+            connection.execute(
+                text("DROP TABLE IF EXISTS metar_observations__new"))
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE metar_observations__new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        station_id VARCHAR(8) NOT NULL,
+                        observation_time TIMESTAMP NOT NULL,
+                        receipt_time TIMESTAMP NOT NULL,
+                        observation_timestamp INTEGER NOT NULL,
+                        temperature_celsius FLOAT NOT NULL,
+                        dewpoint_celsius FLOAT NOT NULL,
+                        wind_direction_degrees INTEGER,
+                        wind_speed_knots INTEGER,
+                        wind_gust_knots INTEGER,
+                        wind_variable BOOLEAN NOT NULL DEFAULT 0,
+                        visibility VARCHAR(16) NOT NULL,
+                        visibility_meters INTEGER,
+                        altimeter_hpa FLOAT NOT NULL,
+                        sea_level_pressure_hpa FLOAT,
+                        pressure_tendency_hpa FLOAT,
+                        sky_coverage VARCHAR(8) NOT NULL,
+                        flight_category VARCHAR(8) NOT NULL,
+                        max_temperature_celsius FLOAT,
+                        min_temperature_celsius FLOAT,
+                        quality_control_field INTEGER,
+                        report_type VARCHAR(10) NOT NULL,
+                        raw_observation TEXT NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(station_id, observation_time),
+                        FOREIGN KEY(station_id) REFERENCES stations(id) ON DELETE CASCADE
+                    )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO metar_observations__new (
+                        id,
+                        station_id,
+                        observation_time,
+                        receipt_time,
+                        observation_timestamp,
+                        temperature_celsius,
+                        dewpoint_celsius,
+                        wind_direction_degrees,
+                        wind_speed_knots,
+                        wind_gust_knots,
+                        wind_variable,
+                        visibility,
+                        visibility_meters,
+                        altimeter_hpa,
+                        sea_level_pressure_hpa,
+                        pressure_tendency_hpa,
+                        sky_coverage,
+                        flight_category,
+                        max_temperature_celsius,
+                        min_temperature_celsius,
+                        quality_control_field,
+                        report_type,
+                        raw_observation,
+                        created_at
+                    )
+                    SELECT
+                        id,
+                        station_id,
+                        observation_time,
+                        receipt_time,
+                        observation_timestamp,
+                        temperature_celsius,
+                        dewpoint_celsius,
+                        wind_direction_degrees,
+                        wind_speed_knots,
+                        wind_gust_knots,
+                        wind_variable,
+                        visibility,
+                        visibility_meters,
+                        altimeter_hpa,
+                        sea_level_pressure_hpa,
+                        pressure_tendency_hpa,
+                        sky_coverage,
+                        flight_category,
+                        max_temperature_celsius,
+                        min_temperature_celsius,
+                        quality_control_field,
+                        report_type,
+                        raw_observation,
+                        created_at
+                    FROM metar_observations
+                    """
+                )
+            )
+            connection.execute(text("DROP TABLE metar_observations"))
+            connection.execute(
+                text("ALTER TABLE metar_observations__new RENAME TO metar_observations"))
+        finally:
+            connection.execute(text("PRAGMA foreign_keys=ON"))
+
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_metar_observations_station_id ON metar_observations (station_id)"
+            )
+        )
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_metar_observations_observation_time ON metar_observations (observation_time)"
+            )
+        )
+
+    def _rebuild_taf_bulletins(self, connection) -> None:
+        try:
+            connection.execute(text("PRAGMA foreign_keys=OFF"))
+            connection.execute(text("DROP TABLE IF EXISTS taf_bulletins__new"))
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE taf_bulletins__new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        station_id VARCHAR(8) NOT NULL,
+                        bulletin_time TIMESTAMP NOT NULL,
+                        issue_time TIMESTAMP NOT NULL,
+                        database_time TIMESTAMP NOT NULL,
+                        valid_from TIMESTAMP NOT NULL,
+                        valid_to TIMESTAMP NOT NULL,
+                        valid_from_timestamp INTEGER NOT NULL,
+                        valid_to_timestamp INTEGER NOT NULL,
+                        is_most_recent BOOLEAN NOT NULL DEFAULT 1,
+                        is_prior_version BOOLEAN NOT NULL DEFAULT 0,
+                        raw_taf TEXT NOT NULL,
+                        remarks TEXT NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(station_id, issue_time),
+                        FOREIGN KEY(station_id) REFERENCES stations(id) ON DELETE CASCADE
+                    )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO taf_bulletins__new (
+                        id,
+                        station_id,
+                        bulletin_time,
+                        issue_time,
+                        database_time,
+                        valid_from,
+                        valid_to,
+                        valid_from_timestamp,
+                        valid_to_timestamp,
+                        is_most_recent,
+                        is_prior_version,
+                        raw_taf,
+                        remarks,
+                        created_at
+                    )
+                    SELECT
+                        id,
+                        station_id,
+                        bulletin_time,
+                        issue_time,
+                        database_time,
+                        valid_from,
+                        valid_to,
+                        valid_from_timestamp,
+                        valid_to_timestamp,
+                        is_most_recent,
+                        is_prior_version,
+                        raw_taf,
+                        remarks,
+                        created_at
+                    FROM taf_bulletins
+                    """
+                )
+            )
+            connection.execute(text("DROP TABLE taf_bulletins"))
+            connection.execute(
+                text("ALTER TABLE taf_bulletins__new RENAME TO taf_bulletins"))
+        finally:
+            connection.execute(text("PRAGMA foreign_keys=ON"))
+
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_taf_bulletins_station_id ON taf_bulletins (station_id)"
+            )
+        )
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_taf_bulletins_issue_time ON taf_bulletins (issue_time)"
+            )
+        )
+
+    def _rebuild_upper_wind_periods(self, connection) -> None:
+        try:
+            connection.execute(text("PRAGMA foreign_keys=OFF"))
+            connection.execute(
+                text("DROP TABLE IF EXISTS upper_wind_periods__new"))
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE upper_wind_periods__new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        station_id VARCHAR(8) NOT NULL,
+                        valid_time VARCHAR(16) NOT NULL,
+                        use_period VARCHAR(24) NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(station_id, valid_time, use_period),
+                        FOREIGN KEY(station_id) REFERENCES stations(id) ON DELETE CASCADE
+                    )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    INSERT OR IGNORE INTO upper_wind_periods__new (
+                        id,
+                        station_id,
+                        valid_time,
+                        use_period,
+                        created_at
+                    )
+                    SELECT
+                        id,
+                        station_id,
+                        valid_time,
+                        use_period,
+                        created_at
+                    FROM upper_wind_periods
+                    """
+                )
+            )
+            connection.execute(text("DROP TABLE upper_wind_periods"))
+            connection.execute(
+                text("ALTER TABLE upper_wind_periods__new RENAME TO upper_wind_periods"))
+        finally:
+            connection.execute(text("PRAGMA foreign_keys=ON"))
+
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_upper_wind_periods_station_id ON upper_wind_periods (station_id)"
+            )
+        )
 
     def _rebuild_taf_forecast_periods(self, connection) -> None:
         """Rebuild taf_forecast_periods table without legacy UNIQUE constraint."""
@@ -672,6 +1222,7 @@ class SQLiteWeatherRepository:
 __all__ = [
     "SQLiteWeatherRepository",
     "WeatherRepository",
+    "Station",
     "MetarObservation",
     "MetarCloudLayer",
     "MetarWeatherPhenomenon",

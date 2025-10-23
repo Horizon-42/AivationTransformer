@@ -3,16 +3,15 @@ Test script to validate Canadian station IDs
 
 Tests each station individually to identify which ones are valid/invalid
 """
-
 from navcanada_weather_server import NavCanadaWeatherServer
-from pathlib import Path
 import time
 
 # First 10 stations to test
 TEST_STATIONS = ['CYYC', 'CYBW', 'CYOD', 'CYEG', 'CYXD', 'CYED', 'CZVL', 'CYPY', 'CYMM', 'CYQU']
 
-def test_single_station(server, station_id):
-    """Test a single station to see if it's valid"""
+
+def validate_station(server, station_id):
+    """Helper that validates a single station and returns tuple(status, station_id)."""
     print(f"\n🔍 Testing {station_id}...", end=" ")
     try:
         response = server.get_weather(
@@ -41,6 +40,12 @@ def test_single_station(server, station_id):
             print(f"⚠️  ERROR - {e}")
             return False, station_id
 
+
+def test_single_station(server, station_id):
+    is_valid, station = validate_station(server, station_id)
+    assert station == station_id
+    assert is_valid, f"Expected station {station_id} to return weather data"
+
 def main():
     print("🧪 Canadian Station Validator")
     print("=" * 70)
@@ -53,7 +58,7 @@ def main():
     invalid_stations = []
     
     for station in TEST_STATIONS:
-        is_valid, station_id = test_single_station(server, station)
+        is_valid, station_id = validate_station(server, station)
         if is_valid:
             valid_stations.append(station_id)
         else:

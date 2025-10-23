@@ -13,8 +13,9 @@ import time
 # Import the functions from our script
 REQUEST_DELAY = 3.0  # Shorter delay for testing
 
-def test_batch_has_data(server, stations):
-    """Test if a batch returns data - using correct NavCanadaWeatherResponse attributes"""
+
+def fetch_batch_data(server, stations):
+    """Helper to fetch a batch of stations and compute record counts."""
     try:
         result = server.get_weather(stations)
         
@@ -27,6 +28,12 @@ def test_batch_has_data(server, stations):
     except Exception as e:
         print(f"    Exception: {str(e)[:80]}", flush=True)
         return (False, 0)
+
+
+def test_batch_has_data(server, stations):
+    has_data, count = fetch_batch_data(server, stations)
+    assert has_data, "Expected batch to contain weather reports"
+    assert count > 0, "Expected at least one weather report in batch"
 
 
 def validate_single_station(server, station):
@@ -82,11 +89,11 @@ def simple_binary_search(server, stations, delay=REQUEST_DELAY):
         print(f"  Right: {', '.join(right)}")
         
         time.sleep(delay)
-        left_ok, left_count = test_batch_has_data(server, left)
+        left_ok, left_count = fetch_batch_data(server, left)
         print(f"  Left result:  {'✓' if left_ok else '✗'} ({left_count} reports)")
         
         time.sleep(delay)
-        right_ok, right_count = test_batch_has_data(server, right)
+        right_ok, right_count = fetch_batch_data(server, right)
         print(f"  Right result: {'✓' if right_ok else '✗'} ({right_count} reports)")
         
         if not left_ok and not right_ok:
@@ -138,7 +145,7 @@ def main():
     print("\n" + "-"*80)
     print("STEP 1: Test full batch")
     print("-"*80)
-    has_data, count = test_batch_has_data(server, first_group)
+    has_data, count = fetch_batch_data(server, first_group)
     print(f"\nFull batch result: {'✓ Has data' if has_data else '✗ No data'} ({count} reports)")
     
     if count == 0:

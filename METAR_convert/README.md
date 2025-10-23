@@ -25,12 +25,13 @@ repository.close()
 
 The repository now persists the decoded objects themselves:
 
+- `stations` contains a canonical record for each ICAO identifier (name, coordinates, elevation). It is automatically seeded with the validated Canadian station catalog.
 - `metar_observations`, `metar_cloud_layers`, and `metar_weather` capture the structured `METAR` dataclass plus its nested cloud layers and weather codes.
 - `taf_bulletins` with child tables (`taf_forecast_periods`, `taf_cloud_layers`, `taf_icing_turbulence`, `taf_temperature_forecasts`) retain each parsed forecast period from `taf.py`.
 - `upper_wind_periods` and `upper_wind_levels` store the parsed altitude grids from `upper_wind.py`.
 - `sigmet_reports` and `sigmet_area_points` persist the parsed polygons from `sigmet.py`.
 
-> **Migration tip:** the schema changed from the earlier JSON blobs—delete any existing `weather_data/weather.db` file to let the new tables be created cleanly.
+During initialization the repository backfills any legacy databases—creating the `stations` table, rewiring METAR/TAF/Upper-Wind tables to reference it, and migrating old coordinate columns. Fresh installs simply reuse the seeded catalog, but you can still extend it by writing additional `Station` rows in the database.
 
 ## Files
 
