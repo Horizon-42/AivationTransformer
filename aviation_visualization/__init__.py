@@ -2,41 +2,36 @@
 Aviation Weather Visualization Package
 ====================================
 
-Interactive map visualization for Canadian aviation weather data.
+Modern interactive map visualization for aviation weather data using Streamlit + PyDeck.
 
-This package provides tools for creating interactive maps showing:
-- Weather stations with current conditions
-- Flight routes between airports  
-- Real-time METAR and TAF data
-- Flight category classifications (VFR/IFR/etc)
+This package provides a comprehensive real-time visualization system featuring:
+- 3D interactive maps with 2D/3D switching
+- Real-time weather station data with METAR parsing
+- Interactive flight route planning
+- Multiple map styles and themes
+- Weather information on hover
+- Smart caching and performance optimization
 
 Main Classes:
-- AviationWeatherMap: Core mapping functionality
-- MapGenerator: High-level map creation utilities
+- AdvancedAviationApp: Complete Streamlit application with all features
 
 Example Usage:
-    from aviation_visualization import AviationWeatherMap
-    from METAR_convert.storage.sqlite_repository import SQLiteWeatherRepository
+    from aviation_visualization import AdvancedAviationApp
     
-    repo = SQLiteWeatherRepository("weather.db")
-    weather_map = AviationWeatherMap(repo)
-    weather_map.create_base_map()
-    weather_map.add_weather_stations()
-    weather_map.save_map("my_map.html")
+    # Launch the interactive Streamlit app
+    app = AdvancedAviationApp()
+    app.run()
+    
+    # Or use the launcher script
+    # python3 launch_aviation_app.py
 """
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __author__ = "Aviation Transformer Project"
 
 # Import main classes for easy access
-from .weather_map import AviationWeatherMap
-from .map_generator import MapGenerator
-from .interactive_route_builder import InteractiveRouteBuilder
 from .streamlit_app import AdvancedAviationApp
 
 __all__ = [
-    "AviationWeatherMap",
-    "MapGenerator",
-    "InteractiveRouteBuilder",
     "AdvancedAviationApp"
 ]
