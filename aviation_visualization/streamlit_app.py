@@ -14,7 +14,7 @@ import numpy as np
 import json
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
 import time
 
@@ -40,13 +40,105 @@ class AdvancedAviationApp:
         self.load_weather_repository()
     
     def setup_page_config(self):
-        """Configure Streamlit page settings"""
+        """Configure Streamlit page settings with modern styling"""
         st.set_page_config(
             page_title="🛩️ Aviation Weather Control Center",
             page_icon="✈️",
             layout="wide",
-            initial_sidebar_state="expanded"
+            initial_sidebar_state="collapsed"  # Start with collapsed sidebar for more map space
         )
+        
+        # Apply custom CSS for modern design
+        st.markdown("""
+        <style>
+        /* Modern styling with reduced top padding */
+        .main {
+            padding-top: 0rem;
+        }
+        
+        /* Remove default Streamlit margins */
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+        }
+        
+        /* Ensure map displays properly */
+        .stDeckGlJsonChart {
+            min-height: 600px !important;
+            height: 600px !important;
+        }
+        
+        /* Sidebar styling */
+        .css-1d391kg {
+            padding-top: 1rem;
+        }
+        
+        /* Clean map display */
+        .stDeckGlJsonChart {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        /* Control panels */
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Buttons */
+        .stButton > button {
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            color: white;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .stButton > button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Hide Streamlit branding */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        
+        /* Responsive design */
+        /* Minimize spacing around map */
+        .element-container {
+            margin-bottom: 0.5rem !important;
+        }
+        
+            /* Compact header styling */
+            .compact-header {
+                text-align: center;
+                padding: 8px 0 12px 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin: -50px -20px 15px -20px;
+                color: white;
+                border-radius: 0 0 12px 12px;
+            }
+            
+            .compact-header h2 {
+                margin: 0;
+                font-size: 1.8rem;
+                font-weight: 600;
+            }        @media (max-width: 768px) {
+            .compact-header h2 {
+                font-size: 1.4rem;
+            }
+            .map-container {
+                height: calc(100vh - 120px);
+            }
+        }
+        </style>
+        """, unsafe_allow_html=True)
     
     def initialize_session_state(self):
         """Initialize session state variables"""
@@ -82,7 +174,7 @@ class AdvancedAviationApp:
             db_path = Path(__file__).parent.parent / "weather_data" / "weather.db"
             if db_path.exists():
                 self.repo = SQLiteWeatherRepository(str(db_path))
-                st.success("✅ Connected to weather database")
+                # Only show success in debug mode, not to users
             else:
                 st.warning(f"⚠️ Database not found at {db_path}")
                 self.repo = None
@@ -97,23 +189,35 @@ class AdvancedAviationApp:
         
         try:
             # Get weather data from last 48 hours to find active stations
-            weather_data = self.repo.query_weather_data([], hours_back=48)
+            end_time = datetime.now(timezone.utc)
+            start_time = end_time - timedelta(hours=48)
+            weather_data = self.repo.query_weather_data(
+                station_ids=None,
+                start_time=start_time,
+                end_time=end_time
+            )
             
             if not weather_data:
                 return pd.DataFrame()
             
             # Extract unique stations with coordinates
             stations_dict = {}
-            for record in weather_data:
-                code = getattr(record, 'station_code', None)
-                lat = getattr(record, 'latitude', None)
-                lon = getattr(record, 'longitude', None)
-                
-                if code and lat and lon:
-                    if code not in stations_dict:
-                        stations_dict[code] = {
-                            'code': code,
-                            'name': getattr(record, 'station_name', code),
+            for station_code, station_data in weather_data.items():
+                # Skip special keys like '_sigmets'
+                if station_code.startswith('_'):
+                    continue
+
+                metars = station_data.get('metars', [])
+                if metars:
+                    # Use most recent METAR for station info
+                    record = metars[0]
+                    lat = getattr(record, 'latitude', None)
+                    lon = getattr(record, 'longitude', None)
+
+                    if lat and lon and lat != 0.0 and lon != 0.0:
+                        stations_dict[station_code] = {
+                            'code': station_code,
+                            'name': getattr(record, 'station_name', station_code),
                             'lat': float(lat),
                             'lon': float(lon),
                             'latest_obs': getattr(record, 'observation_time', None),
@@ -121,7 +225,7 @@ class AdvancedAviationApp:
                         }
             
             df = pd.DataFrame(list(stations_dict.values()))
-            st.info(f"📡 Loaded {len(df)} weather stations from database")
+            # Only show debug info if needed, not to regular users
             return df
             
         except Exception as e:
@@ -139,24 +243,33 @@ class AdvancedAviationApp:
             return st.session_state.weather_cache[cache_key]
         
         try:
-            weather_data = self.repo.query_weather_data([station_code], hours_back=6)
-            if weather_data:
-                latest = weather_data[0]
-                weather_info = {
-                    'station': station_code,
-                    'observation_time': getattr(latest, 'observation_time', None),
-                    'temperature': getattr(latest, 'temperature_celsius', None),
-                    'visibility': getattr(latest, 'visibility_meters', None),
-                    'wind_speed': getattr(latest, 'wind_speed_knots', None),
-                    'wind_direction': getattr(latest, 'wind_direction_degrees', None),
-                    'conditions': getattr(latest, 'weather_phenomena', 'Unknown'),
-                    'ceiling': getattr(latest, 'cloud_ceiling_feet', None),
-                    'raw_metar': getattr(latest, 'raw_text', '')
-                }
-                
-                # Cache the result
-                st.session_state.weather_cache[cache_key] = weather_info
-                return weather_info
+            end_time = datetime.now(timezone.utc)
+            start_time = end_time - timedelta(hours=6)
+            weather_data = self.repo.query_weather_data(
+                station_ids=[station_code],
+                start_time=start_time,
+                end_time=end_time
+            )
+            if weather_data and station_code in weather_data:
+                station_data = weather_data[station_code]
+                metars = station_data.get('metars', [])
+                if metars:
+                    latest = metars[0]  # Most recent METAR
+                    weather_info = {
+                        'station': station_code,
+                        'observation_time': getattr(latest, 'observation_time', None),
+                        'temperature': getattr(latest, 'temperature_celsius', None),
+                        'visibility': getattr(latest, 'visibility_meters', None),
+                        'wind_speed': getattr(latest, 'wind_speed_knots', None),
+                        'wind_direction': getattr(latest, 'wind_direction_degrees', None),
+                        'conditions': getattr(latest, 'weather_phenomena', 'Unknown'),
+                        'ceiling': getattr(latest, 'cloud_ceiling_feet', None),
+                        'raw_metar': getattr(latest, 'raw_text', '')
+                    }
+
+                    # Cache the result
+                    st.session_state.weather_cache[cache_key] = weather_info
+                    return weather_info
                 
         except Exception as e:
             st.error(f"Error getting weather for {station_code}: {e}")
@@ -173,25 +286,64 @@ class AdvancedAviationApp:
         # Convert ceiling from feet to hundreds of feet
         ceiling_hundreds = ceiling / 100 if ceiling else 0
         
-        # Flight category rules
+        # Flight category rules with enhanced visibility colors
         if vis_miles >= 5 and ceiling_hundreds >= 30:
-            return 'VFR', '#22c55e'      # Green
+            return 'VFR', '#00ff00'      # Bright Green
         elif vis_miles >= 3 and ceiling_hundreds >= 10:
-            return 'MVFR', '#eab308'     # Yellow  
+            return 'MVFR', '#ffff00'     # Bright Yellow
         elif vis_miles >= 1 and ceiling_hundreds >= 5:
-            return 'IFR', '#ef4444'      # Red
+            return 'IFR', '#ff4500'      # Orange Red
         else:
-            return 'LIFR', '#7c2d12'     # Dark Red
+            return 'LIFR', '#ff0000'     # Bright Red
     
     def get_map_styles(self) -> Dict[str, str]:
         """Get available map styles"""
         return {
-            'satellite': 'mapbox://styles/mapbox/satellite-streets-v11',
-            'light': 'mapbox://styles/mapbox/light-v10',
-            'dark': 'mapbox://styles/mapbox/dark-v10',
-            'streets': 'mapbox://styles/mapbox/streets-v11',
-            'outdoors': 'mapbox://styles/mapbox/outdoors-v11'
+            'satellite': None,  # Use default map
+            'light': 'light',
+            'dark': 'dark',
+            'streets': 'road',
+            'outdoors': None  # Use default map
         }
+
+    def get_text_color_for_map_style(self) -> List[int]:
+        """Get appropriate text color for current map style"""
+        if st.session_state.map_style == 'dark':
+            return [255, 255, 255, 255]  # White text for dark background
+        elif st.session_state.map_style == 'light':
+            return [0, 0, 0, 255]  # Black text for light background
+        else:
+            return [255, 255, 255, 255]  # White text for satellite/default
+
+    def get_tooltip_style(self) -> Dict[str, str]:
+        """Get tooltip style coordinated with map theme"""
+        if st.session_state.map_style == 'dark':
+            return {
+                'backgroundColor': 'rgba(30, 30, 30, 0.95)',
+                'color': 'white',
+                'fontSize': '12px',
+                'borderRadius': '8px',
+                'border': '1px solid rgba(255, 255, 255, 0.2)',
+                'boxShadow': '0 4px 12px rgba(0, 0, 0, 0.5)'
+            }
+        elif st.session_state.map_style == 'light':
+            return {
+                'backgroundColor': 'rgba(255, 255, 255, 0.95)',
+                'color': 'black',
+                'fontSize': '12px',
+                'borderRadius': '8px',
+                'border': '1px solid rgba(0, 0, 0, 0.2)',
+                'boxShadow': '0 4px 12px rgba(0, 0, 0, 0.15)'
+            }
+        else:
+            return {
+                'backgroundColor': 'rgba(40, 40, 40, 0.95)',
+                'color': 'white',
+                'fontSize': '12px',
+                'borderRadius': '8px',
+                'border': '1px solid rgba(255, 255, 255, 0.3)',
+                'boxShadow': '0 4px 12px rgba(0, 0, 0, 0.6)'
+            }
     
     def create_station_layers(self, stations_df: pd.DataFrame, show_stations: bool = True) -> List:
         """Create map layers for weather stations"""
@@ -219,6 +371,7 @@ class AdvancedAviationApp:
                     'lat': station['lat'],
                     'lon': station['lon'],
                     'category': category,
+                    'category_color': color,  # Original hex color for tooltip
                     'color': color_rgb,
                     'elevation': weather.get('ceiling', 100),  # Use ceiling as elevation for 3D effect
                     'temperature': weather.get('temperature', 0),
@@ -232,47 +385,65 @@ class AdvancedAviationApp:
         
         station_df = pd.DataFrame(station_data)
         
+        # Get text color based on map style
+        text_color = self.get_text_color_for_map_style()
+
         if st.session_state.map_mode == '3D':
-            # 3D Column layer for stations
+            # 3D Column layer for stations - bigger and more prominent
             layers.append(
                 pdk.Layer(
                     'ColumnLayer',
                     data=station_df,
                     get_position=['lon', 'lat'],
                     get_elevation='elevation',
-                    elevation_scale=20,
-                    radius=5000,
+                    elevation_scale=30,
+                    radius=8000,  # Bigger radius
                     get_fill_color='color',
+                    get_line_color=[255, 255, 255, 100],  # White outline
+                    line_width_min_pixels=1,
                     pickable=True,
                     auto_highlight=True,
                 )
             )
         else:
-            # 2D Scatterplot layer for stations
+            # 2D Scatterplot layer for stations - bigger with outline
             layers.append(
                 pdk.Layer(
                     'ScatterplotLayer',
                     data=station_df,
                     get_position=['lon', 'lat'],
-                    get_radius=8000,
+                    get_radius=12000,  # Much bigger radius
                     get_fill_color='color',
+                    get_line_color=[255, 255, 255, 180],  # White outline
+                    get_line_width=2,
+                    line_width_min_pixels=2,
                     pickable=True,
                     auto_highlight=True,
                 )
             )
         
-        # Text labels for station codes
+        # Text labels for station codes - positioned above stations
+        # Use larger text size if toggle is enabled, with better scaling
+        text_size = 24 if st.session_state.get('large_station_names', False) else 16
+        
         layers.append(
             pdk.Layer(
                 'TextLayer',
                 data=station_df,
                 get_position=['lon', 'lat'],
                 get_text='code',
-                get_size=12,
-                get_color=[255, 255, 255, 255],
+                get_size=text_size,
+                size_scale=1,  # Enable size scaling with zoom
+                size_min_pixels=12,  # Minimum size in pixels
+                size_max_pixels=48,  # Maximum size in pixels
+                get_color=text_color,
                 get_angle=0,
                 get_text_anchor='"middle"',
-                get_alignment_baseline='"center"'
+                get_alignment_baseline='"bottom"',  # Position above the station
+                billboard=True,  # Always face the camera
+                font_family='"Arial", sans-serif',
+                font_weight='bold',
+                pickable=True
             )
         )
         
@@ -333,17 +504,20 @@ class AdvancedAviationApp:
             )
             
             # Waypoint numbers
+            waypoint_text_size = 16 if st.session_state.get('large_station_names', False) else 12
+            
             layers.append(
                 pdk.Layer(
                     'TextLayer',
                     data=waypoint_df,
                     get_position=['lon', 'lat'],
                     get_text='order',
-                    get_size=14,
+                    get_size=waypoint_text_size,
                     get_color=[255, 255, 255, 255],
                     get_angle=0,
                     get_text_anchor='"middle"',
-                    get_alignment_baseline='"center"'
+                    get_alignment_baseline='"center"',
+                    font_weight='bold'
                 )
             )
         
@@ -355,12 +529,16 @@ class AdvancedAviationApp:
         # Combine all layers
         layers = []
         
-        # Add station layers
-        if st.session_state.show_all_stations:
-            layers.extend(self.create_station_layers(stations_df, True))
+        # Add station layers only if we have stations and they should be shown
+        if st.session_state.show_all_stations and not stations_df.empty:
+            station_layers = self.create_station_layers(stations_df, True)
+            if station_layers:  # Only add if not empty
+                layers.extend(station_layers)
         
-        # Add route layers
-        layers.extend(self.create_route_layer())
+        # Add route layers only if route exists
+        route_layers = self.create_route_layer()
+        if route_layers:  # Only add if not empty
+            layers.extend(route_layers)
         
         # Set initial view state
         if st.session_state.flight_route:
@@ -388,30 +566,36 @@ class AdvancedAviationApp:
         
         # Get map style
         map_styles = self.get_map_styles()
-        map_style = map_styles.get(st.session_state.map_style, map_styles['satellite'])
+        map_style = map_styles.get(st.session_state.map_style, None)
+
+        deck_kwargs = {
+            'initial_view_state': view_state,
+            'layers': layers,
+        }
+
+        # Only add map_style if it's not None
+        if map_style is not None:
+            deck_kwargs['map_style'] = map_style
+
+        # Get tooltip style based on map theme
+        tooltip_style = self.get_tooltip_style()
         
-        return pdk.Deck(
-            map_style=map_style,
-            initial_view_state=view_state,
-            layers=layers,
-            tooltip={
-                'html': '''
-                <b>{code}</b><br/>
-                <b>Name:</b> {name}<br/>
-                <b>Category:</b> {category}<br/>
-                <b>Temperature:</b> {temperature}°C<br/>
-                <b>Visibility:</b> {visibility}m<br/>
-                <b>Wind:</b> {wind_speed} knots<br/>
-                <b>Conditions:</b> {conditions}
-                ''',
-                'style': {
-                    'backgroundColor': 'steelblue',
-                    'color': 'white',
-                    'fontSize': '12px',
-                    'padding': '10px'
-                }
-            }
-        )
+        deck_kwargs['tooltip'] = {
+            'html': '''
+            <div style="padding: 8px;">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">{code}</div>
+                <div style="font-size: 14px; margin-bottom: 2px;"><strong>Name:</strong> {name}</div>
+                <div style="font-size: 14px; margin-bottom: 2px;"><strong>Category:</strong> <span style="padding: 2px 6px; border-radius: 3px; background: {category_color}; color: white;">{category}</span></div>
+                <div style="font-size: 14px; margin-bottom: 2px;"><strong>Temperature:</strong> {temperature}°C</div>
+                <div style="font-size: 14px; margin-bottom: 2px;"><strong>Visibility:</strong> {visibility}m</div>
+                <div style="font-size: 14px; margin-bottom: 2px;"><strong>Wind:</strong> {wind_speed} knots</div>
+                <div style="font-size: 14px;"><strong>Conditions:</strong> {conditions}</div>
+            </div>
+            ''',
+            'style': tooltip_style
+        }
+
+        return pdk.Deck(**deck_kwargs)
     
     def add_waypoint_to_route(self, lat: float, lon: float, name: str = None, waypoint_type: str = 'waypoint'):
         """Add a waypoint to the current route"""
@@ -585,62 +769,135 @@ class AdvancedAviationApp:
         return total_distance
     
     def render_main_content(self, stations_df: pd.DataFrame):
-        """Render the main content area"""
+        """Render the main content area with modern design - SINGLE MAP ONLY"""
         
-        st.title("🛩️ Advanced Aviation Weather Control Center")
-        st.markdown("**Interactive 2D/3D visualization with real-time weather data and route planning**")
+        # Initialize render control to prevent duplicates
+        if 'main_content_rendered' not in st.session_state:
+            st.session_state.main_content_rendered = True
         
-        # Map display
-        col1, col2 = st.columns([3, 1])
+        # Compact header
+        st.markdown("""
+        <div class="compact-header">
+            <h2>🛩️ Aviation Weather Control Center</h2>
+        </div>
+        """, unsafe_allow_html=True)
         
-        with col1:
-            st.subheader(f"🗺️ {st.session_state.map_mode} Aviation Map ({st.session_state.map_style.title()})")
-            
-            # Create and display map
-            deck = self.create_map(stations_df)
-            
-            # Handle map interactions
-            map_data = st.pydeck_chart(deck, use_container_width=True)
-            
-            # Map click instructions
-            st.info("💡 **Instructions:** Toggle station display, change map styles, and build routes using the sidebar. Click stations to add them to your route!")
+        # Optimized control layout - Essential controls first
+        main_col1, main_col2, main_col3 = st.columns([1, 1, 1])
         
-        with col2:
-            st.subheader("📊 Flight Status")
+        with main_col1:
+            new_mode = st.radio("🗺️ View Mode", ['2D', '3D'], 
+                              index=0 if st.session_state.map_mode == '2D' else 1,
+                              horizontal=True,
+                              key='quick_mode')
+            if new_mode != st.session_state.map_mode:
+                st.session_state.map_mode = new_mode
+                st.rerun()
+        
+        with main_col2:
+            styles = ['satellite', 'light', 'dark', 'streets', 'outdoors']
+            new_style = st.selectbox("🎨 Map Style", styles,
+                                   index=styles.index(st.session_state.map_style),
+                                   key='quick_style')
+            if new_style != st.session_state.map_style:
+                st.session_state.map_style = new_style
+                st.rerun()
+        
+        with main_col3:
+            stations_status = "ON" if st.session_state.show_all_stations else "OFF"
+            if st.button(f"📡 Stations [{stations_status}]", help="Toggle stations", use_container_width=True):
+                st.session_state.show_all_stations = not st.session_state.show_all_stations
+                st.rerun()
+        
+        # Secondary action buttons
+        st.markdown("**⚙️ Quick Actions**")
+        action_col1, action_col2, action_col3, action_col4 = st.columns(4)
+        
+        with action_col1:
+            # Station name size toggle with status
+            if 'large_station_names' not in st.session_state:
+                st.session_state.large_station_names = False
             
-            # Route information
-            if st.session_state.flight_route:
-                st.write(f"**Waypoints:** {len(st.session_state.flight_route)}")
-                
-                # Show route summary
-                for i, waypoint in enumerate(st.session_state.flight_route):
-                    if waypoint['type'] == 'station':
-                        weather = self.get_latest_weather(waypoint['name'].split(' - ')[0])
-                        if weather:
-                            category, _ = self.get_flight_category(
-                                weather.get('visibility'), 
-                                weather.get('ceiling')
-                            )
-                            st.write(f"{i+1}. **{waypoint['name']}** - {category}")
-                        else:
-                            st.write(f"{i+1}. **{waypoint['name']}**")
-                    else:
-                        st.write(f"{i+1}. {waypoint['name']}")
-                
-                # Route statistics
-                if len(st.session_state.flight_route) >= 2:
-                    distance = self.calculate_route_distance()
-                    st.metric("Total Distance", f"{distance:.0f} km")
-                    
-                    # Estimated flight time (assuming 500 km/h average speed)
-                    flight_time = distance / 500
-                    hours = int(flight_time)
-                    minutes = int((flight_time - hours) * 60)
-                    st.metric("Est. Flight Time", f"{hours}h {minutes}m")
-            
+            name_size = "Large" if st.session_state.large_station_names else "Normal"
+            if st.button(f"🔤 Names [{name_size}]", help="Toggle name size", use_container_width=True):
+                st.session_state.large_station_names = not st.session_state.large_station_names
+                st.rerun()
+        
+        with action_col2:
+            if st.button(" Refresh", help="Update weather", use_container_width=True):
+                st.session_state.weather_cache = {}
+                st.rerun()
+        
+        with action_col3:
+            route_count = len(st.session_state.flight_route)
+            if route_count > 0:
+                if st.button(f"🗑️ Clear Route ({route_count})", help="Clear route", use_container_width=True):
+                    st.session_state.flight_route = []
+                    st.rerun()
             else:
-                st.info("No route selected")
-                st.write("Use the sidebar to build a flight route")
+                st.button("🗑️ No Route", disabled=True, use_container_width=True)
+        
+        with action_col4:
+            # Route info
+            if route_count > 0:
+                distance = self.calculate_route_distance() if route_count > 1 else 0
+                st.button(f"✈️ {route_count} stops • {distance:.0f}km", disabled=True, use_container_width=True)
+            else:
+                st.button("✈️ Build Route", disabled=True, help="Use sidebar", use_container_width=True)
+        
+        # Main map area - maximized with proper display
+        # Create and display the map without extra containers that might cause issues
+        deck = self.create_map(stations_df)
+        
+        # Render PyDeck chart directly
+        st.pydeck_chart(
+            deck, 
+            use_container_width=True, 
+            height=600
+        )
+        
+        # Route status at bottom (compact)
+        if st.session_state.flight_route:
+            with st.expander("✈️ Current Flight Route", expanded=False):
+                route_col1, route_col2 = st.columns([3, 1])
+                
+                with route_col1:
+                    # Route waypoints in compact format
+                    waypoint_names = [w['name'] for w in st.session_state.flight_route]
+                    route_text = " ➡️ ".join(waypoint_names)
+                    st.markdown(f"**Route:** {route_text}")
+                    
+                    # Route validation
+                    is_valid, message = self.validate_route()
+                    if is_valid:
+                        total_distance = self.calculate_route_distance()
+                        st.success(f"✅ {message} • Distance: ~{total_distance:.0f} km")
+                    else:
+                        st.warning(f"⚠️ {message}")
+                
+                with route_col2:
+                    if st.button("📊 Route Details", key="route_details"):
+                        st.session_state.show_route_details = not st.session_state.get('show_route_details', False)
+                
+                # Show detailed route info if requested
+                if st.session_state.get('show_route_details', False):
+                    st.markdown("### Route Waypoints")
+                    for i, waypoint in enumerate(st.session_state.flight_route):
+                        if waypoint['type'] == 'station':
+                            weather = self.get_latest_weather(waypoint['name'].split(' - ')[0])
+                            if weather:
+                                category, _ = self.get_flight_category(
+                                    weather.get('visibility'), 
+                                    weather.get('ceiling')
+                                )
+                                st.write(f"{i+1}. **{waypoint['name']}** - {category}")
+                            else:
+                                st.write(f"{i+1}. **{waypoint['name']}**")
+                        else:
+                            st.write(f"{i+1}. {waypoint['name']}")
+        else:
+            # Show message when no route is selected
+            st.info("💡 **Tip:** Use the sidebar to build a flight route and see weather conditions along your path.")
             
             # Weather summary
             st.subheader("🌤️ Weather Summary")

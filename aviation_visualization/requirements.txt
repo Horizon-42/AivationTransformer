@@ -1,18 +1,25 @@
 # Aviation Weather Visualization Package Requirements
 # ================================================
 
-# Modern interactive visualization (Streamlit + PyDeck)
+# Interactive web application framework
 streamlit>=1.50.0
+
+# Advanced 3D mapping and visualization
 pydeck>=0.9.0
 
-# Data processing (should already be installed in your aviation environment)
-# pandas>=1.5.0
-# numpy>=1.20.0
+# Data processing (required for visualization)
+pandas>=1.5.0
+numpy>=1.20.0
 
-# Optional: Additional features
-# plotly>=5.0.0  # For alternative plotting
+# Additional visualization features
+plotly>=5.0.0
+
+# Optional: Enhanced styling and components
+streamlit-option-menu>=0.3.0  # For better navigation
+streamlit-extras>=0.3.0       # For additional UI components
 
 # Development dependencies (optional)
-# pytest>=7.0.0  # For testing
-# black>=22.0.0   # Code formatting
-# flake8>=5.0.0   # Linting
+# pytest>=7.0.0      # For testing
+# black>=22.0.0       # Code formatting
+# flake8>=5.0.0       # Linting
+# mypy>=1.0.0         # Type checking
