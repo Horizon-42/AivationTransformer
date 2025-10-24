@@ -40,16 +40,22 @@ Maps are saved in `aviation_visualization/maps/` - open any HTML file in your br
   - `storage/sqlite_repository.py` - Database operations with high-level API
 
 ### Interactive Visualization
-- `aviation_visualization/` - Interactive mapping package
-  - `weather_map.py` - Core mapping functionality
+- `aviation_visualization/` - Advanced interactive mapping package
+  - `streamlit_app.py` - 🆕 **Advanced Streamlit + PyDeck application**
+  - `weather_map.py` - Core Folium mapping functionality (legacy)
   - `map_generator.py` - High-level map creation utilities
+  - `interactive_route_builder.py` - HTML interactive route planning tool
   - `demo.py` - Usage examples
 
 ## 🗺️ Map Features
 
-### Interactive Elements
-- **Airport Markers**: Click for detailed weather information
-- **Flight Routes**: Visualize planned flight paths
+### 🆕 **Advanced Interactive Features**
+- **2D/3D Map Views**: Real-time switching between 2D and 3D visualization modes
+- **Multiple Map Styles**: Satellite, light, dark, streets, and outdoors themes
+- **Real-time Weather Display**: All database weather stations with hover information
+- **Smart Route Planning**: Click-to-add stations with validation (start/end must be stations)
+- **Live Weather Data**: Mouse hover shows latest METAR data from database
+- **Performance Optimization**: Smart caching and responsive design
 - **Flight Categories**: Color-coded by weather conditions
   - 🟢 VFR (Visual Flight Rules) - Good weather
   - 🟡 MVFR (Marginal VFR) - Moderate conditions  
@@ -63,20 +69,39 @@ Maps are saved in `aviation_visualization/maps/` - open any HTML file in your br
 - **Prairies**: Alberta, Saskatchewan, Manitoba
 - **West Coast**: British Columbia airports
 
-### Sample Flight Routes
+### Pre-configured Flight Routes
 - **Transcontinental**: Vancouver to Halifax
 - **Central Canada**: Toronto to Winnipeg  
 - **East Coast**: Montreal to St. John's
 
+### Interactive Route Builder
+- **Click-to-Build**: Click any weather station to add to your route
+- **Dynamic Updates**: Route line updates in real-time as you add stations
+- **Route Management**: Remove individual stations or clear entire route
+- **Distance Calculation**: Automatic route distance calculation
+- **Export Functionality**: Save custom routes as JSON files
+- **17 Major Airports**: All major Canadian airports available for route building
+
 ## 🛠️ Usage Examples
 
-### Run Demo Scripts
+### 🚀 **Launch the Advanced Visualization App**
 ```bash
-# Package demos (creates multiple maps)
-python3 aviation_visualization/demo.py
+# 🆕 New Advanced Streamlit Application (Recommended)
+# Auto-launches in browser with full interactive features
+python3 launch_aviation_app.py
 
-# Simple examples  
-python3 example_usage.py
+# Or run directly with conda environment
+/path/to/conda/envs/aviation/bin/python -m streamlit run aviation_visualization/streamlit_app.py
+
+# Access at: http://localhost:8502
+```
+
+### 📊 **Legacy Demo Scripts** (Still Available)
+```bash
+# Folium-based demos (HTML output)
+python3 aviation_visualization/demo.py
+python3 example_usage.py  
+python3 interactive_route_example.py
 ```
 
 ### High-Level API (Recommended)

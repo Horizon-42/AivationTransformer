@@ -31,8 +31,12 @@ __author__ = "Aviation Transformer Project"
 # Import main classes for easy access
 from .weather_map import AviationWeatherMap
 from .map_generator import MapGenerator
+from .interactive_route_builder import InteractiveRouteBuilder
+from .streamlit_app import AdvancedAviationApp
 
 __all__ = [
     "AviationWeatherMap",
-    "MapGenerator"
+    "MapGenerator",
+    "InteractiveRouteBuilder",
+    "AdvancedAviationApp"
 ]

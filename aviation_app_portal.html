@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛩️ 航空可视化系统 - 快速访问</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: rgba(34, 197, 94, 0.8);
+            border-color: rgba(34, 197, 94, 1);
+            font-size: 1.3rem;
+            padding: 1.5rem 3rem;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(34, 197, 94, 1);
+        }
+        
+        .features {
+            text-align: left;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+        
+        .features h3 {
+            color: #22c55e;
+            margin-bottom: 1rem;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .features li:last-child {
+            border-bottom: none;
+        }
+        
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(34, 197, 94, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid #22c55e;
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛩️ 航空天气可视化系统</h1>
+        <div class="subtitle">Advanced Aviation Weather Visualization</div>
+        
+        <div class="features">
+            <h3>🆕 新版功能特性</h3>
+            <ul>
+                <li><span class="emoji">🗺️</span><strong>2D/3D 地图切换</strong> - 实时切换视图模式</li>
+                <li><span class="emoji">🎨</span><strong>多种地图样式</strong> - 卫星、街道、深色等主题</li>
+                <li><span class="emoji">📡</span><strong>实时气象数据</strong> - 数据库中所有气象站</li>
+                <li><span class="emoji">✈️</span><strong>智能路线规划</strong> - 点击构建飞行路径</li>
+                <li><span class="emoji">🌤️</span><strong>悬停天气信息</strong> - 鼠标悬停查看 METAR 数据</li>
+                <li><span class="emoji">⚡</span><strong>真正实时交互</strong> - 原生 Python 驱动</li>
+            </ul>
+        </div>
+        
+        <a href="http://localhost:8502" class="btn btn-primary" target="_blank">
+            🚀 启动航空可视化系统
+        </a>
+        
+        <div style="margin-top: 1rem;">
+            <a href="aviation_visualization/STREAMLIT_GUIDE.md" class="btn">📚 使用指南</a>
+            <a href="aviation_visualization/UPGRADE_COMPARISON.md" class="btn">📊 升级对比</a>
+        </div>
+        
+        <div class="status">
+            <strong>✅ 系统状态:</strong> Streamlit 应用正在 http://localhost:8502 运行中
+        </div>
+        
+        <div style="margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;">
+            <p>🔧 <strong>技术栈:</strong> Streamlit + PyDeck + SQLAlchemy + METAR Parser</p>
+            <p>🎯 <strong>适用于:</strong> 飞行计划、天气监控、航空培训、数据分析</p>
+        </div>
+    </div>
+    
+    <script>
+        // 检查应用是否在线
+        function checkAppStatus() {
+            fetch('http://localhost:8502')
+                .then(() => {
+                    document.querySelector('.status').innerHTML = 
+                        '<strong>✅ 系统状态:</strong> 应用在线，可以正常访问';
+                })
+                .catch(() => {
+                    document.querySelector('.status').innerHTML = 
+                        '<strong>❌ 系统状态:</strong> 应用离线，请启动 Streamlit 应用';
+                    document.querySelector('.status').style.background = 'rgba(239, 68, 68, 0.2)';
+                    document.querySelector('.status').style.borderLeftColor = '#ef4444';
+                });
+        }
+        
+        // 页面加载时检查状态
+        window.addEventListener('load', checkAppStatus);
+        
+        // 每30秒检查一次状态
+        setInterval(checkAppStatus, 30000);
+    </script>
+</body>
+</html>
