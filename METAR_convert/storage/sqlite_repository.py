@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    and_,
     create_engine,
     delete,
     select,
@@ -682,6 +683,206 @@ class SQLiteWeatherRepository:
 
             records = query.all()
             return [_sigmet_from_record(record) for record in records]
+
+    # ------------------------------------------------------------------
+    # High-level API methods
+    # ------------------------------------------------------------------
+    def query_weather_data(
+        self,
+        *,
+        station_ids: Optional[Iterable[str]] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        limit: Optional[int] = None,
+    ) -> Dict[str, Dict[str, Union[List[METAR], List[TAF], List[UpperWind], List[SIGMET]]]]:
+        """
+        Query all weather data for specified stations within a time range.
+        
+        Args:
+            station_ids: List of station IDs to query. If None, queries all stations.
+            start_time: Start of time range (inclusive). If None, no lower bound.
+            end_time: End of time range (inclusive). If None, no upper bound.
+            limit: Maximum number of records per data type per station.
+            
+        Returns:
+            Dict with structure:
+            {
+                'station_id': {
+                    'metars': [METAR objects],
+                    'tafs': [TAF objects], 
+                    'upper_winds': [UpperWind objects],
+                    'sigmets': [SIGMET objects]  # Note: SIGMETs are not station-specific
+                }
+            }
+        """
+        result = {}
+
+        # Normalize station IDs
+        normalized_stations = None
+        if station_ids:
+            normalized_stations = {sid.strip().upper()
+                                   for sid in station_ids if sid.strip()}
+            if not normalized_stations:
+                return {}
+
+        with self._session_scope() as session:
+            # Get stations to query
+            station_query = session.query(Station.id)
+            if normalized_stations:
+                station_query = station_query.filter(
+                    Station.id.in_(normalized_stations))
+
+            stations = [row[0] for row in station_query.all()]
+
+            # Query data for each station
+            for station_id in stations:
+                station_data = {
+                    'metars': [],
+                    'tafs': [],
+                    'upper_winds': [],
+                    'sigmets': []  # Will be populated once, not per station
+                }
+
+                # Query METARs
+                metar_query = session.query(
+                    MetarObservation).filter_by(station_id=station_id)
+                if start_time:
+                    metar_query = metar_query.filter(
+                        MetarObservation.observation_time >= start_time)
+                if end_time:
+                    metar_query = metar_query.filter(
+                        MetarObservation.observation_time <= end_time)
+                metar_query = metar_query.order_by(
+                    MetarObservation.observation_time.desc())
+                if limit:
+                    metar_query = metar_query.limit(limit)
+
+                station_data['metars'] = [_metar_from_record(
+                    record) for record in metar_query.all()]
+
+                # Query TAFs
+                taf_query = session.query(
+                    TafBulletin).filter_by(station_id=station_id)
+                if start_time:
+                    taf_query = taf_query.filter(
+                        TafBulletin.issue_time >= start_time)
+                if end_time:
+                    taf_query = taf_query.filter(
+                        TafBulletin.issue_time <= end_time)
+                taf_query = taf_query.order_by(TafBulletin.issue_time.desc())
+                if limit:
+                    taf_query = taf_query.limit(limit)
+
+                station_data['tafs'] = [_taf_from_record(
+                    record) for record in taf_query.all()]
+
+                # Query Upper Winds
+                upper_wind_query = session.query(
+                    UpperWindPeriodRecord).filter_by(station_id=station_id)
+                if start_time or end_time:
+                    # Note: UpperWind uses string-based valid_time, so we need to be careful with filtering
+                    # For now, we'll include all records and let the user filter by valid_time string
+                    pass
+                upper_wind_query = upper_wind_query.order_by(
+                    UpperWindPeriodRecord.valid_time.desc(),
+                    UpperWindPeriodRecord.use_period.desc()
+                )
+                if limit:
+                    upper_wind_query = upper_wind_query.limit(limit)
+
+                upper_wind_records = upper_wind_query.all()
+                if upper_wind_records:
+                    station_data['upper_winds'] = [
+                        _upper_wind_from_records(station_id, upper_wind_records)]
+
+                result[station_id] = station_data
+
+            # Query SIGMETs (not station-specific, so add to first station or separately)
+            sigmet_query = session.query(SigmetReport)
+            if start_time:
+                sigmet_query = sigmet_query.filter(
+                    SigmetReport.created_at >= start_time)
+            if end_time:
+                sigmet_query = sigmet_query.filter(
+                    SigmetReport.created_at <= end_time)
+            sigmet_query = sigmet_query.order_by(
+                SigmetReport.created_at.desc())
+            if limit:
+                sigmet_query = sigmet_query.limit(limit)
+
+            sigmets = [_sigmet_from_record(record)
+                       for record in sigmet_query.all()]
+
+            # Add SIGMETs to result (as a special key since they're not station-specific)
+            if sigmets:
+                result['_sigmets'] = {'sigmets': sigmets}
+
+        return result
+
+    def query_weather_by_region(
+        self,
+        *,
+        min_latitude: float,
+        max_latitude: float,
+        min_longitude: float,
+        max_longitude: float,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        limit: Optional[int] = None,
+    ) -> Optional[Dict[str, Dict[str, Union[List[METAR], List[TAF], List[UpperWind]]]]]:
+        """
+        Query weather data for all stations within a geographic bounding box.
+        
+        Args:
+            min_latitude: Southern boundary of the box
+            max_latitude: Northern boundary of the box  
+            min_longitude: Western boundary of the box
+            max_longitude: Eastern boundary of the box
+            start_time: Start of time range (inclusive). If None, no lower bound.
+            end_time: End of time range (inclusive). If None, no upper bound.
+            limit: Maximum number of records per data type per station.
+            
+        Returns:
+            Dict with same structure as query_weather_data, or None if no stations found.
+        """
+        # Validate bounding box
+        if min_latitude >= max_latitude or min_longitude >= max_longitude:
+            raise ValueError(
+                "Invalid bounding box: min values must be less than max values")
+
+        if not (-90 <= min_latitude <= 90 and -90 <= max_latitude <= 90):
+            raise ValueError(
+                "Latitude values must be between -90 and 90 degrees")
+
+        if not (-180 <= min_longitude <= 180 and -180 <= max_longitude <= 180):
+            raise ValueError(
+                "Longitude values must be between -180 and 180 degrees")
+
+        with self._session_scope() as session:
+            # Find stations within the bounding box
+            station_query = session.query(Station.id).filter(
+                and_(
+                    Station.latitude.isnot(None),
+                    Station.longitude.isnot(None),
+                    Station.latitude >= min_latitude,
+                    Station.latitude <= max_latitude,
+                    Station.longitude >= min_longitude,
+                    Station.longitude <= max_longitude,
+                )
+            )
+
+            stations_in_box = [row[0] for row in station_query.all()]
+
+            if not stations_in_box:
+                return None
+
+            # Use the existing query_weather_data method with the found stations
+            return self.query_weather_data(
+                station_ids=stations_in_box,
+                start_time=start_time,
+                end_time=end_time,
+                limit=limit
+            )
 
     def close(self) -> None:
         """Dispose the underlying SQLAlchemy engine."""
