@@ -1,0 +1,18 @@
+# Aviation Weather Visualization Package Requirements
+# ================================================
+
+# Core mapping library
+folium>=0.20.0
+
+# Data processing (should already be installed in your aviation environment)
+# pandas>=1.5.0
+# numpy>=1.20.0
+
+# Optional: Additional map features
+# plotly>=5.0.0  # For alternative plotting
+# streamlit>=1.0.0  # For web app integration
+
+# Development dependencies (optional)
+# pytest>=7.0.0  # For testing
+# black>=22.0.0   # Code formatting
+# flake8>=5.0.0   # Linting

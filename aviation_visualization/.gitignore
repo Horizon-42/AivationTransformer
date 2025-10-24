@@ -1,0 +1,17 @@
+# Generated map files (uncomment to ignore)
+# maps/*.html
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

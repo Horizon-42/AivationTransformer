@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_0cbd4bbd51303ac19949511c5aeb8900 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+        <div style="position: fixed; 
+                    bottom: 50px; right: 50px; width: 150px; height: 140px; 
+                    background-color: white; border:2px solid grey; z-index:9999; 
+                    font-size:14px; padding: 10px">
+        <h4 style="margin-top:0">Flight Categories</h4>
+        <p><i class="fa fa-circle" style="color:#22c55e"></i> VFR (>8km vis)</p>
+        <p><i class="fa fa-circle" style="color:#eab308"></i> MVFR (5-8km vis)</p>
+        <p><i class="fa fa-circle" style="color:#ef4444"></i> IFR (1.6-5km vis)</p>
+        <p><i class="fa fa-circle" style="color:#7c2d12"></i> LIFR (<1.6km vis)</p>
+        </div>
+        
+    
+            <div class="folium-map" id="map_0cbd4bbd51303ac19949511c5aeb8900" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_0cbd4bbd51303ac19949511c5aeb8900 = L.map(
+                "map_0cbd4bbd51303ac19949511c5aeb8900",
+                {
+                    center: [43.6532, -79.3832],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 6,
+  "zoomControl": true,
+  "preferCanvas": true,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_936326ecddc3d59441e06db868e0c992 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_936326ecddc3d59441e06db868e0c992.addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+            var tile_layer_b41e7c131737d194b3903bd7c5777556 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_b41e7c131737d194b3903bd7c5777556.addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+            var tile_layer_f43468a35cd2dc53d54adf436210f7a1 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_f43468a35cd2dc53d54adf436210f7a1.addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+            var layer_control_bb82476939a82be4e0fe0b1d969230a6_layers = {
+                base_layers : {
+                    "openstreetmap" : tile_layer_936326ecddc3d59441e06db868e0c992,
+                    "Light Map" : tile_layer_b41e7c131737d194b3903bd7c5777556,
+                    "Dark Map" : tile_layer_f43468a35cd2dc53d54adf436210f7a1,
+                },
+                overlays :  {
+                },
+            };
+            let layer_control_bb82476939a82be4e0fe0b1d969230a6 = L.control.layers(
+                layer_control_bb82476939a82be4e0fe0b1d969230a6_layers.base_layers,
+                layer_control_bb82476939a82be4e0fe0b1d969230a6_layers.overlays,
+                {
+  "position": "topright",
+  "collapsed": true,
+  "autoZIndex": true,
+}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+
+        
+    
+            var circle_marker_5470c44bc61c9b0d5fa72e7d074e6a05 = L.circleMarker(
+                [43.1667, -79.9333],
+                {"bubblingMouseEvents": true, "color": "white", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7c2d12", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 4, "stroke": true, "weight": 1}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+        var popup_127660e0c9edeaadd2e02381978f8fef = L.popup({
+  "maxWidth": 320,
+});
+
+        
+            
+                var html_8686629bd8e3a0b398179f6fb4438767 = $(`<div id="html_8686629bd8e3a0b398179f6fb4438767" style="width: 100.0%; height: 100.0%;"><div style='width: 300px;'><h3>🛩️ CYHM</h3><h4>📋 Current Conditions</h4><b>Time:</b> 2025-10-24 19:00 UTC<br><b>Temperature:</b> 10.0°C<br><b>Wind:</b> 230°/7kt<br><b>Visibility:</b> 15<br><b>Sky:</b> BKN<br><b>Altimeter:</b> 1021.0 hPa<br><b>Category:</b> <span style='color: #7c2d12; font-weight: bold;'>LIFR</span><br><h4>📈 Forecast (TAF)</h4><b>Valid:</b> 10/24 18:00 - 10/25 18:00 UTC<br><b>Periods:</b> 7 forecast changes<br></div></div>`)[0];
+                popup_127660e0c9edeaadd2e02381978f8fef.setContent(html_8686629bd8e3a0b398179f6fb4438767);
+            
+        
+
+        circle_marker_5470c44bc61c9b0d5fa72e7d074e6a05.bindPopup(popup_127660e0c9edeaadd2e02381978f8fef)
+        ;
+
+        
+    
+    
+            circle_marker_5470c44bc61c9b0d5fa72e7d074e6a05.bindTooltip(
+                `<div>
+                     CYHM: 10.0°C
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_fa23d18e952d24fabec323b9562b4f69 = L.circleMarker(
+                [43.4667, -80.3833],
+                {"bubblingMouseEvents": true, "color": "white", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7c2d12", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 4, "stroke": true, "weight": 1}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+        var popup_ce40f0303b708b0d129e07bdd4045607 = L.popup({
+  "maxWidth": 320,
+});
+
+        
+            
+                var html_883cbf408040311e766e0b7f15d1d32e = $(`<div id="html_883cbf408040311e766e0b7f15d1d32e" style="width: 100.0%; height: 100.0%;"><div style='width: 300px;'><h3>🛩️ CYKF</h3><h4>📋 Current Conditions</h4><b>Time:</b> 2025-10-24 19:00 UTC<br><b>Temperature:</b> 9.0°C<br><b>Wind:</b> 270°/10ktG15kt<br><b>Visibility:</b> 9<br><b>Sky:</b> OVC<br><b>Altimeter:</b> 1021.0 hPa<br><b>Category:</b> <span style='color: #7c2d12; font-weight: bold;'>LIFR</span><br></div></div>`)[0];
+                popup_ce40f0303b708b0d129e07bdd4045607.setContent(html_883cbf408040311e766e0b7f15d1d32e);
+            
+        
+
+        circle_marker_fa23d18e952d24fabec323b9562b4f69.bindPopup(popup_ce40f0303b708b0d129e07bdd4045607)
+        ;
+
+        
+    
+    
+            circle_marker_fa23d18e952d24fabec323b9562b4f69.bindTooltip(
+                `<div>
+                     CYKF: 9.0°C
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ca341ecb143ef9b17b8d5714ae0501df = L.circleMarker(
+                [42.2667, -82.9667],
+                {"bubblingMouseEvents": true, "color": "white", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7c2d12", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 4, "stroke": true, "weight": 1}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+        var popup_dc64d9a48be22aa11968d936241a1dc1 = L.popup({
+  "maxWidth": 320,
+});
+
+        
+            
+                var html_ae191351d4876d0d26ef2f4b92dda14e = $(`<div id="html_ae191351d4876d0d26ef2f4b92dda14e" style="width: 100.0%; height: 100.0%;"><div style='width: 300px;'><h3>🛩️ CYQG</h3><h4>📋 Current Conditions</h4><b>Time:</b> 2025-10-24 19:00 UTC<br><b>Temperature:</b> 11.0°C<br><b>Wind:</b> 290°/11kt<br><b>Visibility:</b> 9<br><b>Sky:</b> OVC<br><b>Altimeter:</b> 1024.4 hPa<br><b>Category:</b> <span style='color: #7c2d12; font-weight: bold;'>LIFR</span><br><h4>📈 Forecast (TAF)</h4><b>Valid:</b> 10/24 18:00 - 10/25 18:00 UTC<br><b>Periods:</b> 7 forecast changes<br></div></div>`)[0];
+                popup_dc64d9a48be22aa11968d936241a1dc1.setContent(html_ae191351d4876d0d26ef2f4b92dda14e);
+            
+        
+
+        circle_marker_ca341ecb143ef9b17b8d5714ae0501df.bindPopup(popup_dc64d9a48be22aa11968d936241a1dc1)
+        ;
+
+        
+    
+    
+            circle_marker_ca341ecb143ef9b17b8d5714ae0501df.bindTooltip(
+                `<div>
+                     CYQG: 11.0°C
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_cc9f4fb654291929dc35908d7d628cfb = L.circleMarker(
+                [43.6333, -79.4],
+                {"bubblingMouseEvents": true, "color": "white", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7c2d12", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 4, "stroke": true, "weight": 1}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+        var popup_71c67eaabb4a1bd20c877eb9332ebb75 = L.popup({
+  "maxWidth": 320,
+});
+
+        
+            
+                var html_9f9078fd1838f9f27072748bb8226bbc = $(`<div id="html_9f9078fd1838f9f27072748bb8226bbc" style="width: 100.0%; height: 100.0%;"><div style='width: 300px;'><h3>🛩️ CYTZ</h3><h4>📋 Current Conditions</h4><b>Time:</b> 2025-10-24 19:00 UTC<br><b>Temperature:</b> 12.0°C<br><b>Wind:</b> 280°/10ktG16kt<br><b>Visibility:</b> 9<br><b>Sky:</b> BKN<br><b>Altimeter:</b> 1020.3 hPa<br><b>Category:</b> <span style='color: #7c2d12; font-weight: bold;'>LIFR</span><br></div></div>`)[0];
+                popup_71c67eaabb4a1bd20c877eb9332ebb75.setContent(html_9f9078fd1838f9f27072748bb8226bbc);
+            
+        
+
+        circle_marker_cc9f4fb654291929dc35908d7d628cfb.bindPopup(popup_71c67eaabb4a1bd20c877eb9332ebb75)
+        ;
+
+        
+    
+    
+            circle_marker_cc9f4fb654291929dc35908d7d628cfb.bindTooltip(
+                `<div>
+                     CYTZ: 12.0°C
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_79dc19aec15a6ca1ceba1413506782e6 = L.circleMarker(
+                [43.0167, -81.15],
+                {"bubblingMouseEvents": true, "color": "white", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7c2d12", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+        var popup_b6c68397dc7b8bd58df26765808e77e8 = L.popup({
+  "maxWidth": 320,
+});
+
+        
+            
+                var html_d0d6774aba2b2e566e11003c961271cf = $(`<div id="html_d0d6774aba2b2e566e11003c961271cf" style="width: 100.0%; height: 100.0%;"><div style='width: 300px;'><h3>🛩️ CYXU</h3><h4>📋 Current Conditions</h4><b>Time:</b> 2025-10-24 19:00 UTC<br><b>Temperature:</b> 10.0°C<br><b>Wind:</b> 270°/8ktG15kt<br><b>Visibility:</b> 25<br><b>Sky:</b> BKN<br><b>Altimeter:</b> 1022.4 hPa<br><b>Category:</b> <span style='color: #7c2d12; font-weight: bold;'>LIFR</span><br><h4>📈 Forecast (TAF)</h4><b>Valid:</b> 10/24 18:00 - 10/25 18:00 UTC<br><b>Periods:</b> 10 forecast changes<br></div></div>`)[0];
+                popup_b6c68397dc7b8bd58df26765808e77e8.setContent(html_d0d6774aba2b2e566e11003c961271cf);
+            
+        
+
+        circle_marker_79dc19aec15a6ca1ceba1413506782e6.bindPopup(popup_b6c68397dc7b8bd58df26765808e77e8)
+        ;
+
+        
+    
+    
+            circle_marker_79dc19aec15a6ca1ceba1413506782e6.bindTooltip(
+                `<div>
+                     CYXU: 10.0°C
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_61e2783ff84eaa7436570b93740e2bdb = L.circleMarker(
+                [43.6667, -79.6167],
+                {"bubblingMouseEvents": true, "color": "white", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7c2d12", "fillOpacity": 0.8, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+        var popup_671ddc1de1e5c82f5fc01dfae7ef733e = L.popup({
+  "maxWidth": 320,
+});
+
+        
+            
+                var html_23ee92cdb55a41bc538c1f8b72dee182 = $(`<div id="html_23ee92cdb55a41bc538c1f8b72dee182" style="width: 100.0%; height: 100.0%;"><div style='width: 300px;'><h3>🛩️ CYYZ</h3><h4>📋 Current Conditions</h4><b>Time:</b> 2025-10-24 19:00 UTC<br><b>Temperature:</b> 11.0°C<br><b>Wind:</b> 320°/8kt<br><b>Visibility:</b> 15<br><b>Sky:</b> BKN<br><b>Altimeter:</b> 1020.3 hPa<br><b>Category:</b> <span style='color: #7c2d12; font-weight: bold;'>LIFR</span><br><h4>📈 Forecast (TAF)</h4><b>Valid:</b> 10/24 19:35 - 10/24 19:35 UTC<br><b>Periods:</b> 8 forecast changes<br></div></div>`)[0];
+                popup_671ddc1de1e5c82f5fc01dfae7ef733e.setContent(html_23ee92cdb55a41bc538c1f8b72dee182);
+            
+        
+
+        circle_marker_61e2783ff84eaa7436570b93740e2bdb.bindPopup(popup_671ddc1de1e5c82f5fc01dfae7ef733e)
+        ;
+
+        
+    
+    
+            circle_marker_61e2783ff84eaa7436570b93740e2bdb.bindTooltip(
+                `<div>
+                     CYYZ: 11.0°C
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_faaf1047b2b1ec5b3b733fecdede8c82 = L.polyline(
+                [[43.6667, -79.6167], [43.6333, -79.4], [43.1667, -79.9333]],
+                {"bubblingMouseEvents": true, "color": "#8b5cf6", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#8b5cf6", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+        var popup_00810adbb58530cd7c24881e8a4021c0 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_a4d40625ef358cfb2a39381e7a53c4ac = $(`<div id="html_a4d40625ef358cfb2a39381e7a53c4ac" style="width: 100.0%; height: 100.0%;">Route: Ontario Circuit</div>`)[0];
+                popup_00810adbb58530cd7c24881e8a4021c0.setContent(html_a4d40625ef358cfb2a39381e7a53c4ac);
+            
+        
+
+        poly_line_faaf1047b2b1ec5b3b733fecdede8c82.bindPopup(popup_00810adbb58530cd7c24881e8a4021c0)
+        ;
+
+        
+    
+    
+            var marker_c791d19d427d80db54254597355b334f = L.marker(
+                [43.6667, -79.6167],
+                {
+}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+            var icon_1e0d5d4d487716f5ae2afea5dae1f70a = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "plane",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_190579ca36f29d0a48489e5f9592d777 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_718d24f4d089c563e9bdf5f8b7b71e9c = $(`<div id="html_718d24f4d089c563e9bdf5f8b7b71e9c" style="width: 100.0%; height: 100.0%;"><b>CYYZ</b><br>Waypoint 1<br>11.0°C, 320°/8kt</div>`)[0];
+                popup_190579ca36f29d0a48489e5f9592d777.setContent(html_718d24f4d089c563e9bdf5f8b7b71e9c);
+            
+        
+
+        marker_c791d19d427d80db54254597355b334f.bindPopup(popup_190579ca36f29d0a48489e5f9592d777)
+        ;
+
+        
+    
+    
+            marker_c791d19d427d80db54254597355b334f.bindTooltip(
+                `<div>
+                     CYYZ (Waypoint 1)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_c791d19d427d80db54254597355b334f.setIcon(icon_1e0d5d4d487716f5ae2afea5dae1f70a);
+            
+    
+            var marker_2052582f5ac511a01eca95f2837e6d4b = L.marker(
+                [43.6333, -79.4],
+                {
+}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+            var icon_51692732a64e87834009e69658f010f7 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "plane",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_a189bc4110687399da66f9b8bce3834a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_2ad9f78954cb26754a4334b28fba02c2 = $(`<div id="html_2ad9f78954cb26754a4334b28fba02c2" style="width: 100.0%; height: 100.0%;"><b>CYTZ</b><br>Waypoint 2<br>12.0°C, 280°/10kt</div>`)[0];
+                popup_a189bc4110687399da66f9b8bce3834a.setContent(html_2ad9f78954cb26754a4334b28fba02c2);
+            
+        
+
+        marker_2052582f5ac511a01eca95f2837e6d4b.bindPopup(popup_a189bc4110687399da66f9b8bce3834a)
+        ;
+
+        
+    
+    
+            marker_2052582f5ac511a01eca95f2837e6d4b.bindTooltip(
+                `<div>
+                     CYTZ (Waypoint 2)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_2052582f5ac511a01eca95f2837e6d4b.setIcon(icon_51692732a64e87834009e69658f010f7);
+            
+    
+            var marker_bbb43f7879891e967bf9a4f7f6684034 = L.marker(
+                [43.1667, -79.9333],
+                {
+}
+            ).addTo(map_0cbd4bbd51303ac19949511c5aeb8900);
+        
+    
+            var icon_dd45c7843f578de28c63118076ee3853 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "plane",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_014570e4af1702596c49ac35d077eae2 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_b528f679047186580494c63f121d1dc3 = $(`<div id="html_b528f679047186580494c63f121d1dc3" style="width: 100.0%; height: 100.0%;"><b>CYHM</b><br>Waypoint 3<br>10.0°C, 230°/7kt</div>`)[0];
+                popup_014570e4af1702596c49ac35d077eae2.setContent(html_b528f679047186580494c63f121d1dc3);
+            
+        
+
+        marker_bbb43f7879891e967bf9a4f7f6684034.bindPopup(popup_014570e4af1702596c49ac35d077eae2)
+        ;
+
+        
+    
+    
+            marker_bbb43f7879891e967bf9a4f7f6684034.bindTooltip(
+                `<div>
+                     CYHM (Waypoint 3)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_bbb43f7879891e967bf9a4f7f6684034.setIcon(icon_dd45c7843f578de28c63118076ee3853);
+            
+</script>
+</html>
