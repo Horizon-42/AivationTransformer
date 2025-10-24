@@ -8,6 +8,8 @@ from typing import Optional, List, Dict, Any, Union
 import json
 import re
 
+from .utils import parse_iso8601, from_timestamp
+
 __all__ = [
     "TAFCloudLayer",
     "IcingTurbulence",
@@ -15,26 +17,6 @@ __all__ = [
     "TAFForecastPeriod",
     "TAF",
 ]
-
-
-def _parse_iso8601(value: Optional[str]) -> datetime:
-    """Parse ISO-8601 strings into timezone aware datetimes."""
-    if not value:
-        return datetime.now(timezone.utc)
-    try:
-        return datetime.fromisoformat(value.replace('Z', '+00:00'))
-    except (ValueError, AttributeError):
-        return datetime.now(timezone.utc)
-
-
-def _from_timestamp(value: Optional[float]) -> datetime:
-    """Convert epoch seconds into a UTC datetime."""
-    if not value:
-        return datetime.now(timezone.utc)
-    try:
-        return datetime.fromtimestamp(float(value), tz=timezone.utc)
-    except (ValueError, OSError):
-        return datetime.now(timezone.utc)
 
 
 @dataclass
@@ -187,12 +169,12 @@ class TAF:
         """
 
         # Parse main TAF timing
-        bulletin_time = _parse_iso8601(data.get('bulletinTime'))
-        issue_time = _parse_iso8601(data.get('issueTime'))
-        database_time = _parse_iso8601(data.get('dbPopTime'))
+        bulletin_time = parse_iso8601(data.get('bulletinTime'))
+        issue_time = parse_iso8601(data.get('issueTime'))
+        database_time = parse_iso8601(data.get('dbPopTime'))
 
-        valid_from = _from_timestamp(data.get('validTimeFrom', 0))
-        valid_to = _from_timestamp(data.get('validTimeTo', 0))
+        valid_from = from_timestamp(data.get('validTimeFrom', 0))
+        valid_to = from_timestamp(data.get('validTimeTo', 0))
 
         # Parse forecast periods
         forecast_periods = []
@@ -227,19 +209,18 @@ class TAF:
                     for temp in fcst['temp']:
                         tf = TemperatureForecast(
                             temperature_celsius=temp.get('value'),
-                            time=_from_timestamp(
-                                temp.get('time')) if temp.get('time') else None
+                            time=from_timestamp(
+                                temp.get('validTime')) if temp.get('time') else None
                         )
                         temp_forecasts.append(tf)
 
                 period = TAFForecastPeriod(
-                    valid_from=_from_timestamp(fcst.get('timeFrom', 0)),
-                    valid_to=_from_timestamp(fcst.get('timeTo', 0)),
+                    valid_from=from_timestamp(fcst.get('timeFrom', 0)),
+                    valid_to=from_timestamp(fcst.get('timeTo', 0)),
                     valid_from_timestamp=fcst.get('timeFrom', 0),
                     valid_to_timestamp=fcst.get('timeTo', 0),
-                    becomes_time=_from_timestamp(
-                        fcst.get('timeBec')) if fcst.get('timeBec') else None,
-
+                    becomes_time=from_timestamp(
+                        fcst.get('becmgTime', 0)) if fcst.get('becmgTime') else None,
                     forecast_change_type=fcst.get('fcstChange'),
                     probability_percent=fcst.get('probability'),
 
@@ -407,7 +388,7 @@ class TAF:
         database_time = datetime.now(timezone.utc)
         if extraction_time:
             try:
-                database_time = _parse_iso8601(extraction_time)
+                database_time = parse_iso8601(extraction_time)
             except (ValueError, AttributeError):
                 pass
 

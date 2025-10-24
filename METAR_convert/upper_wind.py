@@ -33,22 +33,10 @@ Usage:
 import re
 from typing import Dict, List, Optional, Tuple
 
+from .utils import decode_temperature_code
 
-def _decode_temperature_code(code: str) -> Optional[int]:
-    """Decode two-digit temperature codes used below 24,000 ft."""
 
-    if not code or not code.isdigit():
-        return None
-
-    value = int(code)
-    if value == 99:
-        return None
-
-    if value >= 50:
-        # Values 50-99 represent positive temperatures by adding 50.
-        return value - 50
-    # Remaining values represent negative temperatures.
-    return -value
+# Moved to utils.py - use decode_temperature_code from there
 
 
 def _decode_dd_speed(dd: int, speed_code: int) -> Tuple[Optional[int], Optional[int]]:
@@ -112,7 +100,7 @@ def _decode_compact_group(token: str, altitude_ft: int) -> Tuple[Optional[int], 
         speed_code = int(remainder[:2])
         remainder = remainder[2:]
         if len(remainder) >= 2:
-            temperature = _decode_temperature_code(remainder[:2])
+            temperature = decode_temperature_code(remainder[:2])
     else:
         if remainder:
             speed_code = int(remainder)

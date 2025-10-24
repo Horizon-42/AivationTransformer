@@ -8,20 +8,9 @@ from typing import Optional, List, Dict, Any
 import json
 import re
 
+from .utils import parse_iso8601, celsius_to_fahrenheit, knots_to_mph, hpa_to_inches_hg, inches_hg_to_hpa
+
 __all__ = ["CloudLayer", "METAR"]
-
-
-def _parse_iso8601(value: Optional[str]) -> datetime:
-    """Parse a potentially simple ISO-8601 string into a timezone-aware datetime."""
-    if not value:
-        return datetime.now(timezone.utc)
-
-    try:
-        if isinstance(value, datetime):
-            return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
-        return datetime.fromisoformat(str(value).replace('Z', '+00:00'))
-    except (ValueError, TypeError):
-        return datetime.now(timezone.utc)
 
 
 @dataclass
@@ -126,8 +115,8 @@ class METAR:
                 cloud_layers.append(layer)
 
         # Parse timestamps
-        observation_time = _parse_iso8601(data.get('reportTime'))
-        receipt_time = _parse_iso8601(data.get('receiptTime'))
+        observation_time = parse_iso8601(data.get('reportTime'))
+        receipt_time = parse_iso8601(data.get('receiptTime'))
 
         return cls(
             # Station Information
@@ -278,7 +267,7 @@ class METAR:
         if alt_match:
             # Convert inches Hg to hPa
             inches_hg = int(alt_match.group(1)) / 100.0
-            altimeter_hpa = inches_hg * 33.8639
+            altimeter_hpa = inches_hg_to_hpa(inches_hg)
         else:
             # Try Q format (hPa directly)
             q_match = re.search(r'Q(\d{4})', raw_metar)
@@ -336,7 +325,7 @@ class METAR:
         # Parse extraction time
         receipt_time = datetime.now(timezone.utc)
         if extraction_time:
-            receipt_time = _parse_iso8601(extraction_time)
+            receipt_time = parse_iso8601(extraction_time)
 
         return cls(
             # Station Information
@@ -424,21 +413,21 @@ class METAR:
 
     def temperature_fahrenheit(self) -> float:
         """Convert temperature to Fahrenheit"""
-        return (self.temperature_celsius * 9/5) + 32
+        return celsius_to_fahrenheit(self.temperature_celsius)
 
     def dewpoint_fahrenheit(self) -> float:
         """Convert dewpoint to Fahrenheit"""
-        return (self.dewpoint_celsius * 9/5) + 32
+        return celsius_to_fahrenheit(self.dewpoint_celsius)
 
     def altimeter_inches_hg(self) -> float:
         """Convert altimeter setting to inches of mercury"""
-        return self.altimeter_hpa * 0.02953
+        return hpa_to_inches_hg(self.altimeter_hpa)
 
     def wind_speed_mph(self) -> Optional[float]:
         """Convert wind speed to miles per hour"""
         if self.wind_speed_knots is None:
             return None
-        return self.wind_speed_knots * 1.15078
+        return knots_to_mph(self.wind_speed_knots)
 
     def __str__(self) -> str:
         """Human readable string representation"""
