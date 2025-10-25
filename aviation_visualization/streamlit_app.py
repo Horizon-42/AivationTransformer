@@ -8,6 +8,7 @@ with 2D/3D maps, real-time weather data, and interactive route planning.
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pydeck as pdk
 import pandas as pd
 import numpy as np
@@ -352,11 +353,12 @@ class AdvancedAviationApp:
         if not show_stations or stations_df.empty:
             return layers
         
-        # Add weather information to stations
+        # Add weather information to stations - show stations even without weather data
         station_data = []
         for _, station in stations_df.iterrows():
             weather = self.get_latest_weather(station['code'])
             if weather:
+                # Station with weather data
                 category, color = self.get_flight_category(
                     weather.get('visibility'), 
                     weather.get('ceiling')
@@ -378,6 +380,22 @@ class AdvancedAviationApp:
                     'visibility': weather.get('visibility', 0),
                     'wind_speed': weather.get('wind_speed', 0),
                     'conditions': weather.get('conditions', 'Unknown')
+                })
+            else:
+                # Station without weather data - show as gray/unknown
+                station_data.append({
+                    'code': station['code'],
+                    'name': station['name'],
+                    'lat': station['lat'],
+                    'lon': station['lon'],
+                    'category': 'UNKNOWN',
+                    'category_color': '#808080',  # Gray color for unknown
+                    'color': [128, 128, 128, 200],  # Gray RGB
+                    'elevation': 100,  # Default elevation
+                    'temperature': 0,
+                    'visibility': 0,
+                    'wind_speed': 0,
+                    'conditions': 'No Data'
                 })
         
         if not station_data:
@@ -529,8 +547,32 @@ class AdvancedAviationApp:
         # Combine all layers
         layers = []
         
-        # Add station layers only if we have stations and they should be shown
-        if st.session_state.show_all_stations and not stations_df.empty:
+        # Add station layers - debug and fix
+        show_stations = st.session_state.get('show_all_stations', True)
+        
+        # Add a clickable background layer for custom points (when route building is active)
+        if st.session_state.get('show_quick_route_builder', False):
+            # Create a grid of invisible points covering the map for clicking
+            background_points = []
+            for lat in range(-80, 81, 20):  # Every 20 degrees
+                for lon in range(-180, 181, 20):
+                    background_points.append({'lat': lat, 'lon': lon})
+            
+            if background_points:
+                layers.append(
+                    pdk.Layer(
+                        'ScatterplotLayer',
+                        data=pd.DataFrame(background_points),
+                        get_position=['lon', 'lat'],
+                        get_radius=0,  # Invisible but clickable
+                        get_fill_color=[0, 0, 0, 0],  # Completely transparent
+                        pickable=True,
+                        auto_highlight=False,
+                    )
+                )
+
+        # Add station layers
+        if show_stations and not stations_df.empty:
             station_layers = self.create_station_layers(stations_df, True)
             if station_layers:  # Only add if not empty
                 layers.extend(station_layers)
@@ -597,6 +639,67 @@ class AdvancedAviationApp:
 
         return pdk.Deck(**deck_kwargs)
     
+    def _add_quick_waypoint(self, lat: float, lon: float, name: str, waypoint_type: str = 'station'):
+        """Quick method to add a waypoint"""
+        if 'route_waypoints' not in st.session_state:
+            st.session_state.route_waypoints = []
+        
+        waypoint = {
+            'name': name,
+            'lat': float(lat),
+            'lon': float(lon),
+            'type': waypoint_type
+        }
+        
+        st.session_state.route_waypoints.append(waypoint)
+        st.session_state.flight_route = st.session_state.route_waypoints.copy()
+        
+        st.success(f"✅ 已添加航点: {name} ({lat:.3f}, {lon:.3f})")
+        st.rerun()
+
+    def _process_map_click(self, click_info):
+        """Process a map click event and add waypoint"""
+        if not click_info:
+            return
+            
+        # Extract coordinates - try different possible formats
+        lat, lon = None, None
+        
+        if 'coordinate' in click_info:
+            lat, lon = click_info['coordinate']
+        elif 'lat' in click_info and 'lon' in click_info:
+            lat, lon = click_info['lat'], click_info['lon']
+        elif 'position' in click_info:
+            lon, lat = click_info['position']  # Note: PyDeck uses [lon, lat] format
+        
+        if lat is not None and lon is not None:
+            # Determine waypoint info
+            if 'code' in click_info:
+                # Clicked on a station
+                waypoint_name = f"{click_info['code']} - {click_info.get('name', click_info['code'])}"
+                waypoint_type = 'station'
+            else:
+                # Clicked on empty map area
+                waypoint_name = f"Point_{len(st.session_state.get('route_waypoints', []))+1}"
+                waypoint_type = 'custom'
+            
+            # Add to route
+            if 'route_waypoints' not in st.session_state:
+                st.session_state.route_waypoints = []
+            
+            waypoint = {
+                'name': waypoint_name,
+                'lat': float(lat),
+                'lon': float(lon),
+                'type': waypoint_type
+            }
+            
+            st.session_state.route_waypoints.append(waypoint)
+            st.session_state.flight_route = st.session_state.route_waypoints.copy()
+            
+            st.success(f"✅ 已添加航点: {waypoint_name} ({lat:.3f}, {lon:.3f})")
+            st.rerun()
+
     def add_waypoint_to_route(self, lat: float, lon: float, name: str = None, waypoint_type: str = 'waypoint'):
         """Add a waypoint to the current route"""
         waypoint = {
@@ -838,23 +941,186 @@ class AdvancedAviationApp:
                 st.button("🗑️ No Route", disabled=True, use_container_width=True)
         
         with action_col4:
-            # Route info
+            # Route builder toggle - always available
+            current_builder_state = st.session_state.get('show_quick_route_builder', False)
+            builder_text = "🔧 Route Builder" if not current_builder_state else "📊 Hide Builder"
+            
+            if st.button(builder_text, help="Toggle route building interface", use_container_width=True):
+                st.session_state.show_quick_route_builder = not current_builder_state
+                st.rerun()
+                
+            # Show route info as separate element if route exists
             if route_count > 0:
                 distance = self.calculate_route_distance() if route_count > 1 else 0
-                st.button(f"✈️ {route_count} stops • {distance:.0f}km", disabled=True, use_container_width=True)
-            else:
-                st.button("✈️ Build Route", disabled=True, help="Use sidebar", use_container_width=True)
+                st.caption(f"✈️ {route_count} stops • {distance:.0f}km")
         
         # Main map area - maximized with proper display
-        # Create and display the map without extra containers that might cause issues
+        # Create and display the map with click interaction
         deck = self.create_map(stations_df)
         
-        # Render PyDeck chart directly
-        st.pydeck_chart(
+        # Render PyDeck chart with click event handling
+        clicked_data = st.pydeck_chart(
             deck, 
             use_container_width=True, 
-            height=600
+            height=600,
+            key="aviation_map"
         )
+        
+        # Handle map clicks for route building with improved detection
+        if st.session_state.get('show_quick_route_builder', False):
+            
+            # Display map selection status
+            if st.session_state.get('map_selection_mode', False):
+                st.warning("🎯 **地图选点模式激活中** - 请在地图上点击您想添加航点的位置")
+                
+                # Check for PyDeck click events when in selection mode
+                try:
+                    if clicked_data and hasattr(clicked_data, 'last_object_clicked'):
+                        click_obj = clicked_data.last_object_clicked
+                        if click_obj:
+                            self._process_map_click(click_obj)
+                            st.session_state.map_selection_mode = False  # Turn off selection mode after click
+                except:
+                    pass
+            
+            # Quick add buttons for common coordinates
+            st.markdown("#### 🎯 快速添加航点")
+            quick_add_col1, quick_add_col2, quick_add_col3, quick_add_col4 = st.columns(4)
+            
+            with quick_add_col1:
+                if st.button("📍 北京 (PEK)", use_container_width=True):
+                    self._add_quick_waypoint(40.0801, 116.5846, "北京首都机场 (PEK)", "station")
+            
+            with quick_add_col2:
+                if st.button("📍 上海 (PVG)", use_container_width=True):
+                    self._add_quick_waypoint(31.1434, 121.8052, "上海浦东机场 (PVG)", "station")
+            
+            with quick_add_col3:
+                if st.button("📍 广州 (CAN)", use_container_width=True):
+                    self._add_quick_waypoint(23.3924, 113.2988, "广州白云机场 (CAN)", "station")
+                    
+            with quick_add_col4:
+                if st.button("� 深圳 (SZX)", use_container_width=True):
+                    self._add_quick_waypoint(22.6393, 113.8107, "深圳宝安机场 (SZX)", "station")
+                    
+            # Check for click events in PyDeck data
+            try:
+                # Method 1: Check for last_clicked_object attribute
+                if hasattr(clicked_data, 'last_clicked_object') and clicked_data.last_clicked_object:
+                    self._process_map_click(clicked_data.last_clicked_object)
+                
+                # Method 2: Check if clicked_data is a dict with click info
+                elif isinstance(clicked_data, dict) and 'last_clicked_object' in clicked_data:
+                    self._process_map_click(clicked_data['last_clicked_object'])
+                
+                # Method 3: Check for coordinate data directly
+                elif isinstance(clicked_data, dict) and any(k in clicked_data for k in ['coordinate', 'lat', 'lon']):
+                    self._process_map_click(clicked_data)
+                    
+            except Exception as e:
+                # Silent handling - clicking might not always work immediately
+                pass
+        
+        # Route builder interface
+        if st.session_state.get('show_quick_route_builder', False):
+            st.markdown("---")
+            st.markdown("### 🛠️ Route Builder")
+            
+            # Click mode control
+            click_mode_col1, click_mode_col2 = st.columns([3, 1])
+            
+            with click_mode_col1:
+                st.info("🖱️ **地图交互模式** - 按住 Ctrl + 点击 或 使用下方按钮添加航点")
+            
+            with click_mode_col2:
+                if st.button("🗺️ 地图选点", use_container_width=True):
+                    st.session_state.map_selection_mode = not st.session_state.get('map_selection_mode', False)
+                    if st.session_state.map_selection_mode:
+                        st.success("🎯 地图选点模式已激活！请点击地图上的位置")
+                    else:
+                        st.info("地图选点模式已关闭")
+                    st.rerun()
+            
+            # Add coordinate input for manual point addition
+            st.markdown("#### 📍 手动添加航点坐标")
+            
+            # Coordinate input with suggested values
+            coord_input_col1, coord_input_col2 = st.columns(2)
+            
+            with coord_input_col1:
+                st.markdown("**常用机场坐标参考:**")
+                st.caption("• 北京首都: 40.080, 116.585")
+                st.caption("• 上海浦东: 31.143, 121.805") 
+                st.caption("• 广州白云: 23.392, 113.299")
+                st.caption("• 成都双流: 30.578, 103.947")
+                
+            with coord_input_col2:
+                coord_col1, coord_col2, coord_col3 = st.columns([2, 2, 1])
+                
+                with coord_col1:
+                    lat_input = st.number_input("纬度 (Latitude)", 
+                                              value=st.session_state.get('last_lat', 39.0), 
+                                              min_value=-90.0, 
+                                              max_value=90.0, 
+                                              step=0.001,
+                                              format="%.3f",
+                                              key="manual_lat")
+                with coord_col2:
+                    lon_input = st.number_input("经度 (Longitude)", 
+                                              value=st.session_state.get('last_lon', 116.0), 
+                                              min_value=-180.0, 
+                                              max_value=180.0, 
+                                              step=0.001,
+                                              format="%.3f",
+                                              key="manual_lon")
+                with coord_col3:
+                    if st.button("📍 添加点", use_container_width=True):
+                        self._add_quick_waypoint(lat_input, lon_input, 
+                                               f"Custom_{len(st.session_state.get('route_waypoints', []))+1}",
+                                               'custom')
+                        
+                        # Remember last coordinates
+                        st.session_state.last_lat = lat_input
+                        st.session_state.last_lon = lon_input
+        
+        # Quick route builder (appears when user clicks Build Route button)
+        if st.session_state.get('show_quick_route_builder', False) and not stations_df.empty:
+            st.markdown("---")
+            st.markdown("### 🚀 Quick Route Builder")
+            st.info("💡 **添加航点方式:** ① 手动输入坐标添加任意点 ② 使用下拉菜单选择已知机场站点 ③ 查看地图选择合适位置")
+            
+            quick_col1, quick_col2, quick_col3 = st.columns([3, 1, 1])
+            
+            with quick_col1:
+                # Quick station selection
+                station_codes = stations_df['code'].tolist()
+                selected_quick_station = st.selectbox(
+                    "Select Airport Station",
+                    options=[''] + station_codes,
+                    key='quick_station_selector',
+                    help="Choose an airport to add to your route"
+                )
+            
+            with quick_col2:
+                if st.button("➕ Add to Route", disabled=not selected_quick_station, use_container_width=True):
+                    if selected_quick_station:
+                        station_info = stations_df[stations_df['code'] == selected_quick_station].iloc[0]
+                        self.add_waypoint_to_route(
+                            lat=station_info['lat'],
+                            lon=station_info['lon'],
+                            name=f"{station_info['code']} - {station_info['name']}",
+                            waypoint_type='station'
+                        )
+                        st.success(f"Added {selected_quick_station} to route!")
+                        st.rerun()
+            
+            with quick_col3:
+                if st.button("❌ Close", use_container_width=True):
+                    st.session_state.show_quick_route_builder = False
+                    st.rerun()
+            
+            st.info("💡 **提示:** 你也可以使用左侧边栏进行更详细的路线规划")
+            st.markdown("---")
         
         # Route status at bottom (compact)
         if st.session_state.flight_route:
